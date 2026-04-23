@@ -34,6 +34,20 @@
                 <data android:scheme="parvaz" />
             </intent-filter>
         </activity>
+
+        <!--
+          ParvazVpnService establishes the TUN interface and launches the
+          Go sidecar. Android triggers the system consent dialog on first
+          bind; from then on BIND_VPN_SERVICE guards the service itself.
+        -->
+        <service
+            android:name=".vpn.ParvazVpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

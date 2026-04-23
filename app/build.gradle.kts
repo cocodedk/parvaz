@@ -41,6 +41,16 @@ android {
         versionCode = versionCodeValue
         versionName = versionNameValue
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Parvaz users are on Android phones in Iran — all arm64. Go can
+        // cross-compile android/arm64 without cgo; android/amd64 needs
+        // cgo + NDK clang, which we don't set up. Forcing arm64-v8a as
+        // the only packaged ABI makes Android's installer pick it as the
+        // primary ABI on x86_64 emulators too (the emulator's ARM
+        // translation layer handles execution; abilist advertises both).
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
     }
 
     if (hasSigningConfig) {
