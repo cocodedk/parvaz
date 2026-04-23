@@ -116,12 +116,20 @@ class ParvazVpnService : VpnService() {
     }
 
     private fun fail() {
+        startJob?.cancel()
+        startJob = null
         cleanup()
         _state.value = SessionState.failed()
         stopSelf()
     }
 
     private fun teardown() {
+        // Cancel any in-flight scheduleStart coroutine first — without
+        // this, a user who resets access mid-CONNECTING could see the
+        // startJob later write CONNECTED/FAILED after teardown cleared
+        // DISCONNECTED, stranding them on onboarding with a running VPN.
+        startJob?.cancel()
+        startJob = null
         cleanup()
         _state.value = SessionState.disconnected()
         stopSelf()

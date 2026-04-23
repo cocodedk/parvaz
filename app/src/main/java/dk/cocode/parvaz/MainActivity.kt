@@ -131,5 +131,8 @@ class MainActivity : ComponentActivity() {
             pendingParvazUrl = null
             pendingParvazUrlError = e.message
         }
+        // Consume the URI so a later recreate() (e.g. language toggle)
+        // doesn't replay it and kick the user back into IMPORT.
+        intent.data = null
     }
 }
