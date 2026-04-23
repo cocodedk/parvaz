@@ -38,7 +38,12 @@ func (d *recordingDialer) Dial(_ context.Context, host string, port uint16) (net
 // listener address and a cleanup func.
 func startServer(t *testing.T, d Dialer) (string, func()) {
 	t.Helper()
-	srv := &Server{Dialer: d}
+	return startServerWith(t, &Server{Dialer: d})
+}
+
+// startServerWith is the configurable variant; callers pass a prebuilt Server.
+func startServerWith(t *testing.T, srv *Server) (string, func()) {
+	t.Helper()
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -173,3 +178,4 @@ func TestSOCKS5_MalformedHandshake_ClosesConn(t *testing.T) {
 		t.Errorf("expected EOF/timeout, got %d bytes: %v", n, buf[:n])
 	}
 }
+

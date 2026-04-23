@@ -20,6 +20,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/cocodedk/parvaz/core/fronter"
 	"github.com/cocodedk/parvaz/core/relay"
@@ -71,11 +72,17 @@ func run() error {
 		listenHost   = flag.String("listen-host", defaultListenHost, "SOCKS5 listen host")
 		listenPort   = flag.Int("listen-port", defaultListenPort, "SOCKS5 listen port")
 		printVersion = flag.Bool("version", false, "print version and exit")
+		logLevelStr  = flag.String("log-level", "warn", "slog level: debug|info|warn|error")
 	)
 	flag.Parse()
 	if *printVersion {
 		fmt.Println("parvazd", version)
 		return nil
+	}
+
+	logger, err := newLogger(*logLevelStr)
+	if err != nil {
+		return err
 	}
 
 	cfg := Config{
@@ -116,7 +123,7 @@ func run() error {
 	}
 	defer ln.Close()
 
-	srv := &socks5.Server{Dialer: stubDialer{}}
+	srv := &socks5.Server{Dialer: stubDialer{}, Logger: logger}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -135,7 +142,11 @@ func run() error {
 }
 
 func buildHTTPClient(cfg Config) *http.Client {
-	d := &fronter.Dialer{FrontDomain: cfg.FrontDomain}
+	d := &fronter.Dialer{
+		FrontDomain:      cfg.FrontDomain,
+		DialTimeout:      10 * time.Second,
+		HandshakeTimeout: 10 * time.Second,
+	}
 	target := net.JoinHostPort(cfg.GoogleIP, "443")
 	return fronter.NewHTTPClient(d, target)
 }
