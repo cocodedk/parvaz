@@ -21,6 +21,18 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!--
+              parvaz:// deep links — pasted from Telegram, tapped from a
+              helper's message, or delivered by the QR scanner. Custom
+              scheme (not an HTTPS app link), so autoVerify is irrelevant.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="parvaz" />
+            </intent-filter>
         </activity>
     </application>
 
