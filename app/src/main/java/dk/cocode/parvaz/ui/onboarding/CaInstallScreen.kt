@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,7 +20,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import dk.cocode.parvaz.mitm.CaInstaller
 import dk.cocode.parvaz.ui.theme.Paper
 import dk.cocode.parvaz.vpn.CaGenerator
@@ -62,7 +66,11 @@ fun CaInstallScreen(
     }
 
     var phase by rememberSaveable { mutableStateOf(CaInstallPhase.GENERATING) }
-    var notified by rememberSaveable { mutableStateOf(false) }
+    // `notified` stays in-memory only: if rotation happens during the
+    // 600ms celebrate-delay below, a persisted latch would tell the
+    // restored composition "already fired" — but the callback never
+    // actually ran, and the user lands on INSTALLED with no way forward.
+    var notified by remember { mutableStateOf(false) }
     var caPem by remember { mutableStateOf<ByteArray?>(controller.loadPersistedCA()) }
 
     val launcher = rememberLauncherForActivityResult(StartActivityForResult()) {
@@ -109,6 +117,28 @@ fun CaInstallScreen(
             delay(600)
             onInstalled()
         }
+    }
+
+    // Let the user recover from NO_SCREEN_LOCK without restarting: when
+    // the activity resumes and a lock is now set, proceed with generation.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME &&
+                phase == CaInstallPhase.NO_SCREEN_LOCK &&
+                controller.isDeviceSecure()
+            ) {
+                phase = CaInstallPhase.GENERATING
+                scope.launch {
+                    controller.materialiseCA().fold(
+                        onSuccess = { pem -> caPem = pem; phase = CaInstallPhase.READY },
+                        onFailure = { phase = CaInstallPhase.FAILED },
+                    )
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Column(
