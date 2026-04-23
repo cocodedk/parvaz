@@ -38,7 +38,12 @@ func (d *recordingDialer) Dial(_ context.Context, host string, port uint16) (net
 // listener address and a cleanup func.
 func startServer(t *testing.T, d Dialer) (string, func()) {
 	t.Helper()
-	srv := &Server{Dialer: d}
+	return startServerWith(t, &Server{Dialer: d})
+}
+
+// startServerWith is the configurable variant; callers pass a prebuilt Server.
+func startServerWith(t *testing.T, srv *Server) (string, func()) {
+	t.Helper()
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -171,5 +176,31 @@ func TestSOCKS5_MalformedHandshake_ClosesConn(t *testing.T) {
 	n, err := c.Read(buf)
 	if err == nil {
 		t.Errorf("expected EOF/timeout, got %d bytes: %v", n, buf[:n])
+	}
+}
+
+func TestSOCKS5_HandshakeTimeout_ClosesSilentClient(t *testing.T) {
+	// A client that connects but writes nothing must be closed by the server
+	// within its HandshakeTimeout.
+	srv := &Server{Dialer: &recordingDialer{}, HandshakeTimeout: 100 * time.Millisecond}
+	addr, stop := startServerWith(t, srv)
+	defer stop()
+
+	c, err := net.Dial("tcp", addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+
+	_ = c.SetReadDeadline(time.Now().Add(1 * time.Second))
+	start := time.Now()
+	buf := make([]byte, 4)
+	n, err := c.Read(buf)
+	elapsed := time.Since(start)
+	if err == nil {
+		t.Fatalf("expected EOF from server-side close, got %d bytes", n)
+	}
+	if elapsed > 500*time.Millisecond {
+		t.Errorf("server closed after %s, expected near HandshakeTimeout=100ms", elapsed)
 	}
 }

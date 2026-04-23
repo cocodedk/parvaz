@@ -14,6 +14,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"net"
+	"time"
 )
 
 // Dialer opens TLS connections with a custom SNI, independent of the dial target.
@@ -34,6 +35,14 @@ type Dialer struct {
 	// for the handshake. Primarily for tests. Applied after ServerName and
 	// InsecureSkipVerify are set.
 	TLSConfigHook func(*tls.Config)
+
+	// DialTimeout bounds the underlying TCP connect. Zero leaves it
+	// unbounded. Ignored when BaseDialer is non-nil — set base.Timeout yourself.
+	DialTimeout time.Duration
+
+	// HandshakeTimeout bounds the TLS handshake after TCP connect succeeds.
+	// Zero leaves it unbounded.
+	HandshakeTimeout time.Duration
 }
 
 // Dial connects to addr over network and performs a TLS handshake presenting
@@ -44,7 +53,7 @@ func (d *Dialer) Dial(ctx context.Context, network, addr string) (*tls.Conn, err
 	}
 	base := d.BaseDialer
 	if base == nil {
-		base = &net.Dialer{}
+		base = &net.Dialer{Timeout: d.DialTimeout}
 	}
 	rawConn, err := base.DialContext(ctx, network, addr)
 	if err != nil {
@@ -58,7 +67,13 @@ func (d *Dialer) Dial(ctx context.Context, network, addr string) (*tls.Conn, err
 		d.TLSConfigHook(tlsCfg)
 	}
 	tlsConn := tls.Client(rawConn, tlsCfg)
-	if err := tlsConn.HandshakeContext(ctx); err != nil {
+	hsCtx := ctx
+	if d.HandshakeTimeout > 0 {
+		var cancel context.CancelFunc
+		hsCtx, cancel = context.WithTimeout(ctx, d.HandshakeTimeout)
+		defer cancel()
+	}
+	if err := tlsConn.HandshakeContext(hsCtx); err != nil {
 		_ = tlsConn.Close()
 		return nil, err
 	}

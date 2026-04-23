@@ -148,3 +148,44 @@ func TestDial_RespectsContextCancellation(t *testing.T) {
 	case <-time.After(200 * time.Millisecond):
 	}
 }
+
+func TestDial_HonorsHandshakeTimeout(t *testing.T) {
+	// Plain TCP listener that accepts but never sends TLS bytes. The TLS
+	// handshake blocks waiting for ServerHello; the Dialer's own
+	// HandshakeTimeout must break it even when the caller context is Background.
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+
+	accepted := make(chan net.Conn, 1)
+	go func() {
+		c, _ := ln.Accept()
+		if c != nil {
+			accepted <- c
+		}
+	}()
+
+	d := &Dialer{
+		FrontDomain:        "www.google.com",
+		InsecureSkipVerify: true,
+		HandshakeTimeout:   150 * time.Millisecond,
+	}
+	start := time.Now()
+	_, err = d.Dial(context.Background(), "tcp", ln.Addr().String())
+	elapsed := time.Since(start)
+
+	if err == nil {
+		t.Fatal("expected handshake timeout, got nil")
+	}
+	if elapsed > time.Second {
+		t.Errorf("handshake did not time out promptly: elapsed %s", elapsed)
+	}
+
+	select {
+	case c := <-accepted:
+		_ = c.Close()
+	case <-time.After(200 * time.Millisecond):
+	}
+}

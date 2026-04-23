@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"time"
 )
 
 // NewHTTPClient returns an *http.Client that routes every request through
@@ -25,6 +26,8 @@ func NewHTTPClient(d *Dialer, target string) *http.Client {
 			DialTLSContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 				return d.Dial(ctx, "tcp", target)
 			},
+			ResponseHeaderTimeout: 30 * time.Second,
+			IdleConnTimeout:       90 * time.Second,
 		},
 	}
 }

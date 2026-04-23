@@ -19,7 +19,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
+	"time"
 )
 
 // Dialer opens the upstream tunnel for a CONNECT request.
@@ -30,6 +32,34 @@ type Dialer interface {
 // Server accepts SOCKS5 connections and bridges CONNECTs via Dialer.
 type Server struct {
 	Dialer Dialer
+
+	// Logger — nil uses slog.Default(). Failures log at Debug level.
+	Logger *slog.Logger
+
+	// HandshakeTimeout bounds the SOCKS negotiation + CONNECT request phase.
+	// Cleared before the tunneled copy loop, which may be long-lived.
+	// Zero means default (30s). Use a negative value to disable entirely.
+	HandshakeTimeout time.Duration
+}
+
+const defaultHandshakeTimeout = 30 * time.Second
+
+func (s *Server) logger() *slog.Logger {
+	if s.Logger != nil {
+		return s.Logger
+	}
+	return slog.Default()
+}
+
+func (s *Server) handshakeDeadline() time.Duration {
+	switch {
+	case s.HandshakeTimeout < 0:
+		return 0
+	case s.HandshakeTimeout == 0:
+		return defaultHandshakeTimeout
+	default:
+		return s.HandshakeTimeout
+	}
 }
 
 // Serve blocks, accepting connections from ln until ctx is cancelled or
@@ -55,10 +85,18 @@ func (s *Server) ServeConn(ctx context.Context, conn net.Conn) {
 
 func (s *Server) handle(ctx context.Context, conn net.Conn) {
 	defer conn.Close()
+	if d := s.handshakeDeadline(); d > 0 {
+		_ = conn.SetDeadline(time.Now().Add(d))
+	}
 	if err := negotiateNoAuth(conn); err != nil {
+		s.logger().Debug("socks5: negotiate failed",
+			"remote", conn.RemoteAddr().String(), "err", err)
 		return
 	}
-	_ = s.doRequest(ctx, conn)
+	if err := s.doRequest(ctx, conn); err != nil {
+		s.logger().Debug("socks5: request failed",
+			"remote", conn.RemoteAddr().String(), "err", err)
+	}
 }
 
 func negotiateNoAuth(conn net.Conn) error {
@@ -133,6 +171,7 @@ func (s *Server) doRequest(ctx context.Context, conn net.Conn) error {
 	if _, err := conn.Write(replyOK); err != nil {
 		return err
 	}
+	_ = conn.SetDeadline(time.Time{}) // tunnel may be long-lived
 	errc := make(chan error, 2)
 	go func() { _, err := io.Copy(target, conn); errc <- err }()
 	go func() { _, err := io.Copy(conn, target); errc <- err }()
@@ -140,31 +179,3 @@ func (s *Server) doRequest(ctx context.Context, conn net.Conn) error {
 	return nil
 }
 
-func readAddr(conn net.Conn, atyp byte) (string, error) {
-	switch atyp {
-	case 0x01:
-		b := make([]byte, 4)
-		if _, err := io.ReadFull(conn, b); err != nil {
-			return "", err
-		}
-		return net.IP(b).String(), nil
-	case 0x03:
-		lenByte := make([]byte, 1)
-		if _, err := io.ReadFull(conn, lenByte); err != nil {
-			return "", err
-		}
-		b := make([]byte, int(lenByte[0]))
-		if _, err := io.ReadFull(conn, b); err != nil {
-			return "", err
-		}
-		return string(b), nil
-	case 0x04:
-		b := make([]byte, 16)
-		if _, err := io.ReadFull(conn, b); err != nil {
-			return "", err
-		}
-		return net.IP(b).String(), nil
-	default:
-		return "", fmt.Errorf("unsupported ATYP %d", atyp)
-	}
-}
