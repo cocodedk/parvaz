@@ -25,26 +25,6 @@ import (
 
 var version = "dev"
 
-// Config mirrors reference/src/config.example.json. Fields can be supplied
-// via flags or via a JSON document on stdin; stdin wins on overlap.
-type Config struct {
-	ScriptURLs  []string `json:"script_urls"`
-	AuthKey     string   `json:"auth_key"`
-	GoogleIP    string   `json:"google_ip"`
-	FrontDomain string   `json:"front_domain"`
-	ListenHost  string   `json:"listen_host"`
-	ListenPort  int      `json:"listen_port"`
-	DataDir     string   `json:"data_dir"`
-}
-
-const (
-	defaultGoogleIP    = "216.239.38.120"
-	defaultFrontDomain = "www.google.com"
-	defaultListenHost  = "127.0.0.1"
-	defaultListenPort  = 1080
-	defaultDataDir     = "./parvaz-data"
-)
-
 func main() {
 	if err := run(); err != nil {
 		log.SetFlags(0)
@@ -59,6 +39,8 @@ func run() error {
 		authKey      = flag.String("auth-key", "", "shared secret with Code.gs")
 		googleIP     = flag.String("google-ip", defaultGoogleIP, "TCP target (Google front IP)")
 		frontDomain  = flag.String("front-domain", defaultFrontDomain, "TLS SNI")
+		frontPort    = flag.Int("front-port", defaultFrontPort, "TCP port for the fronter (default 443; use a high port for local stubs)")
+		insecureTLS  = flag.Bool("insecure-tls", false, "skip TLS cert verification on fronter (TEST ONLY — never prod)")
 		listenHost   = flag.String("listen-host", defaultListenHost, "SOCKS5 listen host")
 		listenPort   = flag.Int("listen-port", defaultListenPort, "SOCKS5 listen port")
 		printVersion = flag.Bool("version", false, "print version and exit")
@@ -84,9 +66,12 @@ func run() error {
 	}
 
 	cfg := Config{
-		GoogleIP: *googleIP, FrontDomain: *frontDomain,
+		GoogleIP: *googleIP, FrontDomain: *frontDomain, FrontPort: *frontPort,
 		ListenHost: *listenHost, ListenPort: *listenPort,
 		AuthKey: *authKey, DataDir: *dataDir,
+		// Always wrap the flag value in a pointer so stdin knows the flag
+		// explicitly spoke. A nil here would let stdin "win" by default.
+		InsecureTLS: insecureTLS,
 	}
 	if *scriptURLs != "" {
 		for _, u := range strings.Split(*scriptURLs, ",") {
@@ -135,48 +120,16 @@ func run() error {
 
 func buildHTTPClient(cfg Config) *http.Client {
 	d := &fronter.Dialer{
-		FrontDomain:      cfg.FrontDomain,
-		DialTimeout:      10 * time.Second,
-		HandshakeTimeout: 10 * time.Second,
+		FrontDomain:        cfg.FrontDomain,
+		InsecureSkipVerify: cfg.InsecureTLSEnabled(),
+		DialTimeout:        10 * time.Second,
+		HandshakeTimeout:   10 * time.Second,
 	}
-	target := net.JoinHostPort(cfg.GoogleIP, "443")
+	port := cfg.FrontPort
+	if port == 0 {
+		port = defaultFrontPort
+	}
+	target := net.JoinHostPort(cfg.GoogleIP, fmt.Sprint(port))
 	return fronter.NewHTTPClient(d, target)
 }
 
-func merge(base, over Config) Config {
-	if len(over.ScriptURLs) > 0 {
-		base.ScriptURLs = over.ScriptURLs
-	}
-	if over.AuthKey != "" {
-		base.AuthKey = over.AuthKey
-	}
-	if over.GoogleIP != "" {
-		base.GoogleIP = over.GoogleIP
-	}
-	if over.FrontDomain != "" {
-		base.FrontDomain = over.FrontDomain
-	}
-	if over.ListenHost != "" {
-		base.ListenHost = over.ListenHost
-	}
-	if over.ListenPort != 0 {
-		base.ListenPort = over.ListenPort
-	}
-	if over.DataDir != "" {
-		base.DataDir = over.DataDir
-	}
-	return base
-}
-
-func (c Config) validate() error {
-	if c.AuthKey == "" {
-		return errors.New("auth_key required")
-	}
-	if len(c.ScriptURLs) == 0 {
-		return errors.New("at least one script_url required")
-	}
-	if c.DataDir == "" {
-		return errors.New("data_dir required")
-	}
-	return nil
-}
