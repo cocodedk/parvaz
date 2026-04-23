@@ -32,14 +32,20 @@ type Config struct {
 	AuthKey     string   `json:"auth_key"`
 	GoogleIP    string   `json:"google_ip"`
 	FrontDomain string   `json:"front_domain"`
+	FrontPort   int      `json:"front_port"`
 	ListenHost  string   `json:"listen_host"`
 	ListenPort  int      `json:"listen_port"`
 	DataDir     string   `json:"data_dir"`
+	// InsecureTLS disables certificate verification on the fronter
+	// dialer. Strictly for local e2e against a self-signed Apps Script
+	// stub — never flip this in production builds.
+	InsecureTLS bool `json:"insecure_tls"`
 }
 
 const (
 	defaultGoogleIP    = "216.239.38.120"
 	defaultFrontDomain = "www.google.com"
+	defaultFrontPort   = 443
 	defaultListenHost  = "127.0.0.1"
 	defaultListenPort  = 1080
 	defaultDataDir     = "./parvaz-data"
@@ -59,6 +65,8 @@ func run() error {
 		authKey      = flag.String("auth-key", "", "shared secret with Code.gs")
 		googleIP     = flag.String("google-ip", defaultGoogleIP, "TCP target (Google front IP)")
 		frontDomain  = flag.String("front-domain", defaultFrontDomain, "TLS SNI")
+		frontPort    = flag.Int("front-port", defaultFrontPort, "TCP port for the fronter (default 443; use a high port for local stubs)")
+		insecureTLS  = flag.Bool("insecure-tls", false, "skip TLS cert verification on fronter (TEST ONLY — never prod)")
 		listenHost   = flag.String("listen-host", defaultListenHost, "SOCKS5 listen host")
 		listenPort   = flag.Int("listen-port", defaultListenPort, "SOCKS5 listen port")
 		printVersion = flag.Bool("version", false, "print version and exit")
@@ -84,9 +92,10 @@ func run() error {
 	}
 
 	cfg := Config{
-		GoogleIP: *googleIP, FrontDomain: *frontDomain,
+		GoogleIP: *googleIP, FrontDomain: *frontDomain, FrontPort: *frontPort,
 		ListenHost: *listenHost, ListenPort: *listenPort,
 		AuthKey: *authKey, DataDir: *dataDir,
+		InsecureTLS: *insecureTLS,
 	}
 	if *scriptURLs != "" {
 		for _, u := range strings.Split(*scriptURLs, ",") {
@@ -135,11 +144,16 @@ func run() error {
 
 func buildHTTPClient(cfg Config) *http.Client {
 	d := &fronter.Dialer{
-		FrontDomain:      cfg.FrontDomain,
-		DialTimeout:      10 * time.Second,
-		HandshakeTimeout: 10 * time.Second,
+		FrontDomain:        cfg.FrontDomain,
+		InsecureSkipVerify: cfg.InsecureTLS,
+		DialTimeout:        10 * time.Second,
+		HandshakeTimeout:   10 * time.Second,
 	}
-	target := net.JoinHostPort(cfg.GoogleIP, "443")
+	port := cfg.FrontPort
+	if port == 0 {
+		port = defaultFrontPort
+	}
+	target := net.JoinHostPort(cfg.GoogleIP, fmt.Sprint(port))
 	return fronter.NewHTTPClient(d, target)
 }
 
@@ -155,6 +169,15 @@ func merge(base, over Config) Config {
 	}
 	if over.FrontDomain != "" {
 		base.FrontDomain = over.FrontDomain
+	}
+	if over.FrontPort != 0 {
+		base.FrontPort = over.FrontPort
+	}
+	if over.InsecureTLS {
+		// bool can't distinguish "unset" from "false"; only propagate
+		// when stdin explicitly opts in to avoid silently unsetting a
+		// flag-supplied true.
+		base.InsecureTLS = true
 	}
 	if over.ListenHost != "" {
 		base.ListenHost = over.ListenHost
