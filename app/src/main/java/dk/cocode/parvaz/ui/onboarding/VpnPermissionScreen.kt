@@ -86,7 +86,11 @@ fun VpnPermissionScreen(
         }
     }
 
-    LaunchedEffect(phase, notified) {
+    // `notified` is deliberately NOT a key: writing to it inside the
+    // effect body would restart the effect and cancel the in-flight
+    // delay(400) before onGranted() runs. Keying on `phase` alone is
+    // sufficient — each entry into GRANTED triggers exactly one run.
+    LaunchedEffect(phase) {
         if (phase == VpnPermissionPhase.GRANTED && !notified) {
             notified = true
             delay(400)
@@ -94,19 +98,21 @@ fun VpnPermissionScreen(
         }
     }
 
-    // Recovery: if the activity is recreated while on the system VPN
-    // dialog (process death, user backgrounded and returned), the
-    // launcher callback may never fire. On ON_RESUME, if we're still
-    // "awaiting" but permission isn't granted, fall back to IDLE so
-    // the user can retry.
+    // On ON_RESUME from AWAITING (process death / user returned after
+    // backgrounding), re-check Android's actual state: null ⇒ granted
+    // (advance), non-null ⇒ still ungranted (back to IDLE for retry).
+    // Without this the spinner could wedge forever.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME &&
-                phase == VpnPermissionPhase.AWAITING_SYSTEM_PROMPT &&
-                VpnService.prepare(context) != null
+                phase == VpnPermissionPhase.AWAITING_SYSTEM_PROMPT
             ) {
-                phase = VpnPermissionPhase.IDLE
+                phase = if (VpnService.prepare(context) == null) {
+                    VpnPermissionPhase.GRANTED
+                } else {
+                    VpnPermissionPhase.IDLE
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
