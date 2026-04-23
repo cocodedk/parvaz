@@ -193,6 +193,8 @@ class ParvazVpnService : VpnService() {
         private const val TUN_ADDRESS = "10.0.0.1"
         private const val TUN_PREFIX = 24
         private const val TUN_MTU = 1500
-        private const val DNS_SERVER = "8.8.8.8"
+        // Synthetic in-TUN DNS target. Android UDP/53 → tun2socks → SOCKS5
+        // UDP ASSOCIATE → parvazd DoH. Not a real server.
+        private const val DNS_SERVER = "10.0.0.2"
     }
 }

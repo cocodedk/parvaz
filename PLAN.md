@@ -165,8 +165,16 @@ Farsi strings default (`res/values/`); English override (`res/values-en/`).
       FD_CLOEXEC-clears (API 30+) and passes raw TUN fd via stdin.
       MITM uses `GetCertificate` so leaf matches browser SNI even on
       bare-IP targets. Own package in VpnService's disallowed-list.
-- [ ] **M15b-beta (REQUIRED for demo)** — UDP/DNS. SOCKS5 needs UDP
-      ASSOCIATE, or intercept UDP/53 + local DoH resolver.
+- [x] **M15b-beta** — UDP/DNS. `core/socks5` speaks UDP ASSOCIATE;
+      `core/doh` answers port-53 queries via RFC 8484 POST to
+      `dns.google/dns-query`, transported through the Apps Script
+      relay (not a direct fronter) — dns.google isn't served on
+      Google's Apps edge, and riding the relay preserves DPI cover at
+      the cost of ~1 Apps Script quota unit per lookup. TUN advertises
+      `10.0.0.2` as DNS server. AAAA answered locally (TUN is v4-only);
+      DoH failures synthesise SERVFAIL so resolvers bail fast. Non-DNS
+      UDP is dropped (Chrome falls back to TCP/TLS). Proven live via
+      `TestDNS_Live_ResolvesExampleComViaRelay` (2 A records in 1.95s).
 - [ ] **M15c** — API ≤ 29 compat (currently hard-fails above minSdk 24).
 
 ## Milestone 16 — Error / edge states (Farsi)

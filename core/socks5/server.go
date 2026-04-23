@@ -1,6 +1,8 @@
-// Package socks5 implements a minimal SOCKS5 server: no authentication,
-// CONNECT-only (no BIND, no UDP ASSOCIATE). The Dialer callback supplies
-// the upstream TCP tunnel.
+// Package socks5 implements a minimal SOCKS5 server for parvazd:
+//   - CONNECT (CMD=0x01): Dialer callback supplies the upstream TCP tunnel.
+//   - UDP ASSOCIATE (CMD=0x03): optional via DatagramHandler (see udp.go).
+//     Used by tun2socks to forward DNS to the parvazd DoH shim.
+//   - BIND: unsupported — replies 0x07.
 //
 // Wire format — RFC 1928:
 //
@@ -32,6 +34,11 @@ type Dialer interface {
 // Server accepts SOCKS5 connections and bridges CONNECTs via Dialer.
 type Server struct {
 	Dialer Dialer
+
+	// Datagram handles UDP ASSOCIATE traffic. Nil → UDP ASSOCIATE is
+	// rejected with REP=0x07 (command not supported), preserving the
+	// pre-M15b-beta behaviour for callers that don't need UDP.
+	Datagram DatagramHandler
 
 	// Logger — nil uses slog.Default(). Failures log at Debug level.
 	Logger *slog.Logger
@@ -146,7 +153,12 @@ func (s *Server) doRequest(ctx context.Context, conn net.Conn) error {
 		return fmt.Errorf("unsupported SOCKS version %d", hdr[0])
 	}
 	cmd, atyp := hdr[1], hdr[3]
-	if cmd != 0x01 { // we only support CONNECT; reject BIND + UDP
+	switch cmd {
+	case 0x01:
+		// fall through to the CONNECT path below
+	case 0x03:
+		return s.handleUDPAssociate(ctx, conn, atyp)
+	default:
 		_, _ = conn.Write(replyCmdNope)
 		return fmt.Errorf("unsupported CMD %d", cmd)
 	}

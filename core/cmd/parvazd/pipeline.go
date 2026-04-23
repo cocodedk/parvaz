@@ -77,5 +77,19 @@ func buildPipeline(cfg Config, logger *slog.Logger) (*socks5.Server, error) {
 		SNITunnel:      sniTunnel,
 		Logger:         logger,
 	}
-	return &socks5.Server{Dialer: disp, Logger: logger}, nil
+	srv := &socks5.Server{Dialer: disp, Logger: logger}
+
+	// The synthetic DNS shim only makes sense in TUN mode — a legacy
+	// SOCKS client has no reason to CONNECT to 10.0.0.2:53, and
+	// wiring the shim in that mode silently drops normal-DNS UDP
+	// targets like 8.8.8.8:53 instead of replying REP=0x07 as
+	// SOCKS5 semantics prescribe (codex-review P3).
+	if cfg.TunFD > 0 {
+		dns := newDNSHandler(rel, cfg, logger)
+		disp.DNSTCP = dns
+		disp.DNSHost = cfg.dnsHost()
+		disp.DNSPort = dnsListenPort
+		srv.Datagram = dns
+	}
+	return srv, nil
 }

@@ -22,6 +22,13 @@ type Config struct {
 	// TunMTU mirrors what VpnService.Builder.setMtu() was given. Must
 	// match or tun2socks will fragment / misread packets.
 	TunMTU int `json:"tun_mtu"`
+	// DNSListenHost is the IPv4 literal Android advertises via
+	// VpnService.addDnsServer — the "server" parvazd's DoH shim answers
+	// for. Default "10.0.0.2" (see ParvazVpnService.DNS_SERVER). Any
+	// query NOT addressed to this host+53 is dropped: we won't
+	// silently rewrite apps that hit their own resolver (1.1.1.1,
+	// split-horizon corporate DNS, etc.) with Google's answer.
+	DNSListenHost string `json:"dns_listen_host,omitempty"`
 	// InsecureTLS disables certificate verification on every fronter
 	// (relay path + SNI-rewrite path). Strictly for local e2e against
 	// a self-signed Apps Script stub — never flip this in production.
@@ -44,8 +51,10 @@ const (
 	defaultFrontDomain = "www.google.com"
 	defaultFrontPort   = 443
 	defaultListenHost  = "127.0.0.1"
-	defaultListenPort  = 1080
-	defaultDataDir     = "./parvaz-data"
+	defaultListenPort    = 1080
+	defaultDataDir       = "./parvaz-data"
+	defaultDNSListenHost = "10.0.0.2"
+	dnsListenPort        = 53
 )
 
 func merge(base, over Config) Config {
@@ -85,7 +94,19 @@ func merge(base, over Config) Config {
 	if over.DataDir != "" {
 		base.DataDir = over.DataDir
 	}
+	if over.DNSListenHost != "" {
+		base.DNSListenHost = over.DNSListenHost
+	}
 	return base
+}
+
+// dnsHost returns the configured synthetic DNS host, defaulting to
+// defaultDNSListenHost when unset. Centralised so every call site agrees.
+func (c Config) dnsHost() string {
+	if c.DNSListenHost != "" {
+		return c.DNSListenHost
+	}
+	return defaultDNSListenHost
 }
 
 func (c Config) validate() error {
