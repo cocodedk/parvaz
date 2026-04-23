@@ -111,7 +111,10 @@ fun CaInstallScreen(
         }
     }
 
-    LaunchedEffect(phase, notified) {
+    // `notified` deliberately NOT a key — writing to it inside the
+    // body would cancel the in-flight delay(600) before onInstalled()
+    // could run. Keying on `phase` is sufficient.
+    LaunchedEffect(phase) {
         if (phase == CaInstallPhase.INSTALLED && !notified) {
             notified = true
             delay(600)

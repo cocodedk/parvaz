@@ -96,6 +96,10 @@ object TestTags {
     // CaInstallScreen (M12.3)
     const val CaInstallPrimary = "ca_install_primary"
     const val CaInstallSpinner = "ca_install_spinner"
+
+    // VpnPermissionScreen (M12.4)
+    const val VpnPermissionPrimary = "vpn_permission_primary"
+    const val VpnPermissionSpinner = "vpn_permission_spinner"
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFF1E8D4)

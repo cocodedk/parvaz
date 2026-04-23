@@ -37,6 +37,9 @@
     <string name="vpn_explain_title">اجازهٔ اتصال</string>
     <string name="vpn_explain_body">پرواز برای تونل‌زدن ترافیک نیاز به اجازهٔ VPN دارد — این اجازه فقط برای این برنامه است</string>
     <string name="vpn_explain_cta">اجازه می‌دهم</string>
+    <string name="vpn_explain_waiting">در حال انتظار…</string>
+    <string name="vpn_explain_granted">اجازه داده شد</string>
+    <string name="vpn_explain_denied">دسترسی VPN رد شد — دوباره تلاش کنید</string>
 
     <!-- Main screen -->
     <string name="main_disconnected_stamp">پرواز</string>
