@@ -41,6 +41,18 @@
     <string name="main_connecting_label">Connecting…</string>
     <string name="main_failed_label">Connection failed — try again</string>
 
+    <string name="settings_title">Settings</string>
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_fa">فارسی</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_reset_access_label">Reset access</string>
+    <string name="settings_reset_access_body">Parvaz will forget your access URL and return to the first onboarding step</string>
+    <string name="settings_reset_access_cta">Reset</string>
+    <string name="settings_reset_confirm_title">Are you sure?</string>
+    <string name="settings_reset_confirm_body">This clears all settings — you\'ll have to re-enter the parvaz:// URL</string>
+    <string name="settings_cancel_cta">Cancel</string>
+    <string name="settings_close_cta">Close</string>
+
     <string name="vpn_notification_channel_name">Parvaz connection</string>
     <string name="vpn_notification_channel_description">Persistent notification while the tunnel is active</string>
     <string name="vpn_notification_title">Parvaz is running</string>

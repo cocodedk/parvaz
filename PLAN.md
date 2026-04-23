@@ -154,8 +154,10 @@ Farsi strings default (`res/values/`); English override (`res/values-en/`).
       CONNECTED olive stamp + `T+HH:MM:SS` uptime (ticks from service's
       own `connectedAtMs` so recreation doesn't reset). Second tap
       disconnects. Persian numerals via `ui/util/PersianDigits`.
-- [ ] **M13b** — Long-press → settings sheet (language, access reset, SNI).
+- [x] **M13b** — Long-press → `ModalBottomSheet`: language toggle + access
+      reset (confirm dialog). SNI pool deferred.
 - [ ] **M13c** — Service-binding refactor (with M15b tun2socks).
+- [ ] **M13d** — Per-app locale via `LocaleManager.setApplicationLocales`.
 
 ## Milestone 14 — URL scheme handler + QR scanner
 
@@ -172,11 +174,8 @@ Farsi strings default (`res/values/`); English override (`res/values-en/`).
 
 ## Milestone 16 — Error / edge states (Farsi)
 
-- `آدرس معتبر نیست — از فرستنده بخواهید دوباره بفرستد`
-- `اینترنت ندارید`
-- `سرور در دسترس نیست`
-- `گواهی نصب نشده است — دوباره تلاش کنید`
-- `دسترسی VPN رد شد`
+Covers: bad parvaz:// URL, no internet, server unreachable, CA not
+installed, VPN permission denied. Copy lives in `res/values/strings.xml`.
 
 ---
 

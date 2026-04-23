@@ -1,6 +1,8 @@
 package dk.cocode.parvaz
 
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,31 +22,37 @@ import dk.cocode.parvaz.settings.AccessImport
 import dk.cocode.parvaz.settings.AccessParseException
 import dk.cocode.parvaz.settings.ParvazSettings
 import dk.cocode.parvaz.ui.main.MainScreen
+import dk.cocode.parvaz.ui.main.MainSettingsSheet
 import dk.cocode.parvaz.ui.main.MainViewModel
 import dk.cocode.parvaz.ui.onboarding.OnboardingHost
 import dk.cocode.parvaz.ui.theme.Paper
 import dk.cocode.parvaz.ui.theme.ParvazTheme
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
-    /**
-     * Deep-link pre-fill for the ImportAccessScreen (M12.2). When set,
-     * Import auto-populates the paste field. Placeholder state until
-     * that screen lands.
-     */
     private var pendingParvazUrl by mutableStateOf<String?>(null)
     private var pendingParvazUrlError by mutableStateOf<String?>(null)
 
-    /**
-     * Activity-level record of which `Access` has been imported and
-     * whether onboarding is fully done. Seeded from disk on create,
-     * updated when onboarding finishes. Both conditions are required
-     * to flip to MainScreen — a persisted Access alone is not enough;
-     * M12.2 saves Access before CA install + VPN consent.
-     */
     private var activeAccess by mutableStateOf<Access?>(null)
     private var onboardingComplete by mutableStateOf(false)
+    private var showSettingsSheet by mutableStateOf(false)
+
+    /**
+     * Override the base Context's locale with ParvazSettings.language
+     * (default `fa`). Activity recreate() triggers a fresh
+     * attachBaseContext, which is how the hidden settings sheet's
+     * language toggle takes effect without requiring a process restart.
+     */
+    override fun attachBaseContext(newBase: Context) {
+        val lang = ParvazSettings(newBase).language
+        val locale = Locale(lang)
+        Locale.setDefault(locale)
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(locale)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,8 +72,29 @@ class MainActivity : ComponentActivity() {
                         MainScreen(
                             viewModel = mainViewModel,
                             persianNumerals = persianDigits,
+                            onOpenSettings = { showSettingsSheet = true },
                             modifier = Modifier.padding(padding),
                         )
+                        if (showSettingsSheet) {
+                            MainSettingsSheet(
+                                currentLanguage = ParvazSettings(this@MainActivity).language,
+                                onLanguageChange = { newLang ->
+                                    ParvazSettings(this@MainActivity).language = newLang
+                                    showSettingsSheet = false
+                                    recreate()
+                                },
+                                onResetAccess = {
+                                    val s = ParvazSettings(this@MainActivity)
+                                    s.clearAccess()
+                                    s.isOnboardingComplete = false
+                                    mainViewModel.disconnect()
+                                    showSettingsSheet = false
+                                    activeAccess = null
+                                    onboardingComplete = false
+                                },
+                                onDismiss = { showSettingsSheet = false },
+                            )
+                        }
                     } else {
                         OnboardingHost(
                             initialDeepLinkUrl = pendingParvazUrl,
@@ -102,5 +131,8 @@ class MainActivity : ComponentActivity() {
             pendingParvazUrl = null
             pendingParvazUrlError = e.message
         }
+        // Consume the URI so a later recreate() (e.g. language toggle)
+        // doesn't replay it and kick the user back into IMPORT.
+        intent.data = null
     }
 }

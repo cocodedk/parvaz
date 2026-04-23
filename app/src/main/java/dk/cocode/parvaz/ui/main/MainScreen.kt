@@ -2,6 +2,7 @@ package dk.cocode.parvaz.ui.main
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,6 +44,12 @@ import dk.cocode.parvaz.vpn.ParvazVpnService.ConnectionState
  *     Tap again disconnects — no confirmation (one-button UX).
  *   - FAILED → oxblood error text, same tap-to-retry semantics.
  *
+ * Long-press anywhere outside the stamp opens the hidden settings
+ * sheet via [onOpenSettings] (M13b). Short taps continue to reach the
+ * stamp button — Compose's hierarchical hit-test lets the gesture
+ * detector at the column level observe events without consuming the
+ * pointer stream.
+ *
  * Persian numerals are opt-in via [persianNumerals]; caller sets it
  * from the UI language preference.
  */
@@ -49,6 +57,7 @@ import dk.cocode.parvaz.vpn.ParvazVpnService.ConnectionState
 fun MainScreen(
     viewModel: MainViewModel,
     persianNumerals: Boolean = true,
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val ui by viewModel.ui.collectAsStateWithLifecycle()
@@ -56,6 +65,9 @@ fun MainScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Paper)
+            .pointerInput(Unit) {
+                detectTapGestures(onLongPress = { onOpenSettings() })
+            }
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
