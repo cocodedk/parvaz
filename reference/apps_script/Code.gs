@@ -116,13 +116,31 @@ function _buildOpts(req) {
   return opts;
 }
 
+// UrlFetchApp.fetch() auto-decompresses; `resp.getContent()` is the
+// decoded bytes. Leaving the upstream Content-Encoding/Content-Length
+// in place would make our Go codec try to re-decode plaintext (brotli:
+// RESERVED, gzip: invalid magic, etc.) and fail the round-trip.
+const RESP_STRIP_HEADERS = {
+  "content-encoding": 1,
+  "content-length": 1,
+};
+
 function _respHeaders(resp) {
+  var raw;
   try {
-    if (typeof resp.getAllHeaders === "function") {
-      return resp.getAllHeaders();
+    raw = (typeof resp.getAllHeaders === "function")
+      ? resp.getAllHeaders()
+      : resp.getHeaders();
+  } catch (err) {
+    raw = resp.getHeaders();
+  }
+  var out = {};
+  for (var k in raw) {
+    if (raw.hasOwnProperty(k) && !RESP_STRIP_HEADERS[k.toLowerCase()]) {
+      out[k] = raw[k];
     }
-  } catch (err) {}
-  return resp.getHeaders();
+  }
+  return out;
 }
 
 function doGet(e) {
