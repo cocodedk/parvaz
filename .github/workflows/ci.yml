@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup Go
+        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5
+        with:
+          go-version: '1.22'
+          cache: true
+          cache-dependency-path: core/go.sum
+
+      - name: Go vet
+        run: go vet -C core ./...
+
+      - name: Go test (race + cover)
+        run: go test -C core -race -cover ./...
+
+      - name: Go build (all packages)
+        run: go build -C core ./...
+
+      - name: Setup Java
+        if: hashFiles('gradlew') != ''
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Gradle buildSmoke
+        if: hashFiles('gradlew') != ''
+        run: ./gradlew buildSmoke --no-daemon
+
+      - name: Check no file exceeds 200 lines
+        run: |
+          set -eu
+          offenders=$(find . \
+            -path ./reference -prune -o \
+            -path ./website -prune -o \
+            -path ./.git -prune -o \
+            -path ./.gradle -prune -o \
+            -path ./build -prune -o \
+            -path ./app/build -prune -o \
+            -type f \( -name '*.go' -o -name '*.kt' -o -name '*.kts' \
+                     -o -name '*.md' -o -name '*.html' -o -name '*.css' \
+                     -o -name '*.yml' -o -name '*.yaml' -o -name '*.sh' \
+                     -o -name '*.py' -o -name '*.xml' \) \
+            -print 2>/dev/null | while read -r f; do
+              lines=$(wc -l < "$f")
+              if [ "$lines" -gt 200 ]; then
+                echo "  $f ($lines lines)"
+              fi
+            done)
+          if [ -n "$offenders" ]; then
+            echo "Files exceed 200-line limit:"
+            echo "$offenders"
+            exit 1
+          fi

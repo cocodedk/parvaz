@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>پرواز — پرواز از روی فیلتر. اپلیکیشن VPN اندروید با domain fronting روی Apps Script</title>
+<meta name="description" content="پرواز یک اپلیکیشن VPN اندرویدی است که با تکنیک domain fronting، ترافیک گوشی شما را از طریق یک رلهٔ Google Apps Script که خودتان مستقر کرده‌اید عبور می‌دهد. یک APK، یک دکمهٔ Connect، رلهٔ شخصی شما."/>
+<meta name="robots" content="index, follow"/>
+<meta name="keywords" content="پرواز, vpn اندروید, دور زدن فیلتر, دامین فرانتینگ, اپس اسکریپت, vpnservice, کاتلین, go, متن‌باز"/>
+<link rel="canonical" href="https://cocodedk.github.io/parvaz/fa/"/>
+<link rel="alternate" hreflang="en" href="https://cocodedk.github.io/parvaz/"/>
+<link rel="alternate" hreflang="fa" href="https://cocodedk.github.io/parvaz/fa/"/>
+<link rel="alternate" hreflang="x-default" href="https://cocodedk.github.io/parvaz/"/>
+
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="پرواز"/>
+<meta property="og:title" content="پرواز — پرواز از روی فیلتر"/>
+<meta property="og:description" content="اپلیکیشن VPN اندروید که با domain fronting ترافیک گوشی شما را از یک رلهٔ Google Apps Script که خودتان مستقر می‌کنید عبور می‌دهد. یک APK، یک دکمه، رلهٔ شخصی شما."/>
+<meta property="og:url" content="https://cocodedk.github.io/parvaz/fa/"/>
+<meta property="og:image" content="https://cocodedk.github.io/parvaz/og.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="پرواز — سند بریفینگ پرواز با عنوان فتوکپی‌شده و تمبرهای لاستیکی."/>
+<meta property="og:locale" content="fa_IR"/>
+<meta property="og:locale:alternate" content="en_US"/>
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="پرواز — پرواز از روی فیلتر"/>
+<meta name="twitter:description" content="اپلیکیشن VPN اندروید با domain fronting از طریق Google Apps Script."/>
+<meta name="twitter:image" content="https://cocodedk.github.io/parvaz/og.png"/>
+
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Redaction&family=Redaction+35&family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../styles.css"/>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "پرواز",
+  "description": "اپلیکیشن VPN اندروید که با تکنیک domain fronting ترافیک گوشی را از طریق یک رلهٔ Google Apps Script مستقرشده در حساب کاربری خود عبور می‌دهد. رابط کاربری Kotlin + Compose با هستهٔ SOCKS5 به زبان Go.",
+  "url": "https://cocodedk.github.io/parvaz/fa/",
+  "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Android 7.0+",
+  "programmingLanguage": ["Kotlin", "Go"],
+  "license": "https://opensource.org/licenses/MIT",
+  "inLanguage": "fa",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": {
+    "@type": "Person", "name": "بابک بندپی", "url": "https://cocode.dk",
+    "sameAs": ["https://linkedin.com/in/babakbandpey", "https://github.com/cocodedk"]
+  },
+  "codeRepository": "https://github.com/cocodedk/parvaz"
+}
+</script>
+</head>
+<body>
+
+<span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
+
+<div class="doc-strip">
+  <span><strong>NOTAM #PVZ-001</strong> · رفع طبقه‌بندی · بریفینگ پرواز</span>
+  <span>برگ ۰۱ / ۰۱ · بازنگری ۱۴۰۵.۰۲.۰۳ · وضعیت // پیش-آلفا</span>
+</div>
+
+<a href="../" class="lang-switch">EN ⇄ English</a>
+
+<main class="sheet">
+
+  <header class="title-block">
+    <dl class="title-meta">
+      <dt>سند</dt><dd>بریفینگ پرواز</dd>
+      <dt>طبقه‌بندی</dt><dd>باز · MIT</dd>
+      <dt>صدور</dt><dd>۱۴۰۵.۰۲.۰۳</dd>
+      <dt>مبدأ</dt><dd>Cocode · دانمارک</dd>
+      <dt>نشان</dt><dd>پرواز / Parvaz</dd>
+    </dl>
+    <div>
+      <h1 class="brand"><span class="fa-name">پرواز</span><span class="en-name">Parvaz</span></h1>
+      <p class="tagline">پرواز از روی فیلتر</p>
+      <p class="subtitle">VPN اندروید · رلهٔ Apps Script · دامین فرانتینگ · متن‌باز</p>
+      <div class="cta-row">
+        <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="btn primary">آغاز فرود · دانلود APK</a>
+        <a href="https://github.com/cocodedk/parvaz" class="btn">طرح پرواز · کد منبع</a>
+        <span class="stamp safe">مجوز · MIT</span>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§۱.۰</span>
+      <h2 class="sec-title">چکیده</h2>
+      <span class="sec-stamp">شرح مأموریت</span>
+    </div>
+    <div class="sec-body">
+      <p>پرواز یک <strong>اپلیکیشن VPN اندروید</strong> است. تمام ترافیک گوشی شما را از طریق یک رلهٔ Google Apps Script که خودتان مستقر می‌کنید عبور می‌دهد، بر اساس پروتکل domain fronting بازنویسی‌شده از <a href="https://github.com/masterking32/MasterHttpRelayVPN">MasterHttpRelayVPN</a> — TLS SNI <strong>www.google.com</strong>، HTTP Host <strong>script.google.com</strong>. DPI فقط «ترافیک به google.com» را می‌بیند؛ Google به صورت داخلی آن را به deployment شما مسیریابی می‌کند.</p>
+      <p>یک APK. یک دکمهٔ Connect. رلهٔ شخصی شما. بدون رانتایم پایتون، بدون سرور اشتراکی، بدون تله‌متری، بدون Play Store. رابط کاربری Kotlin + Compose. هستهٔ SOCKS5 به زبان Go. هر دو متن‌باز، با مجوز MIT.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§۲.۰</span>
+      <h2 class="sec-title">مسیر پرواز</h2>
+      <span class="sec-stamp">شِماتیک مسیریابی</span>
+    </div>
+    <div class="schematic">
+      <div class="schematic-head">
+        <span><strong>Sheet 02</strong> · Routing schematic · domain-fronted relay</span>
+        <span>Rev 2026.04.23</span>
+      </div>
+      <pre class="schematic-body">
+  ┌───────────────────────────────────┐
+  │  every app on your phone          │   <span class="note">◀─ instagram · firefox · whatsapp</span>
+  └────────────────┬──────────────────┘
+                   │  <span class="dir">VpnService + tun2socks</span>
+                   ▼
+  ┌───────────────────────────────────┐
+  │       PARVAZ  (the APK)           │   <span class="note">◀─ this repo</span>
+  │   ── kotlin UI · go sidecar ──    │
+  └────────────────┬──────────────────┘
+                   │
+                   │  envelope:  { k · m · u · h · b }
+                   │
+                   │  TLS  SNI   <span class="hl">www.google.com</span>         <span class="note">← DPI sees this</span>
+                   │  HTTP Host  <span class="secret">script.google.com</span>      <span class="note">← real routing</span>
+                   ▼
+       ═══════════════════════════════
+       ║   google front   :443       ║
+       ═══════════════════════════════
+                   │
+                   │  <span class="dir">Google routes internally by Host</span>
+                   ▼
+  ┌───────────────────────────────────┐
+  │  your code.gs relay deployment    │   <span class="note">◀─ your google account</span>
+  └────────────────┬──────────────────┘
+                   │  fetches target.com
+                   ▼
+            { s · h · b }                  <span class="note">← response envelope</span>
+</pre>
+      <div class="schematic-foot">
+        <span>drawn by · parvaz.doc</span>
+        <span>§2.0</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§۳.۰</span>
+      <h2 class="sec-title">اعلان به خلبانان</h2>
+      <span class="sec-stamp">فضای هوایی محدود</span>
+    </div>
+    <div class="notam">
+      <div class="notam-head">
+        <span>هشدار · فضای هوایی محدود</span>
+        <span>NOTAM A0001/26</span>
+      </div>
+      <div class="notam-body">
+        <strong>شرایط استفادهٔ Google Apps Script این کاربرد را ممنوع اعلام کرده است.</strong> اسکریپت رله را فقط روی حساب Google <em>خودتان</em> مستقر کنید — مستقرسازی متمرکز یا توزیع یک deployment مشترک ممنوع است. فقط برای استفادهٔ شخصی، تحقیقاتی و آموزشی. اگر با پیامدهای حقوقی آشنا نیستید، آن را مستقر نکنید.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§۴.۰</span>
+      <h2 class="sec-title">مشخصات بدنهٔ پرواز</h2>
+      <span class="sec-stamp">ویژگی‌ها</span>
+    </div>
+    <div class="specs">
+      <div class="spec"><span class="spec-num">۰۱</span><span class="spec-key">دامین فرانتینگ</span><span class="spec-val">TLS SNI می‌گوید <code>www.google.com</code>. HTTP Host می‌گوید <code>script.google.com</code>. DPI فقط فرانت را می‌بیند؛ Google بر اساس Host واقعی به صورت داخلی مسیریابی می‌کند.</span></div>
+      <div class="spec"><span class="spec-num">۰۲</span><span class="spec-key">VPN با یک لمس</span><span class="spec-val">آدرس رله و کلید دسترسی را بچسبانید و Connect را بزنید. <code>VpnService</code> همهٔ ترافیک گوشی را می‌گیرد — بدون تنظیمات جداگانهٔ هر اپ، بدون تنظیم پراکسی مرورگر.</span></div>
+      <div class="spec"><span class="spec-num">۰۳</span><span class="spec-key">APK متن‌باز</span><span class="spec-val">رابط کاربری Kotlin + Compose، هستهٔ تعبیه‌شدهٔ SOCKS5 به زبان Go. بدون وابستگی انحصاری. خارج از Play Store منتشر می‌شود — فقط F-Droid و sideload.</span></div>
+      <div class="spec"><span class="spec-num">۰۴</span><span class="spec-key">دستنامهٔ میدانی</span><span class="spec-val">زیبایی‌شناسی NOTAM. تایپوگرافی Redaction، JetBrains Mono و Vazirmatn. رابط فارسی از پایه — RTL درجه یک، نه یک الحاقیه.</span></div>
+      <div class="spec"><span class="spec-num">۰۵</span><span class="spec-key">HTTP/2 + دسته‌ای</span><span class="spec-val">Transport با مالتی‌پلکس h2 و ارسال دسته‌ای درخواست‌ها به همراه استخر اتصال، مطابق ویژگی‌های عملکردی upstream.</span></div>
+      <div class="spec"><span class="spec-num">۰۶</span><span class="spec-key">بدون تله‌متری</span><span class="spec-val">بدون آنالیتیکس، بدون پینگ به‌روزرسانی، بدون گزارش کرش. <code>access_key</code> شما در <code>EncryptedSharedPreferences</code> می‌ماند. هیچ تماس شبکه‌ای به خارج، جز خود رله.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§۵.۰</span>
+      <h2 class="sec-title">مراحل سوارشدن</h2>
+      <span class="sec-stamp">نصب · چهار گام</span>
+    </div>
+    <div class="listing">
+      <div class="listing-head">
+        <span>proc · install.001</span>
+        <span>sh · POSIX</span>
+      </div>
+      <div class="listing-body"><span class="c"># ۱. رله را روی حساب Google خودتان مستقر کنید</span>
+open https://script.google.com · paste <span class="hl">reference/apps_script/Code.gs</span>
+deploy → URL‌ و کلید auth را یادداشت کنید
+
+<span class="c"># ۲. APK را دانلود کنید</span>
+curl -LO https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
+adb install Parvaz.apk        <span class="c"># یا sideload از گوشی</span>
+
+<span class="c"># ۳. پرواز را باز کنید → URL و access key را بچسبانید → Connect</span>
+
+<span class="c"># ۴. پرواز کنید.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§۶.۰</span>
+      <h2 class="sec-title">شِماتیک بدنه</h2>
+      <span class="sec-stamp">ساختار monorepo</span>
+    </div>
+    <div class="schematic">
+      <div class="schematic-head">
+        <span><strong>Sheet 06</strong> · Monorepo topology · Kotlin + Go</span>
+        <span>MIT · Android 7.0+</span>
+      </div>
+      <pre class="schematic-body">parvaz/
+├── <span class="hl">app/</span>             رابط Kotlin + Compose · VpnService · tun2socks
+│                 · launcher · تم NOTAM · تنظیمات
+├── <span class="hl">core/</span>            Go SOCKS5 + transport دامین فرانتینگ
+│   ├── <span class="hl">protocol/</span>    انکد/دیکد envelope JSON (خالص)
+│   ├── <span class="hl">fronter/</span>     dialer با SNI دلخواه + کلاینت h2
+│   ├── <span class="hl">codec/</span>       دیکودر gzip / br / zstd / identity
+│   ├── <span class="hl">relay/</span>       چسب: envelope + شبکه + codec
+│   ├── <span class="hl">socks5/</span>      listener محلی SOCKS5 روی ۱۰۸۰
+│   └── <span class="hl">cmd/parvazd/</span> باینری sidecar → libparvaz.so
+├── reference/      کد پایتون upstream · فقط-خواندنی
+└── website/        GitHub Pages دو-زبانه
+
+<span class="note">· core از app با ProcessBuilder صدا زده می‌شود، نه JNI</span>
+<span class="note">· یک APK، یک ریلیز، یک تگ — monorepo</span>
+</pre>
+      <div class="schematic-foot">
+        <span>drawn by · parvaz.doc</span>
+        <span>§6.0</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§۷.۰</span>
+      <h2 class="sec-title">پشتیبانی زمینی</h2>
+      <span class="sec-stamp">موردنیاز · upstream</span>
+    </div>
+    <div class="sec-body">
+      <p>پرواز فقط نیمهٔ <em>کلاینت</em> MasterHttpRelayVPN را جایگزین می‌کند. سرور Apps Script دقیقاً همان چیزی است که upstream عرضه می‌کند. برای مستقر کردن رله روی حساب Google خودتان به <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">reference/apps_script/Code.gs</a> و دستورالعمل استقرار upstream مراجعه کنید. بدون یک deployment، پرواز چیزی برای تونل‌زنی ندارد.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>فرم #PVZ-001 · برگ ۰۱ / ۰۱</span>
+  <span class="sig">— پرواز —</span>
+  <span class="right">MIT · © ۲۰۲۶ <a href="https://cocode.dk">Cocode</a> · ساخته شده توسط <a href="https://linkedin.com/in/babakbandpey">بابک بندپی</a></span>
+</footer>
+
+</body>
+</html>

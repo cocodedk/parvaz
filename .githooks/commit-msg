@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+MSG_FILE="$1"
+FIRST_LINE=$(head -n1 "$MSG_FILE")
+
+# Allow merge and revert commits through without prefix check
+case "$FIRST_LINE" in
+  "Merge "*|"Revert "*) exit 0 ;;
+esac
+
+if ! printf '%s' "$FIRST_LINE" | grep -qE '^(feat|fix|chore|docs|style|refactor|test|ci|build|perf|revert)(\([a-z0-9._-]+\))?!?: .+'; then
+  echo "[commit-msg] Commit message must follow Conventional Commits."
+  echo ""
+  echo "  Format: <type>(<optional scope>): <description>"
+  echo "  Types:  feat | fix | chore | docs | style | refactor |"
+  echo "          test | ci | build | perf | revert"
+  echo ""
+  echo "  Example: feat(protocol): add batch envelope encoding"
+  echo ""
+  echo "  Got: $FIRST_LINE"
+  exit 1
+fi

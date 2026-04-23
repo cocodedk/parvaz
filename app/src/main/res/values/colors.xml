@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NOTAM parchment palette — kept in sync with ui/theme/Color.kt -->
+    <color name="paper">#F1E8D4</color>
+    <color name="paper_alt">#EADDBF</color>
+    <color name="paper_deep">#DDCDA5</color>
+    <color name="ink">#1A1410</color>
+    <color name="ink_soft">#4A3F34</color>
+    <color name="ink_faint">#7E7260</color>
+    <color name="oxblood">#A8361C</color>
+    <color name="burnt">#B5581A</color>
+    <color name="olive">#3A5634</color>
+</resources>

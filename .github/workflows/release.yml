@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: false
+        default: 'patch'
+        type: choice
+        options: [patch, minor, major]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5
+        with:
+          go-version: '1.22'
+          cache: true
+          cache-dependency-path: core/go.sum
+
+      - name: Setup Java
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Compute next version
+        id: version
+        run: |
+          set -eu
+          LATEST=$(git tag --list 'v*' --sort=-version:refname | head -1)
+          [ -z "$LATEST" ] && LATEST="v0.0.0"
+          VERSION="${LATEST#v}"
+          if ! [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "Cannot parse tag: $LATEST" >&2
+            exit 1
+          fi
+          MAJOR="${BASH_REMATCH[1]}"; MINOR="${BASH_REMATCH[2]}"; PATCH="${BASH_REMATCH[3]}"
+          case "${{ inputs.bump }}" in
+            major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR+1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH+1)) ;;
+          esac
+          TAG="v$MAJOR.$MINOR.$PATCH"
+          echo "version=$MAJOR.$MINOR.$PATCH" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Next release: $TAG"
+
+      - name: Build Go core for Android ABIs
+        env:
+          CGO_ENABLED: '0'
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -eu
+          LDFLAGS="-s -w -X main.version=${VERSION}"
+          build_abi() {
+            local goarch="$1" goarm="$2" abi="$3"
+            local out="app/src/main/jniLibs/${abi}/libparvaz.so"
+            mkdir -p "$(dirname "$out")"
+            echo ">> android/${goarch}${goarm:+-v$goarm} → ${abi}"
+            GOOS=android GOARCH="$goarch" ${goarm:+GOARM=$goarm} \
+                go build -C core -trimpath -ldflags "$LDFLAGS" \
+                -o "../$out" ./cmd/parvazd
+          }
+          build_abi arm64 ""  arm64-v8a
+          build_abi arm   "7" armeabi-v7a
+          build_abi amd64 ""  x86_64
+          build_abi 386   ""  x86
+
+      - name: Verify signing secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -eu
+          missing=""
+          for v in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            eval "val=\${$v:-}"
+            [ -z "$val" ] && missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "Missing required signing secret(s):$missing" >&2
+            echo "Set them at Settings → Secrets and variables → Actions" >&2
+            exit 1
+          fi
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+
+      - name: Build signed release APK
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.version }}
+          KEYSTORE_PATH: release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Rename APK to stable filename
+        run: |
+          set -eu
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk "dist/Parvaz.apk"
+          ( cd dist && sha256sum "Parvaz.apk" > "Parvaz.apk.sha256" )
+
+      - name: Tag and push
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Parvaz ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            dist/Parvaz.apk
+            dist/Parvaz.apk.sha256

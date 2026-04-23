@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Parvaz — A flight over the filter. Android VPN over Apps Script domain fronting.</title>
+<meta name="description" content="Parvaz is an Android VPN app that routes phone traffic through a user-deployed Google Apps Script relay using domain fronting. One APK, one connect button, your own relay."/>
+<meta name="robots" content="index, follow"/>
+<meta name="keywords" content="parvaz, android vpn, masterhttprelayvpn, apps script, domain fronting, circumvention, vpnservice, kotlin, go, open source"/>
+<link rel="canonical" href="https://cocodedk.github.io/parvaz/"/>
+<link rel="alternate" hreflang="en" href="https://cocodedk.github.io/parvaz/"/>
+<link rel="alternate" hreflang="fa" href="https://cocodedk.github.io/parvaz/fa/"/>
+<link rel="alternate" hreflang="x-default" href="https://cocodedk.github.io/parvaz/"/>
+
+<!-- Open Graph -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Parvaz"/>
+<meta property="og:title" content="Parvaz — A flight over the filter"/>
+<meta property="og:description" content="Android VPN that routes phone traffic through a user-deployed Google Apps Script relay using domain fronting. One APK, one connect button, your own relay."/>
+<meta property="og:url" content="https://cocodedk.github.io/parvaz/"/>
+<meta property="og:image" content="https://cocodedk.github.io/parvaz/og.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Parvaz — declassified flight briefing document with photocopied serif title and rubber-stamp annotations."/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="fa_IR"/>
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Parvaz — A flight over the filter"/>
+<meta name="twitter:description" content="Android VPN app that routes phone traffic through a user-deployed Google Apps Script relay using domain fronting."/>
+<meta name="twitter:image" content="https://cocodedk.github.io/parvaz/og.png"/>
+<meta name="twitter:image:alt" content="Parvaz — declassified flight briefing document."/>
+
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Redaction&family=Redaction+35&family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Parvaz",
+  "description": "Android VPN app that routes phone traffic through a user-deployed Google Apps Script relay using domain fronting. Kotlin + Compose front end with an embedded Go SOCKS5 core.",
+  "url": "https://cocodedk.github.io/parvaz/",
+  "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Android 7.0+",
+  "programmingLanguage": ["Kotlin", "Go"],
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": {
+    "@type": "Person", "name": "Babak Bandpey", "url": "https://cocode.dk",
+    "sameAs": ["https://linkedin.com/in/babakbandpey", "https://github.com/cocodedk"]
+  },
+  "codeRepository": "https://github.com/cocodedk/parvaz"
+}
+</script>
+</head>
+<body>
+
+<span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
+
+<div class="doc-strip">
+  <span><strong>NOTAM #PVZ-001</strong> · Declassified · Flight briefing</span>
+  <span>Sheet 01 / 01 · Rev 2026.04.23 · Status // Pre-alpha</span>
+</div>
+
+<a href="fa/" class="lang-switch">فارسی ⇄ FA</a>
+
+<main class="sheet">
+
+  <header class="title-block">
+    <dl class="title-meta">
+      <dt>Document</dt><dd>Flight briefing</dd>
+      <dt>Classification</dt><dd>Open · MIT</dd>
+      <dt>Issued</dt><dd>2026.04.23</dd>
+      <dt>Origin</dt><dd>Cocode · DK</dd>
+      <dt>Callsign</dt><dd>Parvaz / پرواز</dd>
+    </dl>
+    <div>
+      <h1 class="brand"><span class="en-name">Parvaz</span><span class="fa-name">پرواز</span></h1>
+      <p class="tagline">A flight over the filter</p>
+      <p class="subtitle">Android VPN · Apps Script relay · domain fronting · open source</p>
+      <div class="cta-row">
+        <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="btn primary">Begin descent · Download APK</a>
+        <a href="https://github.com/cocodedk/parvaz" class="btn">Flight plan · Source</a>
+        <span class="stamp safe">Cleared · MIT</span>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§1.0</span>
+      <h2 class="sec-title">Abstract</h2>
+      <span class="sec-stamp">Mission brief</span>
+    </div>
+    <div class="sec-body">
+      <p>Parvaz is an <strong>Android VPN app</strong>. It routes every byte of phone traffic through a Google Apps Script relay you deploy yourself, using the domain-fronting protocol rewritten from <a href="https://github.com/masterking32/MasterHttpRelayVPN">MasterHttpRelayVPN</a> — TLS SNI <strong>www.google.com</strong>, HTTP Host <strong>script.google.com</strong>. DPI only sees "traffic to google.com"; Google routes internally to your Apps Script deployment.</p>
+      <p>One APK. One Connect button. Your relay. No Python runtime, no shared server, no telemetry, no Play Store. Kotlin + Compose front end. Go SOCKS5 core. Both open source, MIT-licensed.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§2.0</span>
+      <h2 class="sec-title">Flight path</h2>
+      <span class="sec-stamp">Routing schematic</span>
+    </div>
+    <div class="schematic">
+      <div class="schematic-head">
+        <span><strong>Sheet 02</strong> · Routing schematic · domain-fronted relay</span>
+        <span>Rev 2026.04.23</span>
+      </div>
+      <pre class="schematic-body">
+  ┌───────────────────────────────────┐
+  │  every app on your phone          │   <span class="note">◀─ instagram · firefox · whatsapp</span>
+  └────────────────┬──────────────────┘
+                   │  <span class="dir">VpnService + tun2socks</span>
+                   ▼
+  ┌───────────────────────────────────┐
+  │       PARVAZ  (the APK)           │   <span class="note">◀─ this repo</span>
+  │   ── kotlin UI · go sidecar ──    │
+  └────────────────┬──────────────────┘
+                   │
+                   │  envelope:  { k · m · u · h · b }
+                   │
+                   │  TLS  SNI   <span class="hl">www.google.com</span>         <span class="note">← what DPI sees</span>
+                   │  HTTP Host  <span class="secret">script.google.com</span>      <span class="note">← real routing</span>
+                   ▼
+       ═══════════════════════════════
+       ║   google front   :443       ║
+       ═══════════════════════════════
+                   │
+                   │  <span class="dir">Google routes internally by Host</span>
+                   ▼
+  ┌───────────────────────────────────┐
+  │  your code.gs relay deployment    │   <span class="note">◀─ your google account</span>
+  └────────────────┬──────────────────┘
+                   │  fetches target.com
+                   ▼
+            { s · h · b }                  <span class="note">← response envelope</span>
+</pre>
+      <div class="schematic-foot">
+        <span>drawn by · parvaz.doc</span>
+        <span>§2.0</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§3.0</span>
+      <h2 class="sec-title">Notice to airmen</h2>
+      <span class="sec-stamp">Restricted airspace</span>
+    </div>
+    <div class="notam">
+      <div class="notam-head">
+        <span>Caution · Restricted airspace</span>
+        <span>NOTAM A0001/26</span>
+      </div>
+      <div class="notam-body">
+        <strong>Google Apps Script's terms forbid this use.</strong> Deploy the relay script to your <em>own</em> Google account only — do not centralize deployments or distribute a shared one. Personal, research, and educational use only. If you do not understand the legal implications, do not deploy.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§4.0</span>
+      <h2 class="sec-title">Airframe specifications</h2>
+      <span class="sec-stamp">Features</span>
+    </div>
+    <div class="specs">
+      <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">TLS SNI says <code>www.google.com</code>. HTTP Host says <code>script.google.com</code>. DPI sees the front; Google routes by the real Host internally.</span></div>
+      <div class="spec"><span class="spec-num">02</span><span class="spec-key">One-tap VPN</span><span class="spec-val">Paste your relay URL + access key, tap Connect. <code>VpnService</code> captures all phone traffic — no per-app configuration, no browser proxy setup.</span></div>
+      <div class="spec"><span class="spec-num">03</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose front end, embedded Go SOCKS5 core. No proprietary dependencies. Ships outside the Play Store — F-Droid and sideload only.</span></div>
+      <div class="spec"><span class="spec-num">04</span><span class="spec-key">Light-theme field manual</span><span class="spec-val">NOTAM aesthetic. Redaction, JetBrains Mono, and Vazirmatn typography. Persian UI built in — first-class RTL, not an afterthought.</span></div>
+      <div class="spec"><span class="spec-num">05</span><span class="spec-key">h2 + batching</span><span class="spec-val">HTTP/2 multiplexed transport with connection pooling and request batching, mirroring upstream's performance characteristics.</span></div>
+      <div class="spec"><span class="spec-num">06</span><span class="spec-key">Zero telemetry</span><span class="spec-val">No analytics, no auto-update pings, no crash reporting. Your <code>access_key</code> stays in <code>EncryptedSharedPreferences</code>. No third-party network calls other than the relay itself.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§5.0</span>
+      <h2 class="sec-title">Boarding procedure</h2>
+      <span class="sec-stamp">Install · four steps</span>
+    </div>
+    <div class="listing">
+      <div class="listing-head">
+        <span>proc · install.001</span>
+        <span>sh · POSIX</span>
+      </div>
+      <div class="listing-body"><span class="c"># 1. deploy the relay on your own google account</span>
+open https://script.google.com · paste <span class="hl">reference/apps_script/Code.gs</span>
+deploy → note the deployment URL + your chosen auth key
+
+<span class="c"># 2. download the APK</span>
+curl -LO https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
+adb install Parvaz.apk        <span class="c"># or sideload from phone</span>
+
+<span class="c"># 3. open parvaz → paste deployment URL + access key → tap Connect</span>
+
+<span class="c"># 4. fly.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§6.0</span>
+      <h2 class="sec-title">Airframe schematic</h2>
+      <span class="sec-stamp">Monorepo topology</span>
+    </div>
+    <div class="schematic">
+      <div class="schematic-head">
+        <span><strong>Sheet 06</strong> · Monorepo topology · Kotlin + Go</span>
+        <span>MIT · Android 7.0+</span>
+      </div>
+      <pre class="schematic-body">parvaz/
+├── <span class="hl">app/</span>             kotlin + compose UI · VpnService · tun2socks
+│                 · sidecar launcher · NOTAM theme · settings
+├── <span class="hl">core/</span>            go SOCKS5 + domain-fronting transport
+│   ├── <span class="hl">protocol/</span>    pure JSON envelope encode/decode
+│   ├── <span class="hl">fronter/</span>     TLS-with-custom-SNI dialer + h2 client
+│   ├── <span class="hl">codec/</span>       gzip / br / zstd / identity decoders
+│   ├── <span class="hl">relay/</span>       glue: envelope + client + codec
+│   ├── <span class="hl">socks5/</span>      local SOCKS5 listener on :1080
+│   └── <span class="hl">cmd/parvazd/</span> sidecar main → libparvaz.so (per ABI)
+├── reference/      upstream python · read-only study material
+└── website/        bilingual GitHub Pages
+
+<span class="note">· core is called from app via ProcessBuilder, not JNI</span>
+<span class="note">· one apk, one release, one tag — monorepo</span>
+</pre>
+      <div class="schematic-foot">
+        <span>drawn by · parvaz.doc</span>
+        <span>§6.0</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§7.0</span>
+      <h2 class="sec-title">Ground support</h2>
+      <span class="sec-stamp">Required · upstream</span>
+    </div>
+    <div class="sec-body">
+      <p>Parvaz replaces only the <em>client</em> half of MasterHttpRelayVPN. The Apps Script server stays exactly as upstream ships it. See <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">reference/apps_script/Code.gs</a> and upstream deployment steps to deploy the relay on your own Google account. Without a deployment, Parvaz has nothing to tunnel to.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Form #PVZ-001 · Sheet 01 / 01</span>
+  <span class="sig">— parvaz —</span>
+  <span class="right">MIT · © 2026 <a href="https://cocode.dk">Cocode</a> · <a href="https://linkedin.com/in/babakbandpey">Babak Bandpey</a></span>
+</footer>
+
+</body>
+</html>

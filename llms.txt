@@ -1,0 +1,64 @@
+# Parvaz
+
+> An Android VPN app that routes phone traffic through a user-deployed
+> Google Apps Script relay using domain fronting (TLS SNI =
+> www.google.com, HTTP Host = script.google.com). Monorepo with a
+> Kotlin/Compose front end and a Go SOCKS5 sidecar core.
+
+## Overview
+
+Parvaz ships as a single APK. The Kotlin app provides the UI, `VpnService`
+subclass, tun2socks glue, settings, and theme. The Go core (compiled per
+Android ABI into `libparvaz.so`) runs as a sidecar process inside the app,
+serves SOCKS5 on `127.0.0.1:1080`, and smuggles traffic through Google
+Apps Script using domain fronting. One install, one release artifact.
+
+## Technology Stack
+
+- Kotlin 2.2.x + Jetpack Compose (Material3), min SDK 24, target SDK 36
+- Go 1.22+ (stdlib first: crypto/tls, net/http, encoding/json, compress/gzip)
+- Android VpnService API + tun2socks
+- Gradle 9.3.x (Kotlin DSL) + AGP 9.1.x
+- Light-theme NOTAM / declassified-briefing aesthetic
+- Fonts: Redaction (display), JetBrains Mono (body), Vazirmatn (Persian)
+
+## Architecture
+
+- `app/` — Kotlin + Compose UI, VpnService subclass, tun2socks wrapper, sidecar launcher, settings storage (SharedPreferences + EncryptedSharedPreferences), NOTAM theme
+- `core/protocol/` — JSON envelope encode/decode (single + batch), no network
+- `core/fronter/` — TLS-with-custom-SNI dialer + HTTP/1.1 + h2 client
+- `core/codec/` — gzip / br / zstd / identity decoders
+- `core/relay/` — glue: envelope + client + codec
+- `core/socks5/` — local SOCKS5 listener forwarding via `relay/`
+- `core/cmd/parvazd/` — main sidecar binary, packaged as `libparvaz.so`
+- `reference/` — upstream Python client, read-only study material
+- `website/` — bilingual GitHub Pages (EN + FA)
+
+## Key Files
+
+- `CLAUDE.md` — architecture, layer rules, required skills, engineering principles
+- `PLAN.md` — TDD milestone list (Phase A core, Phase B app, Phase C integration)
+- `ARCHITECTURE.md` — full data path diagram and core/app boundary
+- `core/go.mod` — Go module `github.com/cocodedk/parvaz/core`
+- `version.txt` — semantic version (MAJOR.MINOR.PATCH)
+- `reference/apps_script/Code.gs` — server-side contract Parvaz must speak
+
+## Wire Protocol
+
+- Dial `<google_ip>:443` with TLS SNI = `www.google.com`
+- POST JSON to `https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec`
+- Body: `{ "k", "m", "u", "h", "b", "ct", "r" }`
+- Response: `{ "s", "h", "b" }` or `{ "e": "unauthorized" }`
+
+## Links
+
+- Repo: https://github.com/cocodedk/parvaz
+- Releases: https://github.com/cocodedk/parvaz/releases/latest
+- Website: https://cocodedk.github.io/parvaz/
+- Upstream: https://github.com/masterking32/MasterHttpRelayVPN
+- Built by: [Cocode](https://cocode.dk) · [Babak Bandpey](https://linkedin.com/in/babakbandpey)
+
+## Legal / ToS
+
+Google Apps Script's terms forbid this use. Deploy `Code.gs` to your own
+Google account only. Personal, research, and educational use only.

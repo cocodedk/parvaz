@@ -1,0 +1,46 @@
+#!/bin/sh
+set -eu
+
+# Parvaz pre-commit:
+#   · Go vet + test when .go files in core/ are staged
+#   · Gradle buildSmoke when .kt/.kts/.xml files in app/ are staged
+#   · 200-line text-file limit on every staged text file
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+
+STAGED_GO=$(echo "$STAGED" | grep -E '^core/.*\.go$' || true)
+if [ -n "$STAGED_GO" ]; then
+  echo "[pre-commit] go vet -C core ./..."
+  go vet -C core ./...
+
+  echo "[pre-commit] go test -C core ./..."
+  go test -C core ./...
+fi
+
+STAGED_ANDROID=$(echo "$STAGED" | grep -E '^app/.*\.(kt|kts|xml)$' || true)
+if [ -n "$STAGED_ANDROID" ] && [ -x ./gradlew ]; then
+  echo "[pre-commit] ./gradlew buildSmoke --no-daemon --quiet"
+  ./gradlew buildSmoke --no-daemon --quiet
+fi
+
+STAGED_TEXT=$(echo "$STAGED" | \
+  grep -E '\.(go|kt|kts|md|html|css|js|ts|yml|yaml|sh|py|xml)$' || true)
+
+if [ -n "$STAGED_TEXT" ]; then
+  offenders=""
+  for f in $STAGED_TEXT; do
+    [ -f "$f" ] || continue
+    case "$f" in
+      reference/*|website/*|*/build/*|.gradle/*) continue ;;
+    esac
+    lines=$(wc -l < "$f" | tr -d ' ')
+    if [ "$lines" -gt 200 ]; then
+      offenders="$offenders\n  $f ($lines lines)"
+    fi
+  done
+  if [ -n "$offenders" ]; then
+    printf "[pre-commit] Files exceed 200-line limit:%b\n" "$offenders"
+    printf "[pre-commit] Extract helpers/components/packages or split.\n"
+    exit 1
+  fi
+fi

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Redaction&family=Redaction+35&family=Vazirmatn:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --paper: #F1E8D4;
+    --paper-2: #EADDBF;
+    --paper-3: #DDCDA5;
+    --ink: #1A1410;
+    --ink-2: #4A3F34;
+    --ink-3: #7E7260;
+    --stamp: #A8361C;
+    --burnt: #B5581A;
+    --safe: #3A5634;
+    --rule: rgba(26,20,16,0.18);
+    --grid: rgba(26,20,16,0.06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink);
+    background: var(--paper);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.05 0 0 0 0.22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.8'/></svg>"),
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 220px 220px, 28px 28px, 28px 28px;
+    position: relative;
+  }
+  .crop { position: absolute; width: 28px; height: 28px; border: 1px solid var(--ink-2); }
+  .crop.tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; }
+  .crop.tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; }
+  .crop.bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; }
+  .crop.br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; }
+
+  .strip {
+    position: absolute; top: 60px; left: 60px; right: 60px;
+    border-top: 4px double var(--ink);
+    border-bottom: 1px solid var(--ink-2);
+    padding: 10px 0;
+    display: flex; justify-content: space-between;
+    font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2);
+  }
+  .strip strong { color: var(--ink); letter-spacing: 0.28em; }
+
+  .content {
+    position: absolute; top: 130px; left: 60px; right: 60px; bottom: 120px;
+    display: grid; grid-template-columns: 200px 1fr; gap: 40px;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 30px;
+  }
+  .meta {
+    border-right: 1px dashed var(--rule);
+    padding-right: 28px;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3);
+    line-height: 1.85;
+  }
+  .meta dt { color: var(--ink-2); font-weight: 700; margin-top: 12px; }
+  .meta dt:first-child { margin-top: 0; }
+  .meta dd { color: var(--ink); letter-spacing: 0.08em; text-transform: none; font-size: 13px; margin-top: 3px; }
+
+  .hero { padding-top: 8px; position: relative; }
+  h1 {
+    font-family: 'Redaction', serif;
+    font-size: 178px;
+    line-height: 0.82;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+    font-weight: 400;
+    display: inline-block;
+    position: relative;
+  }
+  h1::after {
+    content: '';
+    position: absolute;
+    left: -4px; right: -6px; bottom: 24px;
+    height: 11px;
+    background: var(--stamp);
+    opacity: 0.88;
+    transform: skewX(-18deg);
+  }
+  .fa-name {
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 64px;
+    color: var(--ink-2);
+    margin-left: 22px;
+    font-weight: 800;
+    vertical-align: baseline;
+  }
+  .tagline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 19px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-top: 16px;
+    font-weight: 700;
+    display: inline-flex; align-items: center; gap: 16px;
+  }
+  .tagline::before, .tagline::after { content: '▲'; color: var(--stamp); font-size: 12px; }
+  .subtitle {
+    font-size: 15px;
+    color: var(--ink-3);
+    margin-top: 10px;
+    letter-spacing: 0.06em;
+    font-style: italic;
+  }
+
+  .stamps {
+    position: absolute;
+    top: 320px; right: 0;
+    display: flex; gap: 18px; align-items: flex-start;
+  }
+  .stamp {
+    font-family: 'Redaction 35', 'Redaction', serif;
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--stamp);
+    border: 3px solid var(--stamp);
+    padding: 10px 22px;
+    transform: rotate(-3deg);
+    opacity: 0.92;
+    text-align: center; line-height: 1.15;
+  }
+  .stamp small { display: block; font-size: 11px; letter-spacing: 0.2em; margin-top: 2px; }
+  .stamp.safe { color: var(--safe); border-color: var(--safe); transform: rotate(2deg); }
+
+  .foot {
+    position: absolute; bottom: 40px; left: 60px; right: 60px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-2);
+  }
+  .foot .sig {
+    font-family: 'Redaction', serif;
+    font-size: 28px;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    text-transform: none;
+  }
+  .foot .right { text-align: right; }
+
+  .chips {
+    position: absolute; top: 440px; left: 0;
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .chip {
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--paper-2);
+    border: 1px solid var(--ink-2);
+    padding: 6px 12px;
+    font-weight: 700;
+  }
+  .chip.burnt { color: var(--stamp); border-color: var(--stamp); background: rgba(168,54,28,0.05); }
+</style>
+</head>
+<body>
+  <span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
+
+  <div class="strip">
+    <span><strong>NOTAM #PVZ-001</strong> · Declassified · Flight briefing</span>
+    <span>Sheet 01 / 01 · Rev 2026.04.23 · MIT</span>
+  </div>
+
+  <div class="content">
+    <dl class="meta">
+      <dt>Document</dt><dd>Flight briefing</dd>
+      <dt>Classification</dt><dd>Open · MIT</dd>
+      <dt>Callsign</dt><dd>Parvaz / پرواز</dd>
+      <dt>Origin</dt><dd>Cocode · DK</dd>
+    </dl>
+    <div class="hero">
+      <h1>Parvaz<span class="fa-name">پرواز</span></h1>
+      <div class="tagline">A flight over the filter</div>
+      <div class="subtitle">Android VPN · Apps Script relay · domain fronting · open source</div>
+
+      <div class="stamps">
+        <div class="stamp">Cleared<small>for deployment</small></div>
+        <div class="stamp safe">Open<small>MIT · 2026</small></div>
+      </div>
+
+      <div class="chips">
+        <span class="chip">ANDROID VPN</span>
+        <span class="chip">KOTLIN + GO</span>
+        <span class="chip">VPNSERVICE</span>
+        <span class="chip">HTTP/2 · BATCH</span>
+        <span class="chip burnt">F-DROID · SIDELOAD</span>
+        <span class="chip">ZERO TELEMETRY</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Form #PVZ-001 · Sheet 01</span>
+    <span class="sig">— parvaz —</span>
+    <span class="right">github.com/cocodedk/parvaz · cocode.dk · Babak Bandpey</span>
+  </div>
+</body>
+</html>
