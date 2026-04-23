@@ -108,8 +108,22 @@ class CoreLauncher(
         _state.value = State.IDLE
     }
 
-    /** True if the underlying process is still alive. */
-    fun isAlive(): Boolean = process?.isAlive == true
+    /**
+     * True if the underlying process is still running.
+     *
+     * API 24-compatible: Process.isAlive is API 26+. Process.exitValue
+     * throws IllegalThreadStateException while the process is live; the
+     * absence of that exception means it has exited.
+     */
+    fun isAlive(): Boolean {
+        val p = process ?: return false
+        return try {
+            p.exitValue()
+            false
+        } catch (_: IllegalThreadStateException) {
+            true
+        }
+    }
 
     private fun nativeBinary(): File? {
         val dir = appContext.applicationInfo.nativeLibraryDir ?: return null
