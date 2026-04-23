@@ -150,9 +150,18 @@ Farsi strings default (`res/values/`); English override (`res/values-en/`).
 
 ## Milestone 13 — Main screen
 
-- Disconnected: oxblood outline `پرواز` stamp. Tap → connect state machine.
-- Connected: olive solid `در پرواز` + `T+۰۰:۱۲:۴۷` uptime in Persian numerals.
-- Long-press for hidden settings sheet (language, access reset, SNI pool).
+- [x] **M13a** — Disconnected outline (oxblood) stamp · tap → CONNECTING
+      spinner → CONNECTED olive solid stamp + `T+HH:MM:SS` uptime. Second
+      tap disconnects (no confirmation — one-button UX). `ParvazVpnService`
+      companion-object `StateFlow<ConnectionState>` drives the UI;
+      `MainViewModel` owns the uptime ticker. `startForeground()` with
+      notification + `specialUse` foregroundServiceType for API 14+. Persian
+      numerals via `ui/util/PersianDigits`.
+- [ ] **M13b** — Long-press → hidden settings sheet (language toggle,
+      access reset, SNI pool).
+- [ ] **M13c** — Service-binding refactor (lands with M15b): current
+      companion-object state can lie if the service is killed without
+      `onDestroy`. Binding gives tighter lifecycle coupling.
 
 ## Milestone 14 — URL scheme handler + QR scanner
 

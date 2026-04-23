@@ -38,4 +38,12 @@
 
     <string name="main_disconnected_stamp">PARVAZ</string>
     <string name="main_connected_stamp">IN FLIGHT</string>
+    <string name="main_connecting_label">Connecting…</string>
+    <string name="main_failed_label">Connection failed — try again</string>
+
+    <string name="vpn_notification_channel_name">Parvaz connection</string>
+    <string name="vpn_notification_channel_description">Persistent notification while the tunnel is active</string>
+    <string name="vpn_notification_title">Parvaz is running</string>
+    <string name="vpn_notification_text">Browser traffic routes through Parvaz</string>
+    <string name="vpn_notification_stop_action">Stop</string>
 </resources>

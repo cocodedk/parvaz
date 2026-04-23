@@ -44,4 +44,13 @@
     <!-- Main screen -->
     <string name="main_disconnected_stamp">پرواز</string>
     <string name="main_connected_stamp">در پرواز</string>
+    <string name="main_connecting_label">در حال اتصال…</string>
+    <string name="main_failed_label">اتصال ناموفق — دوباره تلاش کنید</string>
+
+    <!-- VPN notification (ongoing while service runs) -->
+    <string name="vpn_notification_channel_name">اتصال پرواز</string>
+    <string name="vpn_notification_channel_description">نوتیفیکیشن پایدار هنگام فعال بودن تونل</string>
+    <string name="vpn_notification_title">پرواز در حال اجراست</string>
+    <string name="vpn_notification_text">ترافیک مرورگر از طریق پرواز عبور می‌کند</string>
+    <string name="vpn_notification_stop_action">قطع</string>
 </resources>
