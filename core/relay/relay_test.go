@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"strconv"
 	"testing"
 	"time"
 
@@ -92,7 +93,10 @@ func TestRelay_HonorsContentEncoding(t *testing.T) {
 	_, _ = gw.Write(raw)
 	_ = gw.Close()
 	stub.Routes["GET https://api.example.com/gz"] = testutil.StubResponse{
-		Status: 200, Header: map[string]string{"Content-Type": "text/plain"},
+		Status: 200, Header: map[string]string{
+			"Content-Type":   "text/plain",
+			"Content-Length": strconv.Itoa(gz.Len()),
+		},
 		Body: gz.Bytes(), ContentEncoding: "gzip",
 	}
 	r := newRelay(t, stub, []string{stub.BaseURL() + "/macros/s/S1/exec"}, "secret")
@@ -108,6 +112,10 @@ func TestRelay_HonorsContentEncoding(t *testing.T) {
 	}
 	if resp.Header.Get("Content-Encoding") != "" {
 		t.Errorf("Content-Encoding still set after decode: %q", resp.Header.Get("Content-Encoding"))
+	}
+	if resp.Header.Get("Content-Length") != "" {
+		t.Errorf("stale Content-Length after decode: %q (was %d compressed, body is now %d)",
+			resp.Header.Get("Content-Length"), gz.Len(), len(resp.Body))
 	}
 }
 
