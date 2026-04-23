@@ -32,6 +32,9 @@
     <string name="vpn_explain_title">VPN permission</string>
     <string name="vpn_explain_body">Parvaz needs Android\'s VPN permission to tunnel browser traffic. This is a per-app permission.</string>
     <string name="vpn_explain_cta">Allow</string>
+    <string name="vpn_explain_waiting">Waiting…</string>
+    <string name="vpn_explain_granted">Permission granted</string>
+    <string name="vpn_explain_denied">VPN permission denied — try again</string>
 
     <string name="main_disconnected_stamp">PARVAZ</string>
     <string name="main_connected_stamp">IN FLIGHT</string>
