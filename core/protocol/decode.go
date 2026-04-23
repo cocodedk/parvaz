@@ -53,10 +53,12 @@ func DecodeBatchResponse(data []byte) (*BatchResponse, error) {
 	return out, nil
 }
 
-func unflattenHeaders(h map[string]string) http.Header {
+func unflattenHeaders(h respHeaders) http.Header {
 	out := make(http.Header, len(h))
-	for k, v := range h {
-		out.Set(k, v)
+	for k, values := range h {
+		for _, v := range values {
+			out.Add(k, v)
+		}
 	}
 	return out
 }
