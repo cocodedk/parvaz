@@ -54,8 +54,9 @@ Go core, Android app, integration.
 ## Milestone 9 — `core/cmd/parvazd` sidecar
 
 - [x] Flags + stdin JSON config merge; prints `READY`; listens on :1080
-- [x] Builds cleanly for android/arm64 (~5.4 MB .so)
-- [ ] Wire real dispatcher once M-mitm + M-dispatcher land (currently stubDialer)
+- [x] Builds cleanly for android/arm64 (~10 MB .so after M-mitm + M-dispatcher)
+- [x] Real dispatcher wired; `stubDialer` removed. End-to-end TLS
+      handshake through socks5 → dispatcher → interceptor is unit-tested.
 
 ## Milestone M-mitm · (NEXT, NEW)
 
@@ -97,11 +98,20 @@ Failing-test order:
 2. `TestDispatcher_ArbitraryHost_UsesMITM`
 3. `TestDispatcher_AllowListLookup_MatchesWildcards`
 
-## Milestone 9b — parvazd wiring
+## Milestone 9b — parvazd wiring · DONE
 
-Replace the stubDialer in `core/cmd/parvazd/main.go` with
-`dispatcher.New(mitmInterceptor, relayClient, allowList).Dial` so the
-SOCKS5 server actually forwards traffic.
+- [x] `stubDialer` removed from `core/cmd/parvazd/main.go`
+- [x] `buildPipeline(cfg, logger)` factored into `pipeline.go` — wires
+      fronter → relay → CA → interceptor → dispatcher → socks5.Server
+- [x] `--data-dir` flag (default `./parvaz-data`, resolved to absolute
+      inside `buildPipeline` so CWD drift can't fork the CA)
+- [x] `TestBuildPipeline_MITMHandshake` — SOCKS5 CONNECT through the
+      real pipeline, TLS handshake succeeds against the generated CA
+
+Next on the dispatcher track: **Milestone M-sni-rewrite** — the third
+path that rescues DPI-blocked Google-owned domains (YouTube, etc.) by
+MITM-terminating the browser and re-encrypting upstream with
+SNI=`www.google.com`.
 
 ---
 
