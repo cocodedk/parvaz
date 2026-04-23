@@ -69,7 +69,9 @@ func run() error {
 		GoogleIP: *googleIP, FrontDomain: *frontDomain, FrontPort: *frontPort,
 		ListenHost: *listenHost, ListenPort: *listenPort,
 		AuthKey: *authKey, DataDir: *dataDir,
-		InsecureTLS: *insecureTLS,
+		// Always wrap the flag value in a pointer so stdin knows the flag
+		// explicitly spoke. A nil here would let stdin "win" by default.
+		InsecureTLS: insecureTLS,
 	}
 	if *scriptURLs != "" {
 		for _, u := range strings.Split(*scriptURLs, ",") {
@@ -119,7 +121,7 @@ func run() error {
 func buildHTTPClient(cfg Config) *http.Client {
 	d := &fronter.Dialer{
 		FrontDomain:        cfg.FrontDomain,
-		InsecureSkipVerify: cfg.InsecureTLS,
+		InsecureSkipVerify: cfg.InsecureTLSEnabled(),
 		DialTimeout:        10 * time.Second,
 		HandshakeTimeout:   10 * time.Second,
 	}

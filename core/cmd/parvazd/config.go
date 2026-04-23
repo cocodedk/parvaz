@@ -13,10 +13,21 @@ type Config struct {
 	ListenHost  string   `json:"listen_host"`
 	ListenPort  int      `json:"listen_port"`
 	DataDir     string   `json:"data_dir"`
-	// InsecureTLS disables certificate verification on the fronter
-	// dialer. Strictly for local e2e against a self-signed Apps Script
-	// stub — never flip this in production builds.
-	InsecureTLS bool `json:"insecure_tls"`
+	// InsecureTLS disables certificate verification on every fronter
+	// (relay path + SNI-rewrite path). Strictly for local e2e against
+	// a self-signed Apps Script stub — never flip this in production.
+	//
+	// Pointer so JSON can distinguish "field absent" (nil) from
+	// "field explicitly false" (*false). Stdin wins on overlap as
+	// documented — stdin {"insecure_tls": false} turns off a
+	// flag-supplied -insecure-tls=true.
+	InsecureTLS *bool `json:"insecure_tls,omitempty"`
+}
+
+// InsecureTLSEnabled reports whether InsecureTLS is set and true.
+// Nil-safe so call sites don't need to guard.
+func (c Config) InsecureTLSEnabled() bool {
+	return c.InsecureTLS != nil && *c.InsecureTLS
 }
 
 const (
@@ -44,11 +55,11 @@ func merge(base, over Config) Config {
 	if over.FrontPort != 0 {
 		base.FrontPort = over.FrontPort
 	}
-	if over.InsecureTLS {
-		// bool can't distinguish "unset" from "false"; only propagate
-		// when stdin explicitly opts in to avoid silently unsetting a
-		// flag-supplied true.
-		base.InsecureTLS = true
+	if over.InsecureTLS != nil {
+		// Pointer distinguishes "stdin silent" (nil) from "stdin false"
+		// (*false); we honour either direction — stdin always wins on
+		// overlap.
+		base.InsecureTLS = over.InsecureTLS
 	}
 	if over.ListenHost != "" {
 		base.ListenHost = over.ListenHost

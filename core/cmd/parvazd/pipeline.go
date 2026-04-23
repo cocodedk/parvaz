@@ -51,10 +51,15 @@ func buildPipeline(cfg Config, logger *slog.Logger) (*socks5.Server, error) {
 	// the Apps Script client (so DPI sees the same SNI in either leg) but
 	// independent so transport tuning can diverge later (e.g. no h2 ALPN
 	// flags for the relay leg vs. h1-only here).
+	//
+	// InsecureTLS applies here too so local e2e with a self-signed upstream
+	// still handshakes. FrontPort does NOT apply — the SNI-rewrite path
+	// dials the browser's original port (usually 443), not the relay port.
 	sniFronter := &fronter.Dialer{
-		FrontDomain:      cfg.FrontDomain,
-		DialTimeout:      10 * time.Second,
-		HandshakeTimeout: 10 * time.Second,
+		FrontDomain:        cfg.FrontDomain,
+		InsecureSkipVerify: cfg.InsecureTLSEnabled(),
+		DialTimeout:        10 * time.Second,
+		HandshakeTimeout:   10 * time.Second,
 	}
 	sniTunnel := &mitm.SNITunnel{
 		CA: ca,

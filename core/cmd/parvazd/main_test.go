@@ -27,6 +27,8 @@ func TestConfig_Validate(t *testing.T) {
 	}
 }
 
+func ptrBool(b bool) *bool { return &b }
+
 func TestMerge_StdinOverridesFlagDefaults(t *testing.T) {
 	base := Config{
 		GoogleIP: defaultGoogleIP, FrontDomain: defaultFrontDomain,
@@ -39,7 +41,7 @@ func TestMerge_StdinOverridesFlagDefaults(t *testing.T) {
 		GoogleIP:    "64.233.160.0",
 		DataDir:     "/var/lib/parvaz",
 		FrontPort:   8443,
-		InsecureTLS: true,
+		InsecureTLS: ptrBool(true),
 	}
 	got := merge(base, stdin)
 	if got.DataDir != "/var/lib/parvaz" {
@@ -57,8 +59,8 @@ func TestMerge_StdinOverridesFlagDefaults(t *testing.T) {
 	if got.FrontPort != 8443 {
 		t.Errorf("FrontPort not merged: %d, want 8443", got.FrontPort)
 	}
-	if !got.InsecureTLS {
-		t.Errorf("InsecureTLS not merged")
+	if !got.InsecureTLSEnabled() {
+		t.Errorf("InsecureTLS not merged (stdin set to true)")
 	}
 	// Flag defaults preserved when stdin is silent
 	if got.FrontDomain != defaultFrontDomain {
@@ -69,17 +71,24 @@ func TestMerge_StdinOverridesFlagDefaults(t *testing.T) {
 	}
 }
 
-func TestMerge_InsecureTLS_StdinFalseDoesNotClobberBaseTrue(t *testing.T) {
-	// Edge case: a zero-value bool in stdin must not silently flip a
-	// base "true" back to "false". Ops cheatsheet: stdin wins only when
-	// it sets the field explicitly; we can't distinguish "unset" from
-	// "explicit false" on a bool without a *bool, so stdin "false" is
-	// treated as unset. (Symmetric with the other Config fields where
-	// zero values leave base alone.)
-	base := Config{InsecureTLS: true}
-	stdin := Config{InsecureTLS: false}
-	if got := merge(base, stdin); !got.InsecureTLS {
-		t.Error("stdin=false clobbered base=true for InsecureTLS; must treat false as unset")
+func TestMerge_InsecureTLS_StdinWinsOnOverlap(t *testing.T) {
+	// stdin explicitly false MUST override a flag-supplied true — the
+	// documented "stdin wins on overlap" contract. Pointer type makes
+	// this possible (nil vs. *false are distinguishable).
+	base := Config{InsecureTLS: ptrBool(true)}
+	stdin := Config{InsecureTLS: ptrBool(false)}
+	if got := merge(base, stdin); got.InsecureTLSEnabled() {
+		t.Error("stdin=false must override base=true; got InsecureTLS stayed true")
+	}
+}
+
+func TestMerge_InsecureTLS_StdinNilLeavesBaseAlone(t *testing.T) {
+	// Absent from stdin JSON ({} or no insecure_tls key) unmarshals to
+	// nil, which leaves base untouched.
+	base := Config{InsecureTLS: ptrBool(true)}
+	stdin := Config{}
+	if got := merge(base, stdin); !got.InsecureTLSEnabled() {
+		t.Error("stdin nil clobbered base=true; must leave base alone")
 	}
 }
 
