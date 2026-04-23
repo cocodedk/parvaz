@@ -9,7 +9,11 @@
 //	response (batch):  { q: [ { s, h, b } | { e: "..." }, ... ] }  or  { e: "..." }
 package protocol
 
-import "net/http"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
 
 // Request is a single HTTP request to be tunneled through the relay.
 type Request struct {
@@ -94,10 +98,38 @@ type envelopeBatch struct {
 
 // responseEnvelope is the single-mode response wire format.
 type responseEnvelope struct {
-	S int               `json:"s,omitempty"`
-	H map[string]string `json:"h,omitempty"`
-	B string            `json:"b,omitempty"`
-	E string            `json:"e,omitempty"`
+	S int         `json:"s,omitempty"`
+	H respHeaders `json:"h,omitempty"`
+	B string      `json:"b,omitempty"`
+	E string      `json:"e,omitempty"`
+}
+
+// respHeaders mirrors the shape produced by Apps Script's
+// HTTPResponse.getAllHeaders(): each value is a string when the header
+// appears once and a JSON array when it repeats (e.g. Set-Cookie).
+type respHeaders map[string][]string
+
+func (h *respHeaders) UnmarshalJSON(data []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	out := make(respHeaders, len(raw))
+	for k, v := range raw {
+		var asList []string
+		if err := json.Unmarshal(v, &asList); err == nil {
+			out[k] = asList
+			continue
+		}
+		var asString string
+		if err := json.Unmarshal(v, &asString); err == nil {
+			out[k] = []string{asString}
+			continue
+		}
+		return fmt.Errorf("header %q: want string or []string", k)
+	}
+	*h = out
+	return nil
 }
 
 // batchResponseEnvelope is the batch-mode response wire format.

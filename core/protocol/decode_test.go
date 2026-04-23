@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
+	"slices"
 	"testing"
 )
 
@@ -37,6 +38,52 @@ func TestDecodeResponse_Error(t *testing.T) {
 	}
 	if srv.Message != "unauthorized" {
 		t.Errorf("message = %q, want unauthorized", srv.Message)
+	}
+}
+
+func TestDecodeResponse_RepeatedSetCookie(t *testing.T) {
+	// Apps Script's HTTPResponse.getAllHeaders() emits an array when a header
+	// appears more than once. Decoder must preserve each entry as its own value.
+	raw := `{"s":200,"h":{"Set-Cookie":["a=1; Path=/","b=2; HttpOnly"]},"b":""}`
+	resp, err := DecodeResponse([]byte(raw))
+	if err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	got := resp.Header.Values("Set-Cookie")
+	want := []string{"a=1; Path=/", "b=2; HttpOnly"}
+	if !slices.Equal(got, want) {
+		t.Errorf("Set-Cookie = %v, want %v", got, want)
+	}
+}
+
+func TestDecodeResponse_SingleStringHeader(t *testing.T) {
+	// getAllHeaders() emits a bare string when a header appears once. The
+	// decoder must accept that shape too.
+	raw := `{"s":200,"h":{"Set-Cookie":"only=one"},"b":""}`
+	resp, err := DecodeResponse([]byte(raw))
+	if err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	got := resp.Header.Values("Set-Cookie")
+	want := []string{"only=one"}
+	if !slices.Equal(got, want) {
+		t.Errorf("Set-Cookie = %v, want %v", got, want)
+	}
+}
+
+func TestDecodeBatchResponse_RepeatedSetCookie(t *testing.T) {
+	raw := `{"q":[{"s":200,"h":{"Set-Cookie":["a=1","b=2"]},"b":""}]}`
+	bresp, err := DecodeBatchResponse([]byte(raw))
+	if err != nil {
+		t.Fatalf("decode batch: %v", err)
+	}
+	if len(bresp.Items) != 1 || bresp.Items[0].Response == nil {
+		t.Fatalf("items = %+v", bresp.Items)
+	}
+	got := bresp.Items[0].Response.Header.Values("Set-Cookie")
+	want := []string{"a=1", "b=2"}
+	if !slices.Equal(got, want) {
+		t.Errorf("Set-Cookie = %v, want %v", got, want)
 	}
 }
 
