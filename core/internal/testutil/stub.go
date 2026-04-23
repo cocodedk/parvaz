@@ -45,10 +45,21 @@ type AppsScriptStub struct {
 
 // NewStub starts a TLS httptest.Server. Caller must Close it.
 func NewStub(authKey string) *AppsScriptStub {
-	s := &AppsScriptStub{AuthKey: authKey, Routes: map[string]StubResponse{}}
-	s.server = httptest.NewTLSServer(http.HandlerFunc(s.handle))
+	s := NewHandlerStub(authKey)
+	s.server = httptest.NewTLSServer(s.Handler())
 	return s
 }
+
+// NewHandlerStub returns a stub without an attached server. Use Handler()
+// to bind to a listener of your choice — useful for the e2e harness
+// where we need a fixed port (httptest auto-picks random ones).
+func NewHandlerStub(authKey string) *AppsScriptStub {
+	return &AppsScriptStub{AuthKey: authKey, Routes: map[string]StubResponse{}}
+}
+
+// Handler exposes the request-handling logic so callers can serve on
+// their own net/http.Server. Concurrency-safe.
+func (s *AppsScriptStub) Handler() http.Handler { return http.HandlerFunc(s.handle) }
 
 // BaseURL returns the stub's scheme+host base (https://127.0.0.1:PORT).
 // Use this to construct multiple "script IDs" via path suffixes.
