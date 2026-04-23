@@ -41,8 +41,7 @@ class ParvazVpnService : VpnService() {
         when (intent?.action) {
             ACTION_START -> {
                 // Foreground promotion is required within 5s of a
-                // startForegroundService() call on API 26+ and mandatory
-                // with foregroundServiceType="vpn" on API 34+. Promote
+                // startForegroundService() call on API 26+. Promote
                 // before scheduling any real work.
                 startForeground(
                     NOTIFICATION_ID,
@@ -57,14 +56,17 @@ class ParvazVpnService : VpnService() {
     }
 
     override fun onDestroy() {
-        teardown()
+        // Physical resources only — _state is owned by the start/stop
+        // paths so FAILED isn't clobbered on service destruction after
+        // a failed start.
+        cleanup()
         scope.cancel()
         super.onDestroy()
     }
 
     private fun scheduleStart() {
         startJob?.cancel()
-        _state.value = ConnectionState.CONNECTING
+        _state.value = SessionState.connecting()
         startJob = scope.launch {
             val access = ParvazSettings(this@ParvazVpnService).load()
             if (access == null) {
@@ -102,37 +104,56 @@ class ParvazVpnService : VpnService() {
                     return@launch
                 }
             }
-            _state.value = ConnectionState.CONNECTED
+            _state.value = SessionState.connected(System.currentTimeMillis())
         }
     }
 
-    private fun fail() {
+    private fun cleanup() {
         launcher?.stop()
         launcher = null
         tun?.close()
         tun = null
-        _state.value = ConnectionState.FAILED
+    }
+
+    private fun fail() {
+        cleanup()
+        _state.value = SessionState.failed()
         stopSelf()
     }
 
     private fun teardown() {
-        launcher?.stop()
-        launcher = null
-        tun?.close()
-        tun = null
-        _state.value = ConnectionState.DISCONNECTED
+        cleanup()
+        _state.value = SessionState.disconnected()
         stopSelf()
     }
 
     enum class ConnectionState { DISCONNECTED, CONNECTING, CONNECTED, FAILED }
 
+    /**
+     * Snapshot of the service's current session. `connectedAtMs` is
+     * set only when phase == CONNECTED; the MainViewModel reads it to
+     * compute uptime that survives activity recreation (just re-reading
+     * the flow would restart the counter from zero every time).
+     */
+    data class SessionState(
+        val phase: ConnectionState,
+        val connectedAtMs: Long = 0L,
+    ) {
+        companion object {
+            fun disconnected() = SessionState(ConnectionState.DISCONNECTED)
+            fun connecting() = SessionState(ConnectionState.CONNECTING)
+            fun connected(atMs: Long) = SessionState(ConnectionState.CONNECTED, atMs)
+            fun failed() = SessionState(ConnectionState.FAILED)
+        }
+    }
+
     companion object {
         const val ACTION_START = "dk.cocode.parvaz.vpn.START"
         const val ACTION_STOP = "dk.cocode.parvaz.vpn.STOP"
 
-        private val _state = MutableStateFlow(ConnectionState.DISCONNECTED)
+        private val _state = MutableStateFlow(SessionState.disconnected())
         /** Observe to drive the main-screen UI. See class-level doc for lifetime caveats. */
-        val state: StateFlow<ConnectionState> = _state.asStateFlow()
+        val state: StateFlow<SessionState> = _state.asStateFlow()
 
         private const val NOTIFICATION_ID = 1
         private const val TAG = "ParvazVpnService"

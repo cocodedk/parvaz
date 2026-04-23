@@ -82,6 +82,19 @@ class ParvazSettings(context: Context) {
             plain.edit().putString(KEY_LANGUAGE, value).apply()
         }
 
+    /**
+     * True once the user has completed every onboarding step (import,
+     * CA install, VPN permission). Gates the switch from OnboardingHost
+     * to MainScreen — without it, MainActivity would jump to main as
+     * soon as Access persists, skipping CA_INSTALL and VPN_EXPLAIN on
+     * any activity recreation.
+     */
+    var isOnboardingComplete: Boolean
+        get() = plain.getBoolean(KEY_ONBOARDING_COMPLETE, false)
+        set(value) {
+            plain.edit().putBoolean(KEY_ONBOARDING_COMPLETE, value).apply()
+        }
+
     private companion object {
         const val PLAIN_FILE = "parvaz_prefs"
         const val SECURE_FILE = "parvaz_secure"
@@ -90,6 +103,7 @@ class ParvazSettings(context: Context) {
         const val KEY_DEPLOYMENT_ID = "deployment_id"
         const val KEY_DISPLAY_NAME = "display_name"
         const val KEY_LANGUAGE = "language"
+        const val KEY_ONBOARDING_COMPLETE = "onboarding_complete"
 
         const val DEFAULT_LANGUAGE = "fa"
     }

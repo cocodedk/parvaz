@@ -150,18 +150,12 @@ Farsi strings default (`res/values/`); English override (`res/values-en/`).
 
 ## Milestone 13 — Main screen
 
-- [x] **M13a** — Disconnected outline (oxblood) stamp · tap → CONNECTING
-      spinner → CONNECTED olive solid stamp + `T+HH:MM:SS` uptime. Second
-      tap disconnects (no confirmation — one-button UX). `ParvazVpnService`
-      companion-object `StateFlow<ConnectionState>` drives the UI;
-      `MainViewModel` owns the uptime ticker. `startForeground()` with
-      notification + `specialUse` foregroundServiceType for API 14+. Persian
-      numerals via `ui/util/PersianDigits`.
-- [ ] **M13b** — Long-press → hidden settings sheet (language toggle,
-      access reset, SNI pool).
-- [ ] **M13c** — Service-binding refactor (lands with M15b): current
-      companion-object state can lie if the service is killed without
-      `onDestroy`. Binding gives tighter lifecycle coupling.
+- [x] **M13a** — Disconnected outline → tap → CONNECTING spinner →
+      CONNECTED olive stamp + `T+HH:MM:SS` uptime (ticks from service's
+      own `connectedAtMs` so recreation doesn't reset). Second tap
+      disconnects. Persian numerals via `ui/util/PersianDigits`.
+- [ ] **M13b** — Long-press → settings sheet (language, access reset, SNI).
+- [ ] **M13c** — Service-binding refactor (with M15b tun2socks).
 
 ## Milestone 14 — URL scheme handler + QR scanner
 

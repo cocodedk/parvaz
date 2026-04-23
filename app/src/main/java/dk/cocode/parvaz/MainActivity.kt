@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import dk.cocode.parvaz.settings.Access
 import dk.cocode.parvaz.settings.AccessImport
 import dk.cocode.parvaz.settings.AccessParseException
@@ -36,26 +37,33 @@ class MainActivity : ComponentActivity() {
     private var pendingParvazUrlError by mutableStateOf<String?>(null)
 
     /**
-     * Activity-level record of which `Access` has been imported. Seeded
-     * from disk on create, updated when onboarding finishes. Presence
-     * of this value switches the UI from OnboardingHost to MainScreen
-     * without driving the change through a callback side-effect.
+     * Activity-level record of which `Access` has been imported and
+     * whether onboarding is fully done. Seeded from disk on create,
+     * updated when onboarding finishes. Both conditions are required
+     * to flip to MainScreen — a persisted Access alone is not enough;
+     * M12.2 saves Access before CA install + VPN consent.
      */
     private var activeAccess by mutableStateOf<Access?>(null)
+    private var onboardingComplete by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleDeepLink(intent)
-        activeAccess = ParvazSettings(this).load()
+        val settings = ParvazSettings(this)
+        activeAccess = settings.load()
+        onboardingComplete = settings.isOnboardingComplete
         enableEdgeToEdge()
         setContent {
             ParvazTheme {
                 Scaffold(modifier = Modifier.fillMaxSize().background(Paper)) { padding ->
                     val access = activeAccess
                     val hasDeepLink = pendingParvazUrl != null || pendingParvazUrlError != null
-                    if (access != null && !hasDeepLink) {
+                    val showMain = access != null && onboardingComplete && !hasDeepLink
+                    if (showMain) {
+                        val persianDigits = LocalConfiguration.current.locales.get(0)?.language == "fa"
                         MainScreen(
                             viewModel = mainViewModel,
+                            persianNumerals = persianDigits,
                             modifier = Modifier.padding(padding),
                         )
                     } else {
@@ -64,6 +72,8 @@ class MainActivity : ComponentActivity() {
                             initialDeepLinkError = pendingParvazUrlError,
                             alreadyImportedAccess = access,
                             onFinished = { finished ->
+                                ParvazSettings(this@MainActivity).isOnboardingComplete = true
+                                onboardingComplete = true
                                 activeAccess = finished
                                 pendingParvazUrl = null
                                 pendingParvazUrlError = null
