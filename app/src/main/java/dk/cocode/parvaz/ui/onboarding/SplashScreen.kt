@@ -92,6 +92,10 @@ object TestTags {
     const val ImportScanButton = "import_scan_button"
     const val ImportSubmitButton = "import_submit_button"
     const val ImportErrorText = "import_error_text"
+
+    // CaInstallScreen (M12.3)
+    const val CaInstallPrimary = "ca_install_primary"
+    const val CaInstallSpinner = "ca_install_spinner"
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFF1E8D4)

@@ -79,17 +79,16 @@ fun OnboardingHost(
                 modifier = modifier,
             )
 
-        OnboardingStep.CA_INSTALL,
+        OnboardingStep.CA_INSTALL ->
+            CaInstallScreen(
+                onInstalled = { step = OnboardingStep.VPN_EXPLAIN },
+                modifier = modifier,
+            )
+
         OnboardingStep.VPN_EXPLAIN -> {
             PlaceholderStep(
                 label = step.name,
-                onNext = {
-                    step = when (step) {
-                        OnboardingStep.CA_INSTALL -> OnboardingStep.VPN_EXPLAIN
-                        OnboardingStep.VPN_EXPLAIN -> OnboardingStep.DONE
-                        else -> OnboardingStep.DONE
-                    }
-                },
+                onNext = { step = OnboardingStep.DONE },
                 modifier = modifier,
             )
         }
