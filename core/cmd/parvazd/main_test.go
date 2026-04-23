@@ -10,8 +10,8 @@ func TestConfig_Validate(t *testing.T) {
 	}{
 		{"empty", Config{}, true},
 		{"auth only", Config{AuthKey: "k"}, true},
-		{"worker only", Config{WorkerURL: "wss://x"}, true},
-		{"complete", Config{AuthKey: "k", WorkerURL: "wss://x"}, false},
+		{"scripts only", Config{ScriptURLs: []string{"https://x/exec"}}, true},
+		{"complete", Config{AuthKey: "k", ScriptURLs: []string{"https://x/exec"}}, false},
 	}
 	for _, tc := range cases {
 		err := tc.cfg.validate()
@@ -23,23 +23,23 @@ func TestConfig_Validate(t *testing.T) {
 
 func TestMerge_StdinOverridesFlagDefaults(t *testing.T) {
 	base := Config{
-		FrontIP: defaultFrontIP, FrontDomain: defaultFrontDomain,
+		GoogleIP: defaultGoogleIP, FrontDomain: defaultFrontDomain,
 		ListenHost: defaultListenHost, ListenPort: defaultListenPort,
 	}
 	stdin := Config{
-		WorkerURL: "wss://relay.example/tunnel",
-		AuthKey:   "secret-from-stdin",
-		FrontIP:   "1.1.1.1",
+		ScriptURLs: []string{"https://script.google.com/macros/s/ABC/exec"},
+		AuthKey:    "secret-from-stdin",
+		GoogleIP:   "64.233.160.0",
 	}
 	got := merge(base, stdin)
-	if got.WorkerURL != stdin.WorkerURL {
-		t.Errorf("WorkerURL = %q, want %q", got.WorkerURL, stdin.WorkerURL)
+	if len(got.ScriptURLs) != 1 || got.ScriptURLs[0] != stdin.ScriptURLs[0] {
+		t.Errorf("ScriptURLs = %v, want %v", got.ScriptURLs, stdin.ScriptURLs)
 	}
 	if got.AuthKey != stdin.AuthKey {
 		t.Errorf("AuthKey not merged")
 	}
-	if got.FrontIP != "1.1.1.1" {
-		t.Errorf("FrontIP = %q, want 1.1.1.1", got.FrontIP)
+	if got.GoogleIP != "64.233.160.0" {
+		t.Errorf("GoogleIP = %q, want 64.233.160.0", got.GoogleIP)
 	}
 	// Flag defaults preserved when stdin is silent
 	if got.FrontDomain != defaultFrontDomain {

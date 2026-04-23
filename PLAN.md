@@ -1,15 +1,15 @@
 # Implementation Plan — Parvaz
 
-An Android VPN app (Kotlin + Compose, Farsi-first) that tunnels all phone
-traffic through a user-deployed Cloudflare Worker via a raw TCP passthrough
-WebSocket. One APK. One worker.js. Three phases: Go core, Android app,
-integration.
+A Farsi-first Android app that tunnels **browser traffic** through a
+user-deployed Google Apps Script relay, with SNI concealment + local
+MITM. Architecturally aligned with MasterHttpRelayVPN-RUST. Three phases:
+Go core, Android app, integration.
 
 ---
 
 ## Milestone 0 — Skeleton
 
-- [x] `reference/` cloned (historical MasterHttpRelayVPN Python, read-only)
+- [x] `reference/` cloned (upstream Python, read-only)
 - [x] `CLAUDE.md`, `PLAN.md`, `ARCHITECTURE.md` — project docs
 - [x] `core/go.mod` — module `github.com/cocodedk/parvaz/core`
 - [x] `.gitignore`, `LICENSE` (MIT), `version.txt`, GitHub scaffolding
@@ -18,165 +18,160 @@ integration.
 
 ---
 
-# Phase A — Go Core (Cloudflare Worker edition)
+# Phase A — Go Core
 
-## Milestone 1 — ~~protocol envelope~~ [RESERVED — not on critical path]
+## Milestone 1 — `core/protocol` envelope
 
-`core/protocol/` is implemented + tested (7 passes, 81% cov) but UNUSED
-in the Cloudflare tunnel path — TCP is opaque and needs no JSON envelope.
-Package kept for a possible future control channel (stats push, version
-negotiation). Safe to leave as-is or delete.
+- [x] Request, BatchRequest, Response, BatchResponse, ServerError
+- [x] EncodeSingle / EncodeBatch / DecodeResponse / DecodeBatchResponse
+- [x] 7 tests · 81% coverage
 
 ## Milestone 2 — `core/fronter` dialer
 
 - [x] `Dialer{FrontDomain, InsecureSkipVerify, BaseDialer, TLSConfigHook}`
-- [x] 3 tests: SNI split, unreachable error, context cancellation
-- FrontDomain now defaults to a popular Cloudflare-hosted domain (TBD);
-      target is a Cloudflare edge IP (e.g. `104.16.0.0`).
+- [x] 3 tests · 87.5% coverage
 
 ## Milestone 3 — `core/fronter` HTTP client
 
 - [x] `NewHTTPClient(d, target) → *http.Client`
-- [x] 4 tests: SNI/Host split, POST echo, 503, context deadline
-- Used by Milestone 5 for the WebSocket upgrade handshake.
+- [x] 4 tests — SNI/Host split, POST echo, 503, context deadline
 
-## Milestone 4 — `core/codec` [RESERVED — not on critical path]
+## Milestone 4 — `core/codec`
 
-`core/codec/` is implemented + tested (6 passes, 94% cov) but UNUSED in
-the TCP tunnel path. Kept for a future HTTP-intercepting mode. Safe to
-leave as-is or delete.
+- [x] identity · gzip · brotli · zstd · chained — 6 tests · 94% cov
 
-## Milestone 5 — `core/relay` · WebSocket TCP tunnel
+## Milestone 5 — `core/relay`
 
-**Rewritten** from the Apps Script JSON envelope. Now a WebSocket dialer.
-
-Target: `core/relay/relay.go` + `core/relay/relay_test.go` +
-`core/internal/testutil/worker_stub.go`.
-
-API:
-```
-type Config struct {
-    HTTPClient *http.Client   // uses fronter internally
-    WorkerURL  string         // wss://x.workers.dev/tunnel
-    AuthKey    string
-}
-
-func New(cfg Config) (*Relay, error)
-func (r *Relay) Dial(ctx, host string, port uint16) (net.Conn, error)
-```
-
-`Dial` opens `wss://<worker>/tunnel?k=<key>&host=<host>&port=<port>`,
-returns the WebSocket wrapped as a `net.Conn` (binary-frame stream).
-Implements `socks5.Dialer`.
-
-Dep: `github.com/coder/websocket`.
-
-Failing-test order:
-1. `TestRelay_Dial_PassesAuthAndTarget` — stub records query params; one Dial.
-2. `TestRelay_Dial_Unauthorized_ReturnsError` — stub returns 401; Dial errors.
-3. `TestRelay_Dial_ProxiesTCPBytesBothWays` — stub echoes; conn round-trips.
-4. `TestRelay_Dial_PropagatesContextCancel` — stub hangs; ctx deadline returns.
-5. `TestRelay_Dial_ServerCloseCausesConnEOF` — stub closes; Read → EOF.
+- [x] Config{HTTPClient, ScriptURLs, AuthKey} → Do(ctx, req) → Response
+- [x] Multiple ScriptURLs round-robin; Content-Encoding auto-decoded
+- [x] 5 tests · 76.5% cov · in-process `testutil.AppsScriptStub`
 
 ## Milestone 6 — `core/socks5` listener
 
-- [x] Minimal SOCKS5, no auth, CONNECT-only.
-- [x] 5 tests / 69.5% cov.
-- No code changes needed — the `Dialer` interface M5 implements is exactly what M6 consumes.
+- [x] No auth, CONNECT-only; rejects BIND + UDP ASSOCIATE
+- [x] 5 tests · 69.5% cov
 
-## Milestone 7 — WebSocket stream multiplexing (optimization)
+## Milestone 9 — `core/cmd/parvazd` sidecar
 
-Later. Right now each CONNECT opens its own WS. h2 multiplexing over a
-single shared TLS connection reduces TCP+TLS overhead on the device.
+- [x] Flags + stdin JSON config merge; prints `READY`; listens on :1080
+- [x] Builds cleanly for android/arm64 (~5.4 MB .so)
+- [ ] Wire real dispatcher once M-mitm + M-dispatcher land (currently stubDialer)
 
-## Milestone 8 — ~~request batching~~ [REMOVED]
+## Milestone M-mitm · (NEXT, NEW)
 
-No longer applicable — the TCP passthrough tunnel has no request boundary to batch.
+**Target**: `core/mitm/{ca.go, leaf.go, interceptor.go}` + tests.
 
-## Milestone 9 — `core/cmd/parvazd` wiring
+The piece that turns a SOCKS5 CONNECT into an inspectable HTTP request
+which the relay can re-encode as a JSON envelope.
 
-- [x] Binary builds, prints `READY`, listens on :1080.
-- [ ] Replace `stubDialer` with a configured `relay.Relay` instance.
-- [ ] Parse `parvaz://` URLs in stdin config (host + key).
-- [ ] Smoke test: pipe config, call SOCKS5 CONNECT, verify tunnel opens.
+Design:
+- CA persisted at `<data-dir>/ca/ca.crt` + `ca/ca.key`. Generate on first
+  launch. Android app reads the PEM and triggers the system CA-install
+  intent.
+- `interceptor.Intercept(ctx, rawConn, host, port)` accepts a SOCKS5-era
+  TCP conn, sends back a SOCKS5 "CONNECT succeeded" reply, performs a
+  TLS handshake WITH the client using a leaf cert signed by our CA,
+  named for `host`.
+- Once the plaintext HTTP flows, each `http.Request` → `relay.Do` →
+  `http.Response` → written back through the TLS server conn.
+
+Failing-test order:
+1. `TestCA_GenerateAndPersist` — create, reload from disk, PEM-decode.
+2. `TestLeaf_SignedByCA_NameMatchesHost` — x509.Verify succeeds.
+3. `TestInterceptor_TLSServer_AcceptsBrowserClientUsingCA` — in-process client trusts the CA, performs handshake, sees our cert for `example.com`.
+4. `TestInterceptor_ForwardsHTTPRequestThroughRelay` — stub relay captures the request; cert + body + method round-trip.
+5. `TestInterceptor_GzipResponse_EchoedIntact` — end-to-end through codec.
+
+## Milestone M-dispatcher · (NEW)
+
+**Target**: `core/dispatcher/dispatcher.go` + tests.
+
+Per SOCKS5 CONNECT, choose:
+- **SNI-rewrite tunnel** — target host is in a hardcoded allow-list of Google-owned domains. Open a direct TCP stream via `fronter.Dialer` with SNI = `www.google.com`, Host (when HTTP) = target. Pipe bytes back.
+- **MITM + Apps Script relay** — default for everything else. Delegate to `mitm.Interceptor`.
+
+Allow-list (match mhrv-rs): `*.google.com`, `*.googleusercontent.com`, `*.gstatic.com`, `*.googleapis.com`, `*.youtube.com`, `*.ytimg.com`, `*.ggpht.com`. Exact matches + wildcard suffix.
+
+Failing-test order:
+1. `TestDispatcher_GoogleHost_UsesSNIRewrite`
+2. `TestDispatcher_ArbitraryHost_UsesMITM`
+3. `TestDispatcher_AllowListLookup_MatchesWildcards`
+
+## Milestone 9b — parvazd wiring
+
+Replace the stubDialer in `core/cmd/parvazd/main.go` with
+`dispatcher.New(mitmInterceptor, relayClient, allowList).Dial` so the
+SOCKS5 server actually forwards traffic.
 
 ---
 
 # Phase B — Android App (Farsi-first)
 
-Depends on a compiled `libparvaz.so` in `app/src/main/jniLibs/<abi>/`.
-
 ## Milestone 10 — Compose NOTAM theme
 
-- [x] `ui/theme/Color.kt` / `Theme.kt` / `Type.kt` — NOTAM palette, light-only.
-- [x] `app/src/main/res/values/strings.xml` — placeholder.
-- [ ] Bundle **Vazirmatn** (required — Persian body font) in `res/font/`.
-- [ ] Bundle **Redaction** + **JetBrains Mono** in `res/font/`.
-- [ ] Switch Type.kt from placeholder FontFamily.Serif/Monospace to the bundled fonts.
-- [ ] Persian-aware typography scale (Vazirmatn letter-spacing = 0, Latin 2sp+).
+- [x] Color.kt / Theme.kt / Type.kt — NOTAM palette, light-only
+- [ ] Bundle **Vazirmatn** (required), Redaction, JetBrains Mono in `res/font/`
+- [ ] Swap Type.kt from placeholder FontFamily.Serif/Monospace to bundled fonts
+- [ ] Persian-aware letter-spacing (Vazirmatn = 0, Latin labels 2sp+)
 
 ## Milestone 11 — Settings + parvaz:// URL parser
 
-- `settings/Access.kt` — parse `parvaz://<host>/<key>#<display-name>` → struct.
-- `settings/ParvazSettings.kt` — EncryptedSharedPreferences for key; plain prefs for host + display name + language.
-- Tests: Access parser (valid, missing key, missing host, with/without display name), round-trip storage.
+- [x] `Access.kt` parses `parvaz://<deployment-id>/<key>#<display-name>`
+- [x] `AccessParseException` with Farsi messages (9 unit tests)
+- [ ] `ParvazSettings.kt` — EncryptedSharedPreferences for key; plain prefs for deployment ID, display name, language
 
-## Milestone 12 — Onboarding (3 screens)
+## Milestone 12 — Onboarding (4 screens)
 
-Farsi strings in `res/values/` (default locale). English in `res/values-en/`.
+Farsi strings default (`res/values/`); English override (`res/values-en/`).
 
-Screens, Compose:
-1. `SplashScreen` — `پرواز` in Redaction + `شروع` rubber-stamp button.
-2. `ImportAccessScreen` — single field + `چسباندن` + `اسکن QR` buttons. Auto-detects clipboard `parvaz://` on appear.
-3. `VpnPermissionExplainerScreen` — Farsi explainer BEFORE the system prompt. One button → `VpnService.prepare(ctx)` intent.
+1. `SplashScreen` — `پرواز` + `شروع` rubber-stamp button.
+2. `ImportAccessScreen` — single field + `چسباندن` + `اسکن QR`. Auto-detects clipboard `parvaz://` on appear.
+3. `CaInstallScreen` — Farsi walkthrough. Export PEM, trigger Android CA-install intent, verify via `AndroidCAStore` fingerprint check.
+4. `VpnPermissionExplainerScreen` — Farsi explainer BEFORE the system prompt.
 
-Invoke `frontend-design:frontend-design` before each screen.
+## Milestone 13 — Main screen
 
-## Milestone 13 — Main screen (connected / disconnected)
-
-`MainScreen` composable + `MainViewModel`:
-- Disconnected: oxblood outlined `پرواز` rubber-stamp. Tap → connect.
-- Connected: olive solid `در پرواز` stamp + `T+۰۰:۱۲:۴۷` uptime (Persian numerals via `java.text.NumberFormat` with `fa` locale).
-- No other UI elements. Long-press for hidden settings sheet (language, access reset).
-- State machine: Disconnected → Connecting → Connected → Disconnecting → Error.
+- Disconnected: oxblood outline `پرواز` stamp. Tap → connect state machine.
+- Connected: olive solid `در پرواز` + `T+۰۰:۱۲:۴۷` uptime in Persian numerals.
+- Long-press for hidden settings sheet (language, access reset, SNI pool).
 
 ## Milestone 14 — URL scheme handler + QR scanner
 
-- `AndroidManifest.xml` — `<intent-filter>` for `parvaz://` scheme on MainActivity.
-- QR scanner via `androidx.camera` + MLKit barcode (or zxing fallback).
-- Both paths resolve to the same `ImportAccessScreen.onImport(Access)` callback.
+- `AndroidManifest.xml` — `<intent-filter>` for `parvaz://` on MainActivity.
+- QR scanner via `androidx.camera` + MLKit barcode.
+- Both paths resolve to the same `ImportAccessScreen.onImport(Access)`.
 
 ## Milestone 15 — VpnService + tun2socks + sidecar
 
-- `vpn/ParvazVpnService.kt` extends `VpnService`. Builds TUN (10.0.0.1/24, MTU 1500, routes 0.0.0.0/0).
-- `vpn/CoreLauncher.kt` — `ProcessBuilder(nativeLibraryDir + "/libparvaz.so")`, pipes JSON config on stdin, reads `READY` line.
-- `vpn/Tun2Socks.kt` — bundle `go-tun2socks` (Go AAR or a second sidecar) + wire TUN fd → SOCKS5 `127.0.0.1:1080`.
-- Note `app/build.gradle.kts` already has `packaging.jniLibs.useLegacyPackaging = true`.
+- `vpn/ParvazVpnService.kt` — TUN 10.0.0.1/24, MTU 1500, routes 0.0.0.0/0.
+- `vpn/CoreLauncher.kt` — `ProcessBuilder(nativeLibraryDir + "/libparvaz.so")`, stdin JSON, reads `READY`.
+- `vpn/Tun2Socks.kt` — gomobile AAR of a minimal tun2socks OR sing-box subset. Wire TUN fd → SOCKS5 `127.0.0.1:1080`.
+- `app/build.gradle.kts` already has `packaging.jniLibs.useLegacyPackaging = true`.
 
 ## Milestone 16 — Error / edge states (Farsi)
 
-- `آدرس معتبر نیست — از فرستنده بخواهید دوباره بفرستد` — invalid access URL
-- `اینترنت ندارید` — no network
-- `سرور در دسترس نیست` — worker unreachable
-- `دسترسی VPN رد شد` — user declined VpnService permission; Retry button
-- All as diagonal oxblood stamp overlays when field-specific; else toast.
+- `آدرس معتبر نیست — از فرستنده بخواهید دوباره بفرستد`
+- `اینترنت ندارید`
+- `سرور در دسترس نیست`
+- `گواهی نصب نشده است — دوباره تلاش کنید`
+- `دسترسی VPN رد شد`
 
 ---
 
 # Phase C — Integration
 
-## Milestone 17 — Deploy worker + live E2E
+## Milestone 17 — Deploy Code.gs + live E2E
 
-- Deploy `worker/worker.js` to a test Cloudflare account via `wrangler`.
-- Manual device smoke: install APK, paste parvaz:// URL, Connect, verify Instagram/Telegram load.
-- Optional: `PARVAZ_E2E=1 go test -C core ./relay/...` against the live worker.
+- Deploy `reference/apps_script/Code.gs` to a test Google account.
+- Smoke: install APK on device, paste `parvaz://...`, install CA, Connect, load google.com + a non-Google site in Chrome.
+- Optional gated test: `PARVAZ_E2E=1 go test -C core ./relay/...`.
 
 ---
 
 ## Out of scope (explicit non-goals)
 
-- **MITM / CA install** — not needed; TCP tunnel is opaque.
-- **iOS** — different VPN model, different effort.
-- **Play Store** — distribution via F-Droid + direct APK only.
-- **Web dashboard, analytics, crash reporting** — zero-telemetry.
-- **Standalone SOCKS5 daemon** — not a product, just a sidecar to the app.
+- **Non-browser apps** (Instagram/Telegram/WhatsApp/banking native) — will fail by design (Android MITM limitation). Documented clearly.
+- **iOS** — different VPN model.
+- **Play Store** — F-Droid + sideload only.
+- **Standalone SOCKS5 daemon** — just a sidecar to the app.
+- **Analytics / crash reporting / telemetry** — zero-telemetry is a principle.

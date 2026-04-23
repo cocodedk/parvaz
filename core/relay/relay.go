@@ -1,98 +1,101 @@
-// Package relay opens raw TCP tunnels to the Parvaz Cloudflare Worker.
+// Package relay glues the protocol envelope, the fronted HTTP client, and
+// the content codec into a single request-in / response-out facade.
 //
-// Each SOCKS5 CONNECT becomes one WebSocket request:
-//
-//	GET /tunnel?k=<access_key>&host=<target>&port=<target_port>
-//	Upgrade: websocket
-//
-// The Worker accepts, opens an upstream TCP socket via cloudflare:sockets,
-// and pipes the WebSocket binary frames to/from that socket. Parvaz wraps
-// the WebSocket back into a net.Conn so the rest of the pipeline sees
-// a transparent TCP stream.
-//
-// This package implements socks5.Dialer — one Dial per tunnel.
+// A Relay is the only layer that ties JSON + network + codec together; every
+// other package stays single-responsibility.
 package relay
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"net"
+	"io"
 	"net/http"
-	"net/url"
+	"sync/atomic"
 
-	"github.com/coder/websocket"
+	"github.com/cocodedk/parvaz/core/codec"
+	"github.com/cocodedk/parvaz/core/protocol"
 )
 
 // Config configures a Relay. All fields are required.
 type Config struct {
-	// HTTPClient performs the WebSocket upgrade. In production this is
-	// built via fronter.NewHTTPClient so SNI is split from Host.
+	// HTTPClient sends fronted POSTs. Typically built with fronter.NewHTTPClient.
 	HTTPClient *http.Client
 
-	// WorkerURL is the wss:// (or ws:// for tests) URL of the deployed
-	// Cloudflare Worker's /tunnel endpoint. Path must be /tunnel.
-	WorkerURL string
+	// ScriptURLs are Apps Script deployment URLs to POST envelopes to.
+	// Multiple URLs are round-robined across calls.
+	ScriptURLs []string
 
-	// AuthKey is the shared secret with the Worker. Sent as `?k=` query param.
+	// AuthKey is the shared secret with Code.gs.
 	AuthKey string
 }
 
-// Relay opens tunneled TCP streams. Goroutine-safe.
+// Relay sends protocol.Request through the fronted transport and returns
+// the decoded protocol.Response.
 type Relay struct {
-	cfg Config
+	cfg  Config
+	next atomic.Uint32
 }
 
-// New validates config and returns a ready Relay.
+// New validates the config and returns a ready Relay.
 func New(cfg Config) (*Relay, error) {
 	if cfg.HTTPClient == nil {
 		return nil, errors.New("relay: HTTPClient required")
 	}
+	if len(cfg.ScriptURLs) == 0 {
+		return nil, errors.New("relay: at least one ScriptURL required")
+	}
 	if cfg.AuthKey == "" {
 		return nil, errors.New("relay: AuthKey required")
-	}
-	u, err := url.Parse(cfg.WorkerURL)
-	if err != nil {
-		return nil, fmt.Errorf("relay: parse WorkerURL: %w", err)
-	}
-	if u.Scheme != "wss" && u.Scheme != "ws" {
-		return nil, fmt.Errorf("relay: WorkerURL scheme must be ws/wss, got %q", u.Scheme)
-	}
-	if u.Host == "" {
-		return nil, errors.New("relay: WorkerURL missing host")
 	}
 	return &Relay{cfg: cfg}, nil
 }
 
-// Dial opens a tunneled TCP connection to host:port via the Worker and
-// returns the conn as a net.Conn. Implements socks5.Dialer.
-func (r *Relay) Dial(ctx context.Context, host string, port uint16) (net.Conn, error) {
-	if host == "" {
-		return nil, errors.New("relay: empty host")
-	}
-	if port == 0 {
-		return nil, errors.New("relay: zero port")
-	}
-	u, err := url.Parse(r.cfg.WorkerURL)
+// Do sends req through the relay and returns the decoded response. On
+// transport or protocol errors, the returned error is wrapped for context;
+// Apps-Script-level errors come back as *protocol.ServerError.
+func (r *Relay) Do(ctx context.Context, req protocol.Request) (*protocol.Response, error) {
+	body, err := protocol.EncodeSingle(req, r.cfg.AuthKey)
 	if err != nil {
-		return nil, fmt.Errorf("relay: parse worker url: %w", err)
+		return nil, fmt.Errorf("relay: encode: %w", err)
 	}
-	q := u.Query()
-	q.Set("k", r.cfg.AuthKey)
-	q.Set("host", host)
-	q.Set("port", fmt.Sprint(port))
-	u.RawQuery = q.Encode()
+	url := r.pickURL()
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("relay: new request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
 
-	opts := &websocket.DialOptions{HTTPClient: r.cfg.HTTPClient}
-	wsConn, resp, err := websocket.Dial(ctx, u.String(), opts)
+	httpResp, err := r.cfg.HTTPClient.Do(httpReq)
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusUnauthorized {
-			return nil, fmt.Errorf("relay: unauthorized — check access key")
+		return nil, fmt.Errorf("relay: http: %w", err)
+	}
+	defer httpResp.Body.Close()
+
+	raw, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("relay: read body: %w", err)
+	}
+
+	resp, err := protocol.DecodeResponse(raw)
+	if err != nil {
+		return nil, err // already a typed error (ServerError or parse error)
+	}
+
+	if ce := resp.Header.Get("Content-Encoding"); ce != "" {
+		decoded, err := codec.Decode(resp.Body, ce)
+		if err != nil {
+			return nil, fmt.Errorf("relay: decode body: %w", err)
 		}
-		return nil, fmt.Errorf("relay: dial ws: %w", err)
+		resp.Body = decoded
+		resp.Header.Del("Content-Encoding")
 	}
+	return resp, nil
+}
 
-	// Detach the net.Conn lifetime from the dial context — callers control
-	// the conn's lifetime via Close(). A background ctx keeps it open.
-	return websocket.NetConn(context.Background(), wsConn, websocket.MessageBinary), nil
+// pickURL round-robins across the configured ScriptURLs.
+func (r *Relay) pickURL() string {
+	n := r.next.Add(1) - 1
+	return r.cfg.ScriptURLs[int(n)%len(r.cfg.ScriptURLs)]
 }

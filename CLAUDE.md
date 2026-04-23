@@ -2,26 +2,29 @@
 
 ## Project Overview
 
-**Parvaz** (پرواز — Persian for "flight") is an Android VPN app built for
-Iranian users with no technical background. A technical helper deploys a
-**Cloudflare Worker** one-liner that forwards raw TCP traffic; a housewife
-or factory worker installs Parvaz, scans a QR code or pastes a
-`parvaz://` URL received via Telegram, and taps one button. System-wide,
-Farsi-first, one-tap.
+**Parvaz** (پرواز — Persian for "flight") is a Farsi-first Android app that
+tunnels **browser traffic** through a user-deployed Google Apps Script
+relay, using TLS SNI concealment and a local MITM to terminate TLS for
+re-encapsulation. A technical helper deploys `Code.gs` on their own
+Google account once; a non-technical user installs Parvaz, pastes or
+scans a `parvaz://` URL, installs a user-CA via Android Settings, and
+taps one button.
 
-**Target audience**: Persian speakers with zero English, minimal tech
-literacy. Every UI decision defers to this.
+**Architecture matches the proven MasterHttpRelayVPN-RUST port**:
+[github.com/therealaleph/MasterHttpRelayVPN-RUST](https://github.com/therealaleph/MasterHttpRelayVPN-RUST).
+Parvaz's differentiators are the NOTAM visual identity, Farsi-by-default
+UI, and tighter onboarding for non-technical users.
 
-**Backend**: Cloudflare Workers with the `cloudflare:sockets` API. Raw TCP
-passthrough means **no MITM**, no per-app cert trust issues, and full
-HTTPS coverage — unlike URL-fetch-based relays (Apps Script, etc.) which
-cannot tunnel opaque TLS.
+**Honest scope (per MITM reality on Android 7+):**
+- ✅ **Chrome, Firefox** — browser traffic tunnels correctly.
+- ✅ **Google-owned hosts** — google.com, youtube.com, etc. route via
+  SNI-rewrite without MITM; fastest path, no quota.
+- ❌ **Instagram / Telegram / WhatsApp / banking / streaming native apps**
+  — these reject user-CAs and break. This is a general Android-MITM
+  constraint, not a Parvaz bug. Users who need those apps pair Parvaz
+  with xray+VLESS pointing at their own VPS.
 
-**Circumvention stance**: TLS SNI is a popular Cloudflare-hosted domain;
-HTTP Host header is the user's `*.workers.dev` deployment. Cloudflare's
-edge routes by Host — politically expensive to block.
-
-Monorepo. One APK. One worker.js. One release artifact.
+Monorepo. One APK. One `Code.gs`.
 
 ---
 
@@ -29,119 +32,115 @@ Monorepo. One APK. One worker.js. One release artifact.
 
 ```
 parvaz/
-├── app/              Kotlin + Compose UI, Farsi-first, VpnService,
-│                     tun2socks, sidecar-launcher, settings
-├── core/             Go sidecar — fronter TLS dialer, WebSocket tunnel
-│                     relay, local SOCKS5, main parvazd binary
-├── worker/           Cloudflare Worker (worker.js, wrangler.toml)
-├── reference/        MasterHttpRelayVPN (historical — product pivoted
-│                     away from its Apps Script backend)
+├── app/              Kotlin + Compose UI, Farsi-first, VpnService +
+│                     tun2socks + sidecar-launcher + CA install flow
+├── core/             Go sidecar — fronter TLS dialer, MITM interceptor,
+│                     Apps Script envelope relay, local SOCKS5, parvazd
+├── reference/        Upstream MasterHttpRelayVPN Python (read-only study)
 └── website/          Bilingual GitHub Pages (EN + FA)
 ```
 
-**Core ↔ App boundary**: Go core cross-compiled per Android ABI to
-`app/src/main/jniLibs/<abi>/libparvaz.so`. On launch, the app uses
-`ProcessBuilder` to exec it, pipes a JSON config on stdin, waits for
-`READY` on stdout, then talks to it as a **SOCKS5 server on
-`127.0.0.1:1080`**. No JNI, no gomobile.
+**Core ↔ App boundary**: Go core cross-compiled per ABI to
+`app/src/main/jniLibs/<abi>/libparvaz.so`. App uses `ProcessBuilder` to
+exec, pipes JSON config on stdin, reads `READY` on stdout, then talks to
+it as a **SOCKS5 server on `127.0.0.1:1080`**. No JNI, no gomobile.
 
 - **Min SDK**: 24 · **Target SDK**: 36 · **Kotlin**: 2.2.x · **AGP**: 9.1.x
-- **UI**: Jetpack Compose Material3, **light only** (NOTAM aesthetic)
+- **UI**: Compose Material3, **light only** (NOTAM parchment)
 - **Go**: 1.24+ · **CGO_ENABLED**: 0
+
+---
 
 ## UX — Farsi-first, zero-configuration
 
-Every decision is driven by *"what does a Farsi-speaking factory worker
-do next?"*. Default language is Persian (`fa`) regardless of device
-locale. Everything is Farsi until a user explicitly toggles English.
+Default language is Persian (`fa`) always, not detected. English lives
+as an override locale.
 
-**Onboarding — 3 screens total, never more.**
-1. Splash + one-line trust: `پرواز` in giant Redaction, one `شروع` button.
-2. Access import — one field, two buttons: `📋 چسباندن` (paste) and
-   `📷 اسکن QR`. Auto-detect `parvaz://` in clipboard on launch.
-3. VpnService permission prompt preceded by a Farsi explainer.
+**Onboarding — 4 screens** (CA install is the unavoidable extra step):
+1. Splash + `شروع`.
+2. Access import — paste `parvaz://` or scan QR.
+3. **MITM CA install** — Farsi walkthrough that triggers Android's CA
+   install intent; verifies afterwards via `AndroidCAStore`. Requires
+   screen-lock set; we prompt if missing.
+4. VpnService permission prompt, preceded by a Farsi explainer.
 
-**Main screen — 1 button.**
-- Disconnected: oxblood outlined `پرواز` rubber-stamp button.
-- Connected: solid olive `در پرواز` + tiny `۰۰:۱۲:۴۷` uptime (Persian numerals).
-- No settings menu, no stats, no logs, no account, no login.
+**Main screen** — 1 button (rubber stamp, NOTAM aesthetic):
+- Disconnected: oxblood outline `پرواز`.
+- Connected: olive solid `در پرواز` + `T+۰۰:۱۲:۴۷` (Persian numerals).
 
-**Access URL format**: `parvaz://<worker-host>/<access-key>#<optional-display-name>`.
-
-The app registers the `parvaz://` URI scheme — Telegram/WhatsApp message
-with a `parvaz://` link → tap → opens Parvaz already prefilled. Same for
-QR codes.
+**Access URL**: `parvaz://<deployment-id>/<access-key>#<display-name>`.
+The app registers the URI scheme — Telegram link tap → opens Parvaz
+prefilled. QR scanner takes the same format.
 
 ---
 
 ## Layer rules
 
 ### Go core (`core/`)
-- `core/fronter/` — TLS-with-custom-SNI dialer + HTTP client. Targets a Cloudflare edge IP; SNI is a popular CF-hosted domain; Host is the worker URL.
-- `core/relay/` — WebSocket tunnel to the Worker. Implements `socks5.Dialer.Dial(ctx, host, port) (net.Conn, error)` — each SOCKS5 CONNECT opens one `wss://.../tunnel?k=<key>&host=<target>&port=<port>` and returns the WS as a `net.Conn` (binary-frame wrapper).
-- `core/socks5/` — local SOCKS5 listener. Depends only on `relay/` via the `Dialer` interface.
+- `core/protocol/` — Apps Script JSON envelope encode/decode (single + batch). Pure, no network.
+- `core/fronter/` — TLS-with-custom-SNI dialer + HTTP/1.1 client. Target = Google edge IP; SNI = `www.google.com`; Host (set by caller) = `script.google.com`.
+- `core/codec/` — gzip / br / zstd decoders for Apps Script responses.
+- `core/relay/` — glues envelope + fronted client + codec. One `Do(ctx, req)` call per tunneled HTTP request.
+- `core/mitm/` (new, M-next) — CA generation + persistence, dynamic leaf cert per target, TLS server that terminates TLS locally so request bytes become inspectable HTTP.
+- `core/dispatcher/` (new, M-next) — decides per target whether to use MITM+relay (the default) or SNI-rewrite direct tunnel (for `*.google.com`, `*.youtube.com`, `fonts.googleapis.com`, etc.).
+- `core/socks5/` — local SOCKS5 listener. CONNECT-only, no auth. Calls into `dispatcher`.
 - `core/cmd/parvazd/` — sidecar main. Reads JSON config on stdin.
-- `core/protocol/`, `core/codec/` — reserved for a future control channel / optional HTTP interception. Not used by the raw TCP tunnel path.
 
 ### App (`app/`)
 - `domain/` — pure Kotlin, no Android deps.
-- `presentation/` — Compose + ViewModels. State is hoisted; screens take state + lambdas only.
+- `presentation/` — Compose + ViewModels. State hoisted; screens take state + lambdas only.
 - `vpn/` — `VpnService` subclass, `tun2socks` wrapper, sidecar launcher.
-- `settings/` — `SharedPreferences` for relay URL and language; `EncryptedSharedPreferences` for access key.
-- `ui/theme/` — NOTAM palette + Redaction/JetBrains Mono/Vazirmatn fonts.
+- `settings/` — parvaz:// parser (done — M11), `SharedPreferences` for relay URL and language, `EncryptedSharedPreferences` for access key.
+- `mitm/` — CA export to `Downloads/mhrv-ca.crt`-equivalent, intent to `ACTION_MANAGE_CA_CERTIFICATES`, post-install fingerprint verification against `AndroidCAStore`.
+- `ui/theme/` — NOTAM palette + Redaction / JetBrains Mono / Vazirmatn.
 - Single shared ViewModel at NavHost level.
 
 ---
 
-## Visual identity — NOTAM parchment, Farsi-first
+## Visual identity — NOTAM parchment
 
-Light theme, never dynamic color. Palette: Paper `#F1E8D4`, Ink `#1A1410`,
-Oxblood `#A8361C` (CTAs/errors), Burnt `#B5581A` (warnings), Olive
-`#3A5634` (connected). Fonts: Vazirmatn (Persian display + body),
-Redaction (Latin display, wordmark), JetBrains Mono (Latin code/numbers).
-
-Connected button becomes a rubber-stamp `در پرواز`; disconnected is an
-unstamped outline `پرواز`. Errors overlay diagonal oxblood stamps.
-
-Invoke `frontend-design:frontend-design` before every new screen.
+Paper `#F1E8D4`, Ink `#1A1410`, Oxblood `#A8361C` (CTAs/errors), Burnt
+`#B5581A` (warnings), Olive `#3A5634` (connected). Fonts: Vazirmatn
+(Persian body/display), Redaction (Latin display), JetBrains Mono
+(code). Light theme, never dynamic. Connected button = rubber-stamp
+`در پرواز`; disconnected = outline `پرواز`. Errors overlay diagonal
+oxblood stamps. Invoke `frontend-design:frontend-design` before every
+new screen.
 
 ---
 
-## Wire protocol
+## Wire protocol — Apps Script
 
 ```
-Per SOCKS5 CONNECT:
-    dial <cloudflare_ip>:443         (TCP)
-    TLS  SNI = <cf_front_domain>     (DPI-visible, a popular CF-hosted site)
-    HTTP Host: <worker>.workers.dev  (Cloudflare edge routes by this)
-    GET /tunnel?k=<key>&host=<t>&port=<p>
-    Upgrade: websocket, Connection: Upgrade, ... (RFC 6455)
-
-Worker accepts, opens connect({hostname:<t>, port:<p>}), pipes
-WebSocket binary frames ↔ upstream TCP bidirectionally.
+Per tunneled HTTP request:
+    TCP connect  <google_ip>:443        (default 216.239.38.120)
+    TLS  SNI = www.google.com           (DPI-visible)
+    POST  https://script.google.com/macros/s/<id>/exec  HTTP/1.1
+    Content-Type: application/json
+    body = { k, m, u, h, b?, ct?, r }  (see protocol/envelope.go)
 ```
 
-No per-request JSON envelope, no base64, no batching. TCP bytes are
-opaque — the tunnel is transparent for HTTP, HTTPS, IMAP, XMPP, or
-anything else.
+Response: `{s, h, b}` or `{e: "unauthorized"}`. Batch mode available.
+
+For Google-owned targets: skip the envelope. Direct TCP to google_ip
+with SNI = `www.google.com`, HTTP `Host: <target>` — Google's edge
+routes by Host. No Apps Script quota consumed, no MITM needed.
 
 ---
 
-## Reference implementation
+## Reference
 
-`reference/` holds the upstream Python of MasterHttpRelayVPN — the project
-Parvaz originally rewrote. Parvaz **pivoted away** from Apps Script (see
-decision log in git history) because `UrlFetchApp.fetch()` cannot tunnel
-opaque TLS and MITM breaks on Android. Kept for historical context only;
-do not import.
+`reference/` holds upstream Python. **Read-only** — study for protocol
+details. Also see [MasterHttpRelayVPN-RUST](https://github.com/therealaleph/MasterHttpRelayVPN-RUST)
+for a mature Rust port we're architecturally aligned with.
 
 ---
 
 ## Memory (mem0 via user-scope MCP)
 
 Every non-trivial session: `mcp__mem0__search_memory` scoped to
-`project="parvaz"`, `user_id="bb"`. Persist durable facts with
-`mcp__mem0__add_memory` at the same scope.
+`project="parvaz"`, `user_id="bb"`. Persist durable facts via
+`mcp__mem0__add_memory`.
 
 ---
 
@@ -152,7 +151,6 @@ Every non-trivial session: `mcp__mem0__search_memory` scoped to
 | Before any new feature | `superpowers:brainstorming` |
 | Writing or fixing logic | `superpowers:test-driven-development` |
 | First sign of a bug | `superpowers:systematic-debugging` |
-| Before completing a feature | `superpowers:requesting-code-review` |
 | Before declaring done | `superpowers:verification-before-completion` |
 | Compose UI / new screens | `frontend-design:frontend-design` |
 | After implementing — review | `simplify` |
@@ -161,22 +159,21 @@ Every non-trivial session: `mcp__mem0__search_memory` scoped to
 
 ## Engineering principles
 
-- **200-line max per file** — extract helpers/packages when close. `reference/` + `website/` exempt.
+- **200-line max per file** — extract when close. `reference/` + `website/` exempt.
 - **TDD**: red → green → refactor.
-- **Go stdlib first** — only unavoidable deps: `github.com/coder/websocket`, `github.com/andybalholm/brotli`, `github.com/klauspost/compress/zstd`.
-- **No panics in Go library code** — errors only; panic just in `main`.
-- **No secrets in logs** — never log access keys, worker URLs, or traffic content.
+- **Go stdlib first** — deps: `github.com/andybalholm/brotli`, `github.com/klauspost/compress/zstd`.
+- **No panics in Go library code** — errors only; panic in `main`.
+- **No secrets in logs** — never log access keys, deployment URLs, or traffic content.
 - **Explicit `context.Context`** on every Go network call.
-- **State hoisted to ViewModel** in Compose — screens never touch `SharedPreferences` directly.
-- **Kotlin immutable data classes** + `StateFlow`.
-- **Farsi strings by default** — English lives in `values-en/` as the override locale, not the other way round.
+- **State hoisted to ViewModel** in Compose.
+- **Farsi strings by default** — English lives in `values-en/`.
 
 ---
 
 ## Build commands
 
 ```bash
-go test -C core ./...                              # unit tests
+go test -C core ./...
 go test -C core -race -cover ./...
 CGO_ENABLED=0 GOOS=android GOARCH=arm64 \
     go build -C core -o ../app/src/main/jniLibs/arm64-v8a/libparvaz.so ./cmd/parvazd
@@ -184,16 +181,13 @@ CGO_ENABLED=0 GOOS=android GOARCH=arm64 \
 ./gradlew test
 ./gradlew assembleDebug
 ./gradlew buildSmoke
-
-# Worker — deploy via wrangler (one-time setup in worker/)
-cd worker && npx wrangler deploy
 ```
 
 ---
 
 ## Starting a new session
 
-1. Read `CLAUDE.md`, `PLAN.md`, `ARCHITECTURE.md` in that order.
-2. `go test -C core ./...` and `./gradlew test` to confirm baseline.
-3. Invoke `superpowers:brainstorming` before touching any new milestone.
+1. Read `CLAUDE.md`, `PLAN.md`, `ARCHITECTURE.md`.
+2. `go test -C core ./...` and `./gradlew test`.
+3. Invoke `superpowers:brainstorming` before any new milestone.
 4. Next milestone: see `PLAN.md`.

@@ -5,27 +5,31 @@ import java.net.URLEncoder
 
 /**
  * Access is the sole piece of configuration a Parvaz user ever enters.
- * It parses from a `parvaz://<host>/<access-key>#<optional-display-name>`
+ * Parses from a `parvaz://<deployment-id>/<access-key>#<optional-display-name>`
  * URL — the same string a technical helper shares over Telegram or
  * encodes as a QR code.
+ *
+ * `<deployment-id>` is the `AKfycby...` segment a Google Apps Script
+ * deployment URL carries; the full URL is derived on the fly.
  *
  * Error messages are in Farsi because this runs in front of a Farsi-
  * speaking user who just pasted a broken string.
  */
 data class Access(
-    val host: String,
+    val deploymentId: String,
     val accessKey: String,
     val displayName: String? = null,
 ) {
-    /** wss://<host>/tunnel — what the Go sidecar connects to. */
-    val workerURL: String get() = "wss://$host/tunnel"
+    /** Derived Apps Script deployment URL — what the Go sidecar POSTs envelopes to. */
+    val deploymentURL: String
+        get() = "https://script.google.com/macros/s/$deploymentId/exec"
 
-    /** Canonical round-trip string. */
+    /** Canonical round-trip `parvaz://` string. */
     fun toURL(): String {
         val fragment = displayName?.takeIf(String::isNotBlank)?.let {
             "#" + URLEncoder.encode(it, "UTF-8").replace("+", "%20")
         } ?: ""
-        return "parvaz://$host/$accessKey$fragment"
+        return "parvaz://$deploymentId/$accessKey$fragment"
     }
 
     companion object {
@@ -33,8 +37,8 @@ data class Access(
 
         /**
          * Parse a user-supplied `parvaz://...` string. On failure, throws
-         * an [AccessParseException] with a Farsi `message` suitable for
-         * direct display to the user.
+         * [AccessParseException] with a Farsi `message` suitable for direct
+         * display to the user.
          */
         fun parse(input: String): Access {
             val trimmed = input.trim()
@@ -51,13 +55,13 @@ data class Access(
             if (slashIdx < 0) {
                 throw AccessParseException("آدرس باید شامل کلید دسترسی باشد")
             }
-            val host = pathPart.substring(0, slashIdx).trim()
-            val key = pathPart.substring(slashIdx + 1).trim()
+            val deploymentId = pathPart.substring(0, slashIdx).trim()
+            val accessKey = pathPart.substring(slashIdx + 1).trim()
 
-            if (host.isEmpty()) {
-                throw AccessParseException("آدرس سرور خالی است")
+            if (deploymentId.isEmpty()) {
+                throw AccessParseException("شناسهٔ دسترسی خالی است")
             }
-            if (key.isEmpty()) {
+            if (accessKey.isEmpty()) {
                 throw AccessParseException("کلید دسترسی خالی است")
             }
 
@@ -65,7 +69,11 @@ data class Access(
                 ?.let { URLDecoder.decode(it, "UTF-8") }
                 ?.takeIf(String::isNotBlank)
 
-            return Access(host = host, accessKey = key, displayName = displayName)
+            return Access(
+                deploymentId = deploymentId,
+                accessKey = accessKey,
+                displayName = displayName,
+            )
         }
     }
 }

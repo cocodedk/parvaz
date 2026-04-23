@@ -2,12 +2,16 @@
 
 *Persian for "flight" — a flight over the filter.*
 
-An **Android VPN app** for Iranian users with no technical background.
-A helper (relative, volunteer, activist) deploys a one-file **Cloudflare
-Worker** and sends a `parvaz://` link via Telegram. The user scans a QR
-code or pastes the link, taps one button, and all phone traffic tunnels
-through the worker — invisible to filters that only see "traffic to
-Cloudflare".
+A Farsi-first **Android browser tunnel** for Iranian users. A technical
+helper deploys a Google Apps Script one-file relay; a non-technical user
+installs Parvaz, scans a QR from Telegram, installs a MITM certificate
+via Android Settings (one-time), taps one button. **Browser traffic
+tunnels; non-browser apps do not — by design (see scope below).**
+
+Architecturally aligned with the proven
+[MasterHttpRelayVPN-RUST](https://github.com/therealaleph/MasterHttpRelayVPN-RUST)
+port. Parvaz's edge is the NOTAM visual identity, Farsi-by-default UI,
+and tighter onboarding for non-technical users.
 
 ## Website
 
@@ -20,6 +24,19 @@ Cloudflare".
 milestone list and [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full
 data path.
 
+## Honest scope
+
+| | |
+|---|---|
+| ✅ Chrome / Firefox on Android | Browser traffic tunnels correctly |
+| ✅ Google-owned sites (google.com, youtube.com, …) | SNI-rewrite — fastest path, no MITM, no Apps Script quota |
+| ❌ Instagram / Telegram / WhatsApp / banking / streaming native apps | Reject user-installed CAs by Android's default `networkSecurityConfig` — cert errors, no tunnel |
+| ❌ Non-HTTP protocols (MTProto, SSH, raw TCP) | Apps Script cannot tunnel raw TCP |
+
+If you need native-app coverage or raw-TCP tunneling, pair Parvaz with a
+local **xray** (or v2ray / sing-box) pointing at your own VPS —
+documented approach from MasterHttpRelayVPN-RUST.
+
 ## Download
 
 Once the first release is cut:
@@ -28,24 +45,21 @@ Once the first release is cut:
 https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
 ```
 
-F-Droid / sideload only. Google Play Store is not a viable distribution
-channel for circumvention apps.
+F-Droid / sideload only. Google Play Store is not a viable channel.
 
 ## What you need on the server side
 
-A **Cloudflare Worker** deployed to your own Cloudflare account (free
-tier is enough — 100K requests/day). See
-[`worker/README.md`](./worker/README.md) for the 5-step deployment:
+A **Google Apps Script** deployment (free tier — 20k requests/day per
+deployment). One-time `Code.gs` deploy on your own Google account:
 
-```sh
-cd worker
-npm install
-npx wrangler deploy
-```
+1. Open https://script.google.com → New project.
+2. Paste [`reference/apps_script/Code.gs`](./reference/apps_script/Code.gs) (or the identical file from upstream).
+3. Change `AUTH_KEY` to a strong random string.
+4. Deploy → New deployment → Web app → Execute as Me → Anyone.
+5. Copy the deployment URL — extract the `AKfycby...` segment.
 
-The worker gives you a URL like `https://relay-iran.babak.workers.dev`.
-Set an access key inside `worker.js`, then share the combined
-`parvaz://<worker-host>/<key>` URL with users over Telegram.
+Share the combined `parvaz://<deployment-id>/<access-key>` URL with
+users over Telegram (or a QR code).
 
 ## Build from Source
 
@@ -55,11 +69,9 @@ Set an access key inside `worker.js`, then share the combined
 git clone https://github.com/cocodedk/parvaz.git
 cd parvaz
 
-# Go sidecar (hermetic — works without Android)
-go test -C core ./...                     # unit tests
-go test -C core -race -cover ./...        # race + coverage
+go test -C core ./...                     # hermetic unit tests
+go test -C core -race -cover ./...
 
-# Android app (requires Go sidecar compiled for target ABIs)
 ./gradlew test
 ./gradlew assembleDebug
 ./gradlew buildSmoke
@@ -75,23 +87,25 @@ Install git hooks once after cloning:
 
 ```
 parvaz/
-├── app/           Kotlin + Compose UI (Farsi-first), VpnService, tun2socks
-├── core/          Go sidecar — fronter dialer + SOCKS5 + WebSocket relay
+├── app/           Kotlin + Compose (Farsi-first), VpnService, tun2socks
+├── core/          Go sidecar
 │   ├── fronter/   TLS-with-custom-SNI dialer + HTTP client
-│   ├── relay/     WebSocket TCP tunnel to the Cloudflare Worker
+│   ├── protocol/  Apps Script envelope encode/decode
+│   ├── codec/     gzip / br / zstd decoders
+│   ├── relay/     envelope + fronted client glue
 │   ├── socks5/    local SOCKS5 listener
-│   └── cmd/parvazd/  sidecar main, packaged as libparvaz.so
-├── worker/        Cloudflare Worker (worker.js, wrangler.toml)
-├── reference/     MasterHttpRelayVPN upstream — read-only historical
+│   ├── mitm/      (next milestone) local TLS MITM
+│   ├── dispatcher/ (next milestone) Google-allowlist vs MITM+relay
+│   └── cmd/parvazd/ sidecar main → libparvaz.so
+├── reference/     Upstream MasterHttpRelayVPN Python — read-only
 └── website/       Bilingual GitHub Pages (EN + FA)
 ```
 
-See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full data path,
-layer rules, and the core↔app boundary.
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full data path.
 
 ## Tests
 
-Go sidecar tests are hermetic — no Android, no Cloudflare required:
+Go sidecar tests are hermetic — no Android, no Google required:
 
 ```sh
 go test -C core ./...
@@ -104,27 +118,19 @@ Android tests:
 ./gradlew connectedCheck  # instrumented (emulator/device)
 ```
 
-Live-network tests require a deployed Worker and are gated:
+## Alternative: use MasterHttpRelayVPN-RUST directly
 
-```sh
-PARVAZ_E2E=1 go test -C core ./relay/...
-```
-
-## Why Cloudflare Workers?
-
-Because the original Apps Script plan doesn't work on modern Android.
-`UrlFetchApp.fetch()` is URL-based HTTP — it cannot tunnel opaque HTTPS
-bytes without MITM, and Android 7+ won't trust user-installed CAs
-without per-app opt-in. Cloudflare Workers have the
-`cloudflare:sockets` API for raw outbound TCP — bytes pass through
-transparently. See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for details.
+If you don't need the Parvaz UX touches — Farsi-first, NOTAM aesthetic,
+tight onboarding — [MasterHttpRelayVPN-RUST](https://github.com/therealaleph/MasterHttpRelayVPN-RUST)
+ships today with prebuilt APKs. It has the same architecture and a full
+English + Persian walkthrough. Parvaz only makes sense vs. that project
+if the UX differentiation matters to you.
 
 ## Legal / ToS
 
-Cloudflare Workers' acceptable-use policy is strict about proxy
-services. Deploy to your **own** Cloudflare account only — do not
-distribute shared deployments, do not commercialise. Personal,
-research, and educational use only.
+Google Apps Script's terms forbid this use. Deploy `Code.gs` to your
+**own** Google account only. Personal, research, and educational use
+only. See upstream disclaimer.
 
 ## Author
 

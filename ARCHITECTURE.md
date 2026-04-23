@@ -1,9 +1,10 @@
 # Architecture — where Parvaz fits
 
-Parvaz is an Android VPN app. A **Go sidecar** inside the APK tunnels raw
-TCP bytes through a user-deployed **Cloudflare Worker** using a
-domain-fronted WebSocket. This document shows the full data path and
-where each component lives.
+Parvaz is a Farsi-first Android app that tunnels **browser traffic**
+through a Google Apps Script relay deployed by a technical helper. The
+architecture matches the proven [MasterHttpRelayVPN-RUST](https://github.com/therealaleph/MasterHttpRelayVPN-RUST)
+port; Parvaz's edge is the NOTAM aesthetic + Farsi-by-default UI + tighter
+onboarding.
 
 ## The full data path
 
@@ -11,135 +12,138 @@ where each component lives.
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                            ANDROID PHONE                                      ║
 ║                                                                               ║
-║  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                ║
-║  │  Instagram app  │  │   Telegram app  │  │   Firefox app   │                ║
-║  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘                ║
-║           │ TCP packets — apps route transparently through Parvaz VPN         ║
-║           └───────────────────┬─┴────────────────────┘                        ║
+║  ┌─────────────────┐  ┌─────────────────┐                                     ║
+║  │  Chrome / Firefox app (browser traffic)                │                   ║
+║  └────────┬────────┘  └────────┬────────┘                                     ║
+║           │ TCP packets — captured transparently via VpnService               ║
+║           └───────────────────┬┴────────────────────┘                         ║
 ║                               ▼                                               ║
 ║  ╔═══════════════════════════════════════════════════════════════════════╗   ║
 ║  ║                   THE PARVAZ APK — one install                        ║   ║
 ║  ║                                                                       ║   ║
 ║  ║  ┌─────────────────────────────────────────────────────────────────┐  ║   ║
-║  ║  │  KOTLIN / COMPOSE  (app/)  Farsi-first NOTAM UI                 │  ║   ║
-║  ║  │  · VpnService subclass: TUN on 10.0.0.1/24, routes 0.0.0.0/0    │  ║   ║
+║  ║  │  KOTLIN / COMPOSE  Farsi-first NOTAM UI                         │  ║   ║
+║  ║  │  · VpnService: TUN 10.0.0.1/24, routes 0.0.0.0/0                │  ║   ║
 ║  ║  │  · Sidecar launcher: ProcessBuilder("libparvaz.so") + stdin cfg │  ║   ║
-║  ║  │  · tun2socks glue                                               │  ║   ║
+║  ║  │  · MITM CA install flow (Android Settings → CA certificate)     │  ║   ║
 ║  ║  └────────────────────────────┬────────────────────────────────────┘  ║   ║
-║  ║                               │ raw IP packets via TUN                ║   ║
 ║  ║                               ▼                                       ║   ║
 ║  ║  ┌─────────────────────────────────────────────────────────────────┐  ║   ║
-║  ║  │  tun2socks  (bundled Go library)                                │  ║   ║
-║  ║  │  Reassembles IP → TCP streams → SOCKS5 → 127.0.0.1:1080         │  ║   ║
+║  ║  │  tun2socks  (bundled)                                           │  ║   ║
+║  ║  │  IP packets → TCP flows → SOCKS5 → 127.0.0.1:1080               │  ║   ║
 ║  ║  └────────────────────────────┬────────────────────────────────────┘  ║   ║
-║  ║                               │ SOCKS5 CONNECT instagram.com:443     ║   ║
 ║  ║                               ▼                                       ║   ║
 ║  ║  ╔═══════════════════════════════════════════════════════════════╗    ║   ║
-║  ║  ║  ⭐  PARVAZ SIDECAR  (core/)  —  Go binary libparvaz.so       ║    ║   ║
-║  ║  ║     Listens on 127.0.0.1:1080 inside the app's process        ║    ║   ║
+║  ║  ║  ⭐  PARVAZ SIDECAR  (core/)  —  libparvaz.so                 ║    ║   ║
 ║  ║  ║                                                               ║    ║   ║
-║  ║  ║  socks5/  → accepts CONNECT, calls relay.Dial(host, port)     ║    ║   ║
-║  ║  ║         │                                                     ║    ║   ║
-║  ║  ║         ▼                                                     ║    ║   ║
-║  ║  ║  relay/   → opens a WebSocket to the configured Worker:       ║    ║   ║
-║  ║  ║           wss://<worker>.workers.dev/tunnel                   ║    ║   ║
-║  ║  ║             ?k=<access-key>                                   ║    ║   ║
-║  ║  ║             &host=instagram.com&port=443                      ║    ║   ║
-║  ║  ║         │                                                     ║    ║   ║
-║  ║  ║         ▼                                                     ║    ║   ║
-║  ║  ║  fronter/ — THE DOMAIN-FRONTING TRICK:                        ║    ║   ║
-║  ║  ║   1. TCP connect to Cloudflare edge IP (e.g. 104.16.x.x)      ║    ║   ║
-║  ║  ║   2. TLS handshake  SNI = <popular-cf-hosted-site>            ║    ║   ║
-║  ║  ║      ↑ this is what the filter box sees ↑                     ║    ║   ║
-║  ║  ║   3. Inside the TLS tunnel, send HTTP:                        ║    ║   ║
-║  ║  ║      GET /tunnel?k=...&host=...&port=... HTTP/1.1             ║    ║   ║
-║  ║  ║      Host: <worker>.workers.dev  ← real destination           ║    ║   ║
-║  ║  ║      Upgrade: websocket                                       ║    ║   ║
-║  ║  ╚═══════════════════════════╪═══════════════════════════════════╝    ║   ║
-║  ╚══════════════════════════════╪═══════════════════════════════════════╝   ║
-║                                 │                                            ║
-╚═════════════════════════════════╪════════════════════════════════════════════╝
-                                  │
-                                  │ Encrypted HTTPS. Outside observer sees a
-                                  │ TLS session to a popular Cloudflare-hosted
-                                  │ site. Same IP. Same SNI. Same TLS fingerprint.
-                                  │
-                                  ▼
+║  ║  ║  socks5/    → accepts CONNECT host:port                       ║    ║   ║
+║  ║  ║        │                                                      ║    ║   ║
+║  ║  ║        ▼                                                      ║    ║   ║
+║  ║  ║  dispatcher/  ──────┬── *.google.com / *.youtube.com etc. ──► ║    ║   ║
+║  ║  ║                     │                                         ║    ║   ║
+║  ║  ║                     │    SNI-rewrite tunnel (no MITM, no      ║    ║   ║
+║  ║  ║                     │    relay; direct TCP via fronter)       ║    ║   ║
+║  ║  ║                     │                                         ║    ║   ║
+║  ║  ║                     └── anything else:                        ║    ║   ║
+║  ║  ║                                                               ║    ║   ║
+║  ║  ║  mitm/      → TLS server presents a leaf cert signed by our   ║    ║   ║
+║  ║  ║               on-device CA. Client (Chrome) accepts (because  ║    ║   ║
+║  ║  ║               user installed the CA in Settings). TLS ends    ║    ║   ║
+║  ║  ║               locally — each HTTP request becomes inspectable ║    ║   ║
+║  ║  ║        │                                                      ║    ║   ║
+║  ║  ║        ▼                                                      ║    ║   ║
+║  ║  ║  relay/     → wraps the decoded request in the Apps Script    ║    ║   ║
+║  ║  ║               envelope: {k, m, u, h, b?, ct?, r}              ║    ║   ║
+║  ║  ║        │                                                      ║    ║   ║
+║  ║  ║        ▼                                                      ║    ║   ║
+║  ║  ║  fronter/   → TCP connect <google_ip>:443                     ║    ║   ║
+║  ║  ║               TLS handshake with SNI = www.google.com         ║    ║   ║
+║  ║  ║               HTTP Host: script.google.com                    ║    ║   ║
+║  ║  ║               POST /macros/s/<DEPLOYMENT_ID>/exec             ║    ║   ║
+║  ║  ╚═════════════════════════════╪═══════════════════════════════╝      ║   ║
+║  ╚════════════════════════════════╪═══════════════════════════════════════╝   ║
+║                                   │                                           ║
+╚═══════════════════════════════════╪═══════════════════════════════════════════╝
+                                    │
+                                    │ HTTPS. DPI sees www.google.com — same IP,
+                                    │ SNI, TLS fingerprint as a real google.com
+                                    │ session.
+                                    ▼
             ╔════════════════════════════════════════════════════╗
-            ║        CLOUDFLARE EDGE LOAD BALANCER               ║
-            ║ Terminates TLS. Reads Host header.                 ║
-            ║ Host = <worker>.workers.dev → route to Workers.    ║
+            ║         GOOGLE EDGE FRONTEND (:443)                ║
+            ║ Decrypts TLS. Reads Host header.                   ║
+            ║ Host = script.google.com → route to Apps Script.   ║
             ╚═══════════════════════╤════════════════════════════╝
                                     ▼
             ╔════════════════════════════════════════════════════╗
-            ║     CLOUDFLARE WORKER   (on YOUR account)          ║
-            ║     worker.js — ~50 lines:                         ║
+            ║      APPS SCRIPT RUNTIME   (on YOUR Google account)║
+            ║      Code.gs (reference/apps_script/Code.gs):      ║
+            ║        var res = UrlFetchApp.fetch(req.u, {        ║
+            ║            method: req.m, headers: req.h,          ║
+            ║            payload: decode64(req.b),               ║
+            ║        });                                         ║
+            ║        return { s, h, b };                         ║
             ║                                                    ║
-            ║     import { connect } from "cloudflare:sockets";  ║
-            ║     const sock = connect({                         ║
-            ║         hostname: req.host, port: req.port         ║
-            ║     });                                            ║
-            ║     pipe WebSocket frames ⇆ socket bytes           ║
-            ║                                                    ║
-            ║  The Worker opens raw TCP from Cloudflare's edge   ║
-            ║  to the real destination. Outbound IP is CF's —    ║
-            ║  not blocked.                                      ║
+            ║   Apps Script calls the real target from inside    ║
+            ║   Google's datacenter — the origin sees a Google   ║
+            ║   IP + `Google-Apps-Script` User-Agent.            ║
             ╚═══════════════════════╤════════════════════════════╝
                                     ▼
                           ┌───────────────────┐
-                          │  instagram.com    │
+                          │  news-site.com    │
                           └─────────┬─────────┘
-                                    ▼ response bytes travel back
-                              (reverse chain: upstream TCP →
-                               WebSocket → Parvaz sidecar →
-                               tun2socks → TUN → Instagram app,
-                               which thinks it had a normal TCP
-                               chat with instagram.com)
+                                    ▼
+                           (response envelope travels back
+                            up the chain, Parvaz re-encrypts
+                            with the leaf cert, Chrome sees
+                            a "normal" HTTPS response)
 ```
+
+## Why browsers only — the MITM honesty
+
+MITM works because **we control the CA the user installed** and present
+a leaf cert for whichever host the browser requests. Chrome and Firefox
+on Android honor user-installed CAs in the system store (with explicit
+opt-in on Android 7+ via our CA-install flow).
+
+**Instagram / Telegram / WhatsApp / banking apps** set
+`networkSecurityConfig` to trust **system CAs only** — they reject our
+leaf. Their TLS handshake fails with cert validation errors. This is a
+deliberate Google policy decision (Android 7, API 24+ default) and there
+is no workaround short of rooting the device.
+
+So Parvaz's honest scope is: **browser traffic, plus Google-owned
+domains via SNI-rewrite** (which needs no MITM). Exactly what
+MasterHttpRelayVPN-RUST ships.
 
 ## Who writes what
 
 | Layer | Location | Language | Who |
 |---|---|---|---|
-| Farsi-first UI (splash, onboarding, main screen) | `app/presentation/` | Kotlin + Compose | **Us** |
-| `VpnService` subclass + TUN routing | `app/vpn/` | Kotlin | **Us** |
-| Main screen, settings, theme, sidecar launcher | `app/settings/`, `app/ui/` | Kotlin | **Us** |
-| `tun2socks` (packet → TCP → SOCKS5) | `app/libs/` (bundled) | Go (OSS) | existing |
-| **Parvaz sidecar** (socks5 + relay + fronter) | `core/` | Go | **Us** |
-| **Cloudflare Worker** (TCP tunnel server) | `worker/worker.js` | JavaScript | **Us** |
-| Android OS (`VpnService`, `ProcessBuilder`, `EncryptedSharedPreferences`) | — | — | Google |
+| Farsi-first UI | `app/presentation/` | Kotlin + Compose | **Us** |
+| `VpnService` + TUN routing | `app/vpn/` | Kotlin | **Us** |
+| MITM CA install UI + fingerprint verify | `app/mitm/` | Kotlin | **Us** |
+| `tun2socks` (IP → SOCKS5) | bundled | Go (OSS) | existing |
+| **Parvaz sidecar** (socks5 + dispatcher + mitm + relay + fronter) | `core/` | Go | **Us** |
+| `Code.gs` (Apps Script server) | user's Google account | JS (Apps Script) | Upstream MasterHttpRelayVPN — unchanged |
 
 ## Core ↔ App boundary
 
-The Go sidecar is compiled per Android ABI (`arm64-v8a`, `armeabi-v7a`,
-`x86_64`, `x86`) and placed at `app/src/main/jniLibs/<abi>/libparvaz.so`.
-AGP needs `packaging.jniLibs.useLegacyPackaging = true` so Android actually
-extracts the file (without that, it's memory-mapped and `ProcessBuilder`
-can't exec it). The Kotlin launcher:
+Go sidecar cross-compiled per ABI into `app/src/main/jniLibs/<abi>/libparvaz.so`.
+AGP needs `packaging.jniLibs.useLegacyPackaging = true` so the `.so`
+hits disk (needed for `ProcessBuilder` to exec it). Kotlin launcher:
 
-1. Derives path from `ApplicationInfo.nativeLibraryDir + "/libparvaz.so"`.
+1. `ApplicationInfo.nativeLibraryDir + "/libparvaz.so"`.
 2. `ProcessBuilder(path).redirectErrorStream(true).start()`.
-3. Pipes `{worker_url, auth_key, listen_port, ...}` as JSON to stdin.
-4. Reads `READY` on stdout.
-5. From here the sidecar is just a SOCKS5 server on `127.0.0.1:<port>`.
+3. Pipe JSON config on stdin (deployment URL, access key, CA key paths, listen port).
+4. Read `READY` on stdout.
+5. Sidecar is now a SOCKS5 server on `127.0.0.1:<port>`.
 
-**No JNI. No gomobile.** Process boundary + loopback socket. Side benefit: the same binary runs on any desktop OS for dev debugging (`go run ./cmd/parvazd`).
-
-## Why Cloudflare Workers, not Apps Script
-
-Parvaz originally planned to rewrite MasterHttpRelayVPN's Apps Script
-backend. That path is blocked on Android:
-
-- Apps Script's `UrlFetchApp.fetch()` is URL-based HTTP. It cannot tunnel
-  opaque TLS bytes — which means HTTPS traffic requires MITM (MasterHttpRelayVPN's Python client does this with a generated CA).
-- Android 7+ does not trust user-installed CAs for apps without per-app opt-in (`network-security-config`). Instagram, Telegram, WhatsApp, every banking app — all reject the MITM cert.
-- So on Android the Apps Script path would break every app except maybe Firefox.
-
-Cloudflare Workers' `cloudflare:sockets` API opens **raw outbound TCP
-sockets**. We pipe the WebSocket binary stream straight to the destination's TCP socket. The bytes stay opaque. No MITM, no CA install, every app works.
+**No JNI. No gomobile.** Process boundary + loopback socket + shared
+filesystem for the CA key. Same binary runs on any desktop OS for
+debugging.
 
 ## Why one repo
 
-Parvaz is one product. Go sidecar, Kotlin app, JavaScript worker,
-bilingual website — versions must stay aligned; a release ships all three
-as one atomic artifact (one tag, one APK, one `wrangler deploy`).
+Go sidecar + Kotlin app + bilingual website ship together. Versions
+must stay aligned; a release is one tag, one APK, one `Code.gs` drop-in.

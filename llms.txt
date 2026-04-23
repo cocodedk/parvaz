@@ -1,85 +1,95 @@
 # Parvaz
 
-> Android VPN app that tunnels phone traffic through a user-deployed
-> Cloudflare Worker via a raw-TCP WebSocket with domain fronting.
-> Farsi-first UX designed for Iranian users with no technical background.
-> Monorepo: Kotlin front end + Go sidecar + JavaScript Worker.
+> A Farsi-first Android **browser tunnel** that routes Chrome / Firefox
+> traffic through a user-deployed Google Apps Script relay, using TLS
+> SNI concealment and a local on-device MITM to terminate TLS for
+> re-encapsulation. Monorepo: Kotlin front end + Go sidecar. Matches
+> the architecture of MasterHttpRelayVPN-RUST with different UX.
 
 ## Overview
 
-Parvaz ships as one APK. Inside it: a Kotlin/Compose UI (Farsi default),
-an Android `VpnService` subclass, `tun2socks`, and a Go sidecar
-(`libparvaz.so`) that runs a local SOCKS5 server on `127.0.0.1:1080`
-and smuggles traffic through a Cloudflare Worker. One-tap onboarding:
-scan a `parvaz://` QR code (received via Telegram from a technical
-helper) and tap Connect.
+Parvaz ships as one APK. Inside: a Kotlin/Compose UI (Farsi default),
+Android `VpnService` subclass, `tun2socks`, and a Go sidecar
+(`libparvaz.so`) that runs a local SOCKS5 on `127.0.0.1:1080`. The
+sidecar either:
+- **SNI-rewrites** Google-owned hosts straight through Google's edge
+  (no MITM, no relay), or
+- **MITM-intercepts** everything else, reconstructs the HTTP request,
+  and sends it through the Apps Script relay wrapped in a JSON envelope
+  (`{k, m, u, h, b?, ct?, r}`).
 
-The backend is a **Cloudflare Worker** (~50 lines of JavaScript) using
-the `cloudflare:sockets` API for raw outbound TCP — bytes pass through
-opaque, no MITM, full HTTPS coverage. The app originally planned to use
-Google Apps Script, but that path is blocked on Android because
-`UrlFetchApp.fetch()` cannot tunnel TLS and user-CA trust is per-app.
+Scope is deliberately browser-only — non-browser Android apps
+(Instagram, WhatsApp, banking, streaming) reject user-installed CAs and
+will not tunnel through MITM. Documented honestly in README.md and
+ARCHITECTURE.md.
 
 ## Technology Stack
 
 - Kotlin 2.2.x + Jetpack Compose (Material3), min SDK 24, target SDK 36
-- Go 1.24+ (stdlib first; deps: `github.com/coder/websocket`)
+- Go 1.24+ (stdlib-first; deps: `github.com/andybalholm/brotli`, `github.com/klauspost/compress/zstd`)
 - Android VpnService API + tun2socks
 - Gradle 9.3.x (Kotlin DSL) + AGP 9.1.x
-- Cloudflare Workers with `cloudflare:sockets` API (free tier)
+- Google Apps Script runtime (user-deployed, free tier, 20K requests/day)
 - Light-theme NOTAM / declassified-briefing aesthetic
 - Fonts: Vazirmatn (Persian default), Redaction (Latin display), JetBrains Mono
 
 ## Architecture
 
-- `app/` — Kotlin + Compose UI (Farsi-first), VpnService subclass, tun2socks wrapper, sidecar launcher, settings (SharedPreferences + EncryptedSharedPreferences), NOTAM theme
-- `core/fronter/` — TLS-with-custom-SNI dialer + HTTP/1.1 client (used for the WebSocket upgrade)
-- `core/relay/` — WebSocket tunnel to the Cloudflare Worker; implements `socks5.Dialer`
+- `app/` — Kotlin + Compose UI (Farsi-first), VpnService, tun2socks, sidecar launcher, MITM CA install flow, NOTAM theme, settings
+- `core/fronter/` — TLS-with-custom-SNI dialer + HTTP/1.1 client
+- `core/protocol/` — Apps Script JSON envelope encode/decode
+- `core/codec/` — gzip / br / zstd / identity decoders
+- `core/relay/` — envelope + fronted client + codec glue
 - `core/socks5/` — local SOCKS5 listener
+- `core/mitm/` — (next milestone) on-device CA + dynamic leaf certs + TLS server
+- `core/dispatcher/` — (next milestone) Google-allowlist vs MITM-path decision
 - `core/cmd/parvazd/` — sidecar main, packaged per-ABI as `libparvaz.so`
-- `core/protocol/` + `core/codec/` — reserved for future control channel / HTTP interception (not on critical path)
-- `worker/worker.js` — Cloudflare Worker server (TCP piping + access-key validation)
-- `reference/` — MasterHttpRelayVPN upstream, read-only historical
+- `reference/` — MasterHttpRelayVPN upstream Python, read-only
 - `website/` — bilingual GitHub Pages (EN + FA)
 
 ## Key Files
 
 - `CLAUDE.md` — architecture, layer rules, required skills, engineering principles
-- `PLAN.md` — TDD milestone list (Phase A core, Phase B app, Phase C integration)
+- `PLAN.md` — TDD milestone list
 - `ARCHITECTURE.md` — full data path diagram and core/app boundary
 - `core/go.mod` — Go module `github.com/cocodedk/parvaz/core`
-- `worker/worker.js` — the 50-line TCP-passthrough Worker
+- `reference/apps_script/Code.gs` — the server Parvaz talks to (deploy to your own Google account)
 - `version.txt` — semantic version
 
 ## Wire Protocol
 
 ```
-Per SOCKS5 CONNECT:
-    TCP connect <cloudflare_ip>:443
-    TLS handshake  SNI = <popular-cf-hosted-site>
-    HTTP upgrade → wss://<worker>.workers.dev/tunnel?k=<key>&host=<t>&port=<p>
-    Worker opens connect({hostname:<t>, port:<p>}), pipes bytes both ways
-```
+Per tunneled HTTP request:
+    TCP connect <google_ip>:443  (default 216.239.38.120)
+    TLS handshake  SNI = www.google.com  (DPI-visible)
+    POST /macros/s/<DEPLOYMENT_ID>/exec HTTP/1.1
+    Host: script.google.com
+    Content-Type: application/json
+    body = { k, m, u, h, b?, ct?, r }
 
-No JSON envelope. No base64. No batching. Transparent TCP.
+Response = { s, h, b } or { e: "..." }.
+
+For *.google.com / *.youtube.com / etc.: skip the envelope. Direct TCP
+to google_ip with SNI=www.google.com, Host=<target> — Google's edge
+routes by Host. No Apps Script quota consumed, no MITM needed.
+```
 
 ## Access URL format
 
-`parvaz://<worker-host>/<access-key>#<optional-display-name>`
+`parvaz://<deployment-id>/<access-key>#<optional-display-name>`
 
-Registered as a URI scheme by the Android app — Telegram/WhatsApp deep
-links open Parvaz directly; same format encoded in QR codes.
+Registered URI scheme — Telegram/WhatsApp deep link → opens Parvaz
+directly. Same format encoded in QR codes.
 
 ## Links
 
 - Repo: https://github.com/cocodedk/parvaz
 - Releases: https://github.com/cocodedk/parvaz/releases/latest
 - Website: https://cocodedk.github.io/parvaz/
-- Historical upstream: https://github.com/masterking32/MasterHttpRelayVPN (product pivoted away)
+- Related mature project: https://github.com/therealaleph/MasterHttpRelayVPN-RUST
 - Built by: [Cocode](https://cocode.dk) · [Babak Bandpey](https://linkedin.com/in/babakbandpey)
 
 ## Legal / ToS
 
-Cloudflare Workers' acceptable-use policy is strict about proxy
-services. Deploy to your own Cloudflare account only. Personal,
-research, and educational use only.
+Google Apps Script's terms forbid this use. Deploy `Code.gs` to your
+own Google account only. Personal, research, and educational use only.
