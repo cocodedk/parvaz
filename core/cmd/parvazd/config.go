@@ -13,6 +13,15 @@ type Config struct {
 	ListenHost  string   `json:"listen_host"`
 	ListenPort  int      `json:"listen_port"`
 	DataDir     string   `json:"data_dir"`
+	// TunFD is the Android TUN file descriptor inherited from the Kotlin
+	// VpnService via ProcessBuilder. When > 0 the sidecar runs tun2socks
+	// on it; the loopback SOCKS5 listener is skipped because traffic
+	// arrives through the TUN instead. 0/absent means "no TUN, legacy
+	// SOCKS5 mode" — still used by the e2e harness and integration tests.
+	TunFD int `json:"tun_fd"`
+	// TunMTU mirrors what VpnService.Builder.setMtu() was given. Must
+	// match or tun2socks will fragment / misread packets.
+	TunMTU int `json:"tun_mtu"`
 	// InsecureTLS disables certificate verification on every fronter
 	// (relay path + SNI-rewrite path). Strictly for local e2e against
 	// a self-signed Apps Script stub — never flip this in production.
@@ -66,6 +75,12 @@ func merge(base, over Config) Config {
 	}
 	if over.ListenPort != 0 {
 		base.ListenPort = over.ListenPort
+	}
+	if over.TunFD != 0 {
+		base.TunFD = over.TunFD
+	}
+	if over.TunMTU != 0 {
+		base.TunMTU = over.TunMTU
 	}
 	if over.DataDir != "" {
 		base.DataDir = over.DataDir

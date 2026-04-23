@@ -23,9 +23,24 @@ class SidecarConfigTest {
                 """"front_domain":"www.google.com",""" +
                 """"listen_host":"127.0.0.1",""" +
                 """"listen_port":1080,""" +
+                """"tun_fd":0,""" +
+                """"tun_mtu":0,""" +
                 """"data_dir":"/data/data/dk.cocode.parvaz/files/sidecar"}""",
             json,
         )
+    }
+
+    @Test
+    fun tunFd_emittedWhenProvided() {
+        val cfg = SidecarConfig(
+            access = Access("D", "K", null),
+            dataDir = "/x",
+            tunFD = 42,
+            tunMTU = 1500,
+        )
+        val json = cfg.toJson()
+        assertTrue("tun_fd missing: $json", json.contains(""""tun_fd":42"""))
+        assertTrue("tun_mtu missing: $json", json.contains(""""tun_mtu":1500"""))
     }
 
     @Test

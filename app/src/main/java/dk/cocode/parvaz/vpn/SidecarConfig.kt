@@ -17,6 +17,15 @@ data class SidecarConfig(
     val frontDomain: String = "www.google.com",
     val listenHost: String = "127.0.0.1",
     val listenPort: Int = 1080,
+    /**
+     * Raw TUN file descriptor inherited from the JVM. Zero means "no
+     * TUN, SOCKS5-only path" (used by the e2e harness). Positive means
+     * the sidecar runs tun2socks on this fd; Kotlin MUST have cleared
+     * FD_CLOEXEC and detached the ParcelFileDescriptor first.
+     */
+    val tunFD: Int = 0,
+    /** MTU of the TUN interface; must match VpnService.Builder.setMtu. */
+    val tunMTU: Int = 0,
 ) {
     /** Serialize to a single-line JSON string suitable for stdin. */
     fun toJson(): String = buildString {
@@ -27,6 +36,8 @@ data class SidecarConfig(
         kvString("front_domain", frontDomain); comma()
         kvString("listen_host", listenHost); comma()
         kvInt("listen_port", listenPort); comma()
+        kvInt("tun_fd", tunFD); comma()
+        kvInt("tun_mtu", tunMTU); comma()
         kvString("data_dir", dataDir)
         append('}')
     }

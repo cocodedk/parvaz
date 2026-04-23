@@ -5,8 +5,8 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import dk.cocode.parvaz.vpn.ConnectionState
 import dk.cocode.parvaz.vpn.ParvazVpnService
-import dk.cocode.parvaz.vpn.ParvazVpnService.ConnectionState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

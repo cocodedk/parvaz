@@ -1,0 +1,32 @@
+package tun2socks
+
+import (
+	"log/slog"
+	"os"
+	"strings"
+	"testing"
+)
+
+func newSilentLogger() *slog.Logger {
+	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
+}
+
+func TestStart_RejectsZeroFD(t *testing.T) {
+	r := NewRunner(newSilentLogger())
+	err := r.Start(Config{FD: 0, MTU: 1500, SOCKS5Addr: "127.0.0.1:1080"})
+	if err == nil || !strings.Contains(err.Error(), "FD must be > 0") {
+		t.Errorf("expected FD-validation error, got %v", err)
+	}
+}
+
+func TestStart_RejectsMissingSOCKS5Addr(t *testing.T) {
+	r := NewRunner(newSilentLogger())
+	err := r.Start(Config{FD: 3, MTU: 1500})
+	if err == nil || !strings.Contains(err.Error(), "SOCKS5Addr") {
+		t.Errorf("expected SOCKS5Addr-validation error, got %v", err)
+	}
+}
+
+// The real engine start needs a Linux TUN device and Android packet
+// plumbing — not realistic in a JVM-free host unit test. Integration
+// coverage lives in scripts/e2e and the emulator walkthrough.

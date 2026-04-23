@@ -62,14 +62,18 @@ func (i *Interceptor) logger() *slog.Logger {
 
 // Intercept owns rawConn for the lifetime of the call. On return the
 // connection is closed. The error is nil on a clean client-initiated EOF.
+//
+// host may be an IP literal (e.g. when the upstream layer is tun2socks,
+// which only sees destination addresses) or a hostname (from SOCKS5
+// CONNECT). Either way the TLS handshake uses GetCertificate to mint
+// the leaf for whatever SNI the browser actually sent — so even with
+// an IP target the served cert matches what the browser validates.
+// Post-handshake, ConnectionState().ServerName becomes the
+// authoritative host for the upstream URL.
 func (i *Interceptor) Intercept(ctx context.Context, rawConn net.Conn, host string, port uint16) error {
 	defer rawConn.Close()
 
-	tlsCfg, err := i.tlsConfig(host)
-	if err != nil {
-		return fmt.Errorf("mitm: tls config: %w", err)
-	}
-	tlsConn := tls.Server(rawConn, tlsCfg)
+	tlsConn := tls.Server(rawConn, i.tlsConfig(host))
 
 	hsTimeout := i.HandshakeTimeout
 	if hsTimeout == 0 {
@@ -78,6 +82,10 @@ func (i *Interceptor) Intercept(ctx context.Context, rawConn net.Conn, host stri
 	_ = rawConn.SetDeadline(time.Now().Add(hsTimeout))
 	if err := tlsConn.HandshakeContext(ctx); err != nil {
 		return fmt.Errorf("mitm: tls handshake: %w", err)
+	}
+	effectiveHost := host
+	if sni := tlsConn.ConnectionState().ServerName; sni != "" {
+		effectiveHost = sni
 	}
 	idleTimeout := i.IdleTimeout
 	if idleTimeout == 0 {
@@ -98,7 +106,7 @@ func (i *Interceptor) Intercept(ctx context.Context, rawConn net.Conn, host stri
 			return fmt.Errorf("mitm: read request: %w", err)
 		}
 		_ = rawConn.SetDeadline(time.Time{}) // response + body may be large
-		if err := i.roundTrip(ctx, tlsConn, req, host, port); err != nil {
+		if err := i.roundTrip(ctx, tlsConn, req, effectiveHost, port); err != nil {
 			return err
 		}
 		if req.Close {
@@ -159,18 +167,25 @@ func buildTargetURL(host string, port uint16, req *http.Request) (string, error)
 	return u.String(), nil
 }
 
-func (i *Interceptor) tlsConfig(host string) (*tls.Config, error) {
-	cert, err := i.leafFor(host)
-	if err != nil {
-		return nil, err
-	}
+func (i *Interceptor) tlsConfig(fallbackHost string) *tls.Config {
 	return &tls.Config{
-		Certificates: []tls.Certificate{*cert},
-		MinVersion:   tls.VersionTLS12,
+		// Mint the leaf certificate for whatever SNI the browser sent.
+		// If SNI is empty (bare-IP target, e.g. tun2socks surfacing a
+		// DNS-less IP literal), fall back to the host we got from the
+		// outer protocol — the browser's validation will still flag
+		// the mismatch, but at least we get a usable cert.
+		GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+			name := hello.ServerName
+			if name == "" {
+				name = fallbackHost
+			}
+			return i.leafFor(name)
+		},
+		MinVersion: tls.VersionTLS12,
 		// Chrome/Firefox ALPN-advertise h2 first; without this we'd negotiate
 		// HTTP/2 and then fail on http.ReadRequest (which only speaks h1).
 		NextProtos: []string{"http/1.1"},
-	}, nil
+	}
 }
 
 func (i *Interceptor) leafFor(host string) (*tls.Certificate, error) {

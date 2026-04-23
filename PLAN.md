@@ -5,8 +5,6 @@ user-deployed Google Apps Script relay, with SNI concealment + local
 MITM. Architecturally aligned with MasterHttpRelayVPN-RUST. Three phases:
 Go core, Android app, integration.
 
----
-
 ## Milestone 0 — Skeleton
 
 - [x] `reference/` cloned (upstream Python, read-only)
@@ -15,8 +13,6 @@ Go core, Android app, integration.
 - [x] `.gitignore`, `LICENSE` (MIT), `version.txt`, GitHub scaffolding
 - [x] Android Studio project scaffolded into `app/` with NOTAM theme
 - [x] `git init` + `cocodedk/parvaz` public repo live
-
----
 
 # Phase A — Go Core
 
@@ -122,8 +118,6 @@ place. Next: **Phase B** — the Android side (VpnService wrapper,
 tun2socks, sidecar launcher, CA-install flow, `parvaz://` intent
 filter). See milestones 10–14 below.
 
----
-
 # Phase B — Android App (Farsi-first)
 
 ## Milestone 10 — Compose NOTAM theme
@@ -161,23 +155,24 @@ Farsi strings default (`res/values/`); English override (`res/values-en/`).
 
 ## Milestone 14 — URL scheme handler + QR scanner
 
-- `AndroidManifest.xml` — `<intent-filter>` for `parvaz://` on MainActivity.
-- QR scanner via `androidx.camera` + MLKit barcode.
-- Both paths resolve to the same `ImportAccessScreen.onImport(Access)`.
+`parvaz://` intent-filter already lands on MainActivity; QR scanner via
+`androidx.camera` + MLKit. Both paths feed `ImportAccessScreen.onImport`.
 
 ## Milestone 15 — VpnService + tun2socks + sidecar
 
-- `vpn/ParvazVpnService.kt` — TUN 10.0.0.1/24, MTU 1500, routes 0.0.0.0/0.
-- `vpn/CoreLauncher.kt` — `ProcessBuilder(nativeLibraryDir + "/libparvaz.so")`, stdin JSON, reads `READY`.
-- `vpn/Tun2Socks.kt` — gomobile AAR of a minimal tun2socks OR sing-box subset. Wire TUN fd → SOCKS5 `127.0.0.1:1080`.
-- `app/build.gradle.kts` already has `packaging.jniLibs.useLegacyPackaging = true`.
+- [x] **M15a** — VpnService + CoreLauncher.
+- [x] **M15b-alpha** — `xjasonlyu/tun2socks/v2` in parvazd. Kotlin
+      FD_CLOEXEC-clears (API 30+) and passes raw TUN fd via stdin.
+      MITM uses `GetCertificate` so leaf matches browser SNI even on
+      bare-IP targets. Own package in VpnService's disallowed-list.
+- [ ] **M15b-beta (REQUIRED for demo)** — UDP/DNS. SOCKS5 needs UDP
+      ASSOCIATE, or intercept UDP/53 + local DoH resolver.
+- [ ] **M15c** — API ≤ 29 compat (currently hard-fails above minSdk 24).
 
 ## Milestone 16 — Error / edge states (Farsi)
 
 Covers: bad parvaz:// URL, no internet, server unreachable, CA not
 installed, VPN permission denied. Copy lives in `res/values/strings.xml`.
-
----
 
 # Phase C — Integration
 
@@ -186,8 +181,6 @@ installed, VPN permission denied. Copy lives in `res/values/strings.xml`.
 - Deploy `reference/apps_script/Code.gs` to a test Google account.
 - Smoke: install APK on device, paste `parvaz://...`, install CA, Connect, load google.com + a non-Google site in Chrome.
 - Optional gated test: `PARVAZ_E2E=1 go test -C core ./relay/...`.
-
----
 
 ## Out of scope (explicit non-goals)
 
