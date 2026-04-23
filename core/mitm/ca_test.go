@@ -33,9 +33,18 @@ func TestCA_GenerateAndPersist(t *testing.T) {
 		t.Errorf("CA expires in %v, expected at least a year", ttl)
 	}
 
-	// Files must exist, be PEM-decodable, and the key file must be mode 0600.
-	crtPath := filepath.Join(dir, "ca.crt")
-	keyPath := filepath.Join(dir, "ca.key")
+	// CA files live under a nested `ca/` subdir so <data-dir> can later hold
+	// a leaf cache, settings, logs, etc. without the CA at its root.
+	caDir := filepath.Join(dir, "ca")
+	if info, err := os.Stat(caDir); err != nil {
+		t.Fatalf("ca/ subdir missing: %v", err)
+	} else if !info.IsDir() {
+		t.Errorf("ca/ is not a directory")
+	} else if info.Mode().Perm() != 0o700 {
+		t.Errorf("ca/ subdir mode = %o, want 0700", info.Mode().Perm())
+	}
+	crtPath := filepath.Join(caDir, "ca.crt")
+	keyPath := filepath.Join(caDir, "ca.key")
 	crtBytes, err := os.ReadFile(crtPath)
 	if err != nil {
 		t.Fatalf("read ca.crt: %v", err)
