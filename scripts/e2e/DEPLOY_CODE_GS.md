@@ -113,69 +113,19 @@ clasp deploy --description "parvaz relay v2"
 clasp deployments  # copy the new deployment ID if you want to keep the old stable
 ```
 
-**Handling the auth key cleanly (no leak to git):**
-
-Keep `Code.gs` with a placeholder `AUTH_KEY` in the committed source.
-Before every `clasp push`, substitute in the real secret; after push,
-revert. Minimal wrapper:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-cd reference/apps_script
-trap 'git checkout -- Code.gs' EXIT
-sed -i "s|CHANGE_ME_TO_A_STRONG_SECRET|${PARVAZ_LIVE_AUTH_KEY}|" Code.gs
-clasp push
-clasp deploy --description "${1:-parvaz relay}"
-```
-
-Run as `scripts/e2e/deploy-gs.sh "parvaz relay v3"` (save the wrapper
-under `scripts/e2e/` when you're ready — not included yet).
+**Handling the auth key cleanly (no leak to git):** keep the committed
+Code.gs with the placeholder `AUTH_KEY`. Before `clasp push`, `sed` the
+real secret in from `live.env`; after push, `git checkout -- Code.gs`
+to restore. A ~10-line wrapper script makes this one command (not
+included — trivial to write if you need it).
 
 ### Option B — Web editor (fallback)
 
-1. Sign in to the test account at <https://script.google.com>.
-2. **New project**. Delete the default `Code.gs` content.
-3. Paste the entire contents of `reference/apps_script/Code.gs` from
-   this repo.
-4. **Change the auth key.** Find the line:
-
-    ```js
-    const AUTH_KEY = "CHANGE_ME_TO_A_STRONG_SECRET";
-    ```
-
-   Replace the string with a 24–32 char random secret. Generate one:
-
-    ```bash
-    openssl rand -base64 24 | tr -d '=+/' | head -c 32
-    ```
-
-   Store this value — you will NOT be able to recover it from the
-   Apps Script UI without editing the project again.
-
-5. Save the project (Ctrl+S). Name it `parvaz-relay` (or similar —
-   you'll see this in the script.google.com URL).
-6. **Deploy → New deployment**:
-    - Type: **Web app**
-    - Description: `parvaz relay vN` (increment for future redeploys)
-    - Execute as: **Me (test-account-email)**
-    - Who has access: **Anyone**  ← this is intentional; the auth
-      key is what gates access, the URL itself is public.
-7. Click **Deploy**. Copy the **Web app URL** — it will look like:
-
-    ```
-    https://script.google.com/macros/s/AKfycbxXXXXXXXXXXXXXXXXXXX/exec
-                                        └─────┬─────────────┘
-                                              deployment ID
-    ```
-
-   The deployment ID is the `AKfycb...` chunk between `/macros/s/` and
-   `/exec`.
-
-8. Grant OAuth scopes when prompted (first invocation). The script
-   needs `https://www.googleapis.com/auth/script.external_request` for
-   `UrlFetchApp.fetch`. Accept via the "Go to (unsafe)" link — this
-   is normal for un-verified personal scripts.
+See [DEPLOY_CODE_GS_WEB_EDITOR.md](DEPLOY_CODE_GS_WEB_EDITOR.md) for
+the click-by-click flow. Summary: paste Code.gs into the editor at
+<https://script.google.com>, change `AUTH_KEY`, Deploy → New
+deployment → Web app → Anyone. Grant OAuth once by running `doPost`
+from the editor before hitting the deployment URL.
 
 ---
 
