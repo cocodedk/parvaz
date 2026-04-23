@@ -30,21 +30,25 @@ type CA struct {
 }
 
 const (
+	caSubdir       = "ca"
 	caCertFilename = "ca.crt"
 	caKeyFilename  = "ca.key"
 
 	caValidity = 10 * 365 * 24 * time.Hour // ~10 years
 )
 
-// LoadOrCreate loads a previously-persisted CA from dir, or generates and
-// writes a new one. dir is created (0700) if missing. The key file is
-// written 0600; the cert file 0644 (it's the public anchor).
-func LoadOrCreate(dir string) (*CA, error) {
-	if err := os.MkdirAll(dir, 0o700); err != nil {
+// LoadOrCreate loads a previously-persisted CA from dataDir/ca/, or
+// generates and writes a new one. The `ca/` subdirectory nests the CA so
+// dataDir can later hold a leaf cache, settings, logs, etc. without the
+// CA at its root. Directory is 0700; key file 0600; cert file 0644
+// (it's the public anchor).
+func LoadOrCreate(dataDir string) (*CA, error) {
+	caDir := filepath.Join(dataDir, caSubdir)
+	if err := os.MkdirAll(caDir, 0o700); err != nil {
 		return nil, fmt.Errorf("mitm: mkdir CA dir: %w", err)
 	}
-	crtPath := filepath.Join(dir, caCertFilename)
-	keyPath := filepath.Join(dir, caKeyFilename)
+	crtPath := filepath.Join(caDir, caCertFilename)
+	keyPath := filepath.Join(caDir, caKeyFilename)
 
 	if _, err := os.Stat(crtPath); err == nil {
 		return loadCA(crtPath, keyPath)
