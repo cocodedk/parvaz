@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>پرواز — پرواز از روی فیلتر. اپلیکیشن VPN اندروید با domain fronting روی Apps Script</title>
-<meta name="description" content="پرواز یک اپلیکیشن VPN اندرویدی است که با تکنیک domain fronting، ترافیک گوشی شما را از طریق یک رلهٔ Google Apps Script که خودتان مستقر کرده‌اید عبور می‌دهد. یک APK، یک دکمهٔ Connect، رلهٔ شخصی شما."/>
+<title>پرواز — پرواز از روی فیلتر. اپلیکیشن VPN اندروید روی Cloudflare Workers</title>
+<meta name="description" content="پرواز یک اپلیکیشن VPN اندروید برای کاربران ایرانی است که با تکنیک domain fronting، ترافیک گوشی شما را از طریق یک Cloudflare Worker که خودتان مستقر کرده‌اید عبور می‌دهد. یک APK، یک لمس، رابط فارسی."/>
 <meta name="robots" content="index, follow"/>
-<meta name="keywords" content="پرواز, vpn اندروید, دور زدن فیلتر, دامین فرانتینگ, اپس اسکریپت, vpnservice, کاتلین, go, متن‌باز"/>
+<meta name="keywords" content="پرواز, vpn اندروید, ایران, دور زدن فیلتر, کلودفلر, دامین فرانتینگ, vpnservice, کاتلین, go, فارسی, متن‌باز"/>
 <link rel="canonical" href="https://cocodedk.github.io/parvaz/fa/"/>
 <link rel="alternate" hreflang="en" href="https://cocodedk.github.io/parvaz/"/>
 <link rel="alternate" hreflang="fa" href="https://cocodedk.github.io/parvaz/fa/"/>
@@ -15,7 +15,7 @@
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="پرواز"/>
 <meta property="og:title" content="پرواز — پرواز از روی فیلتر"/>
-<meta property="og:description" content="اپلیکیشن VPN اندروید که با domain fronting ترافیک گوشی شما را از یک رلهٔ Google Apps Script که خودتان مستقر می‌کنید عبور می‌دهد. یک APK، یک دکمه، رلهٔ شخصی شما."/>
+<meta property="og:description" content="اپلیکیشن VPN اندروید برای کاربران ایرانی. ترافیک گوشی شما را از یک Cloudflare Worker که خودتان مستقر می‌کنید عبور می‌دهد. یک APK، یک لمس، رابط کاملاً فارسی."/>
 <meta property="og:url" content="https://cocodedk.github.io/parvaz/fa/"/>
 <meta property="og:image" content="https://cocodedk.github.io/parvaz/og.png"/>
 <meta property="og:image:width" content="1200"/>
@@ -26,7 +26,7 @@
 
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="پرواز — پرواز از روی فیلتر"/>
-<meta name="twitter:description" content="اپلیکیشن VPN اندروید با domain fronting از طریق Google Apps Script."/>
+<meta name="twitter:description" content="اپلیکیشن VPN اندروید برای کاربران ایرانی — domain fronting از طریق Cloudflare Worker."/>
 <meta name="twitter:image" content="https://cocodedk.github.io/parvaz/og.png"/>
 
 <link rel="icon" type="image/svg+xml" href="../favicon.svg"/>
@@ -40,12 +40,12 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "پرواز",
-  "description": "اپلیکیشن VPN اندروید که با تکنیک domain fronting ترافیک گوشی را از طریق یک رلهٔ Google Apps Script مستقرشده در حساب کاربری خود عبور می‌دهد. رابط کاربری Kotlin + Compose با هستهٔ SOCKS5 به زبان Go.",
+  "description": "اپلیکیشن VPN اندروید ساخته‌شده برای کاربران ایرانی بدون دانش فنی — ترافیک گوشی را از طریق یک Cloudflare Worker که خودتان یا یک دوست آشنا به‌فن مستقر می‌کند عبور می‌دهد. رابط کاربری Kotlin + Compose به صورت پیش‌فرض فارسی، هستهٔ Go برای SOCKS5، سرور ~۵۰ خط JavaScript در Cloudflare Worker.",
   "url": "https://cocodedk.github.io/parvaz/fa/",
   "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Android 7.0+",
-  "programmingLanguage": ["Kotlin", "Go"],
+  "programmingLanguage": ["Kotlin", "Go", "JavaScript"],
   "license": "https://opensource.org/licenses/MIT",
   "inLanguage": "fa",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -81,7 +81,7 @@
     <div>
       <h1 class="brand"><span class="fa-name">پرواز</span><span class="en-name">Parvaz</span></h1>
       <p class="tagline">پرواز از روی فیلتر</p>
-      <p class="subtitle">VPN اندروید · رلهٔ Apps Script · دامین فرانتینگ · متن‌باز</p>
+      <p class="subtitle">VPN اندروید · Cloudflare Worker · دامین فرانتینگ · اولویت با فارسی</p>
       <div class="cta-row">
         <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="btn primary">آغاز فرود · دانلود APK</a>
         <a href="https://github.com/cocodedk/parvaz" class="btn">طرح پرواز · کد منبع</a>
@@ -97,8 +97,8 @@
       <span class="sec-stamp">شرح مأموریت</span>
     </div>
     <div class="sec-body">
-      <p>پرواز یک <strong>اپلیکیشن VPN اندروید</strong> است. تمام ترافیک گوشی شما را از طریق یک رلهٔ Google Apps Script که خودتان مستقر می‌کنید عبور می‌دهد، بر اساس پروتکل domain fronting بازنویسی‌شده از <a href="https://github.com/masterking32/MasterHttpRelayVPN">MasterHttpRelayVPN</a> — TLS SNI <strong>www.google.com</strong>، HTTP Host <strong>script.google.com</strong>. DPI فقط «ترافیک به google.com» را می‌بیند؛ Google به صورت داخلی آن را به deployment شما مسیریابی می‌کند.</p>
-      <p>یک APK. یک دکمهٔ Connect. رلهٔ شخصی شما. بدون رانتایم پایتون، بدون سرور اشتراکی، بدون تله‌متری، بدون Play Store. رابط کاربری Kotlin + Compose. هستهٔ SOCKS5 به زبان Go. هر دو متن‌باز، با مجوز MIT.</p>
+      <p>پرواز یک <strong>اپلیکیشن VPN اندروید</strong> برای کاربران ایرانی بدون دانش فنی است. یک فرد آشنا به فن — خویشاوند، داوطلب، فعال — یک <strong>Cloudflare Worker</strong> یک‌فایلی را روی حساب کاربری خودش مستقر می‌کند؛ کاربر یک لینک <code>parvaz://</code> را از تلگرام دریافت می‌کند، QR را اسکن می‌کند یا روی «چسباندن» می‌زند، و تمام ترافیک گوشی از طریق Worker آن شخص عبور می‌کند. TLS SNI به یک دامنهٔ محبوب کلودفلر، Host به <code>*.workers.dev</code> شما.</p>
+      <p>یک APK. یک لمس. به صورت پیش‌فرض فارسی. بدون Play Store، بدون ثبت‌نام، بدون تله‌متری. رابط کاربری Kotlin + Compose، هستهٔ Go برای SOCKS5، سرور ~۵۰ خط JavaScript. همه متن‌باز با مجوز MIT.</p>
     </div>
   </section>
 
@@ -126,19 +126,19 @@
                    │
                    │  envelope:  { k · m · u · h · b }
                    │
-                   │  TLS  SNI   <span class="hl">www.google.com</span>         <span class="note">← DPI sees this</span>
-                   │  HTTP Host  <span class="secret">script.google.com</span>      <span class="note">← real routing</span>
+                   │  TLS  SNI   <span class="hl">www.cloudflare.com</span>         <span class="note">← DPI sees this</span>
+                   │  HTTP Host  <span class="secret">your-worker.workers.dev</span>   <span class="note">← real routing</span>
                    ▼
        ═══════════════════════════════
-       ║   google front   :443       ║
+       ║   cloudflare edge :443      ║
        ═══════════════════════════════
                    │
-                   │  <span class="dir">Google routes internally by Host</span>
+                   │  <span class="dir">Cloudflare routes internally by Host</span>
                    ▼
   ┌───────────────────────────────────┐
-  │  your code.gs relay deployment    │   <span class="note">◀─ your google account</span>
+  │  your worker.js deployment        │   <span class="note">◀─ your cloudflare account</span>
   └────────────────┬──────────────────┘
-                   │  fetches target.com
+                   │  connect() raw TCP → target.com
                    ▼
             { s · h · b }                  <span class="note">← response envelope</span>
 </pre>
@@ -161,7 +161,7 @@
         <span>NOTAM A0001/26</span>
       </div>
       <div class="notam-body">
-        <strong>شرایط استفادهٔ Google Apps Script این کاربرد را ممنوع اعلام کرده است.</strong> اسکریپت رله را فقط روی حساب Google <em>خودتان</em> مستقر کنید — مستقرسازی متمرکز یا توزیع یک deployment مشترک ممنوع است. فقط برای استفادهٔ شخصی، تحقیقاتی و آموزشی. اگر با پیامدهای حقوقی آشنا نیستید، آن را مستقر نکنید.
+        <strong>سیاست استفادهٔ قابل‌قبول Cloudflare دربارهٔ سرویس‌های پراکسی سخت‌گیر است.</strong> Worker را فقط روی حساب کاربری <em>خودتان</em> در Cloudflare مستقر کنید — متمرکزسازی مستقرسازی یا توزیع Worker به افراد ناشناس ممنوع است. فقط برای استفادهٔ شخصی، تحقیقاتی و آموزشی.
       </div>
     </div>
   </section>
@@ -173,12 +173,12 @@
       <span class="sec-stamp">ویژگی‌ها</span>
     </div>
     <div class="specs">
-      <div class="spec"><span class="spec-num">۰۱</span><span class="spec-key">دامین فرانتینگ</span><span class="spec-val">TLS SNI می‌گوید <code>www.google.com</code>. HTTP Host می‌گوید <code>script.google.com</code>. DPI فقط فرانت را می‌بیند؛ Google بر اساس Host واقعی به صورت داخلی مسیریابی می‌کند.</span></div>
-      <div class="spec"><span class="spec-num">۰۲</span><span class="spec-key">VPN با یک لمس</span><span class="spec-val">آدرس رله و کلید دسترسی را بچسبانید و Connect را بزنید. <code>VpnService</code> همهٔ ترافیک گوشی را می‌گیرد — بدون تنظیمات جداگانهٔ هر اپ، بدون تنظیم پراکسی مرورگر.</span></div>
-      <div class="spec"><span class="spec-num">۰۳</span><span class="spec-key">APK متن‌باز</span><span class="spec-val">رابط کاربری Kotlin + Compose، هستهٔ تعبیه‌شدهٔ SOCKS5 به زبان Go. بدون وابستگی انحصاری. خارج از Play Store منتشر می‌شود — فقط F-Droid و sideload.</span></div>
-      <div class="spec"><span class="spec-num">۰۴</span><span class="spec-key">دستنامهٔ میدانی</span><span class="spec-val">زیبایی‌شناسی NOTAM. تایپوگرافی Redaction، JetBrains Mono و Vazirmatn. رابط فارسی از پایه — RTL درجه یک، نه یک الحاقیه.</span></div>
-      <div class="spec"><span class="spec-num">۰۵</span><span class="spec-key">HTTP/2 + دسته‌ای</span><span class="spec-val">Transport با مالتی‌پلکس h2 و ارسال دسته‌ای درخواست‌ها به همراه استخر اتصال، مطابق ویژگی‌های عملکردی upstream.</span></div>
-      <div class="spec"><span class="spec-num">۰۶</span><span class="spec-key">بدون تله‌متری</span><span class="spec-val">بدون آنالیتیکس، بدون پینگ به‌روزرسانی، بدون گزارش کرش. <code>access_key</code> شما در <code>EncryptedSharedPreferences</code> می‌ماند. هیچ تماس شبکه‌ای به خارج، جز خود رله.</span></div>
+      <div class="spec"><span class="spec-num">۰۱</span><span class="spec-key">دامین فرانتینگ</span><span class="spec-val">TLS SNI یک دامنهٔ پرترافیک کلودفلر است. HTTP Host آدرس <code>*.workers.dev</code> شماست. DPI فقط «ترافیک کلودفلر» را می‌بیند؛ کلودفلر بر اساس Host واقعی به صورت داخلی مسیریابی می‌کند.</span></div>
+      <div class="spec"><span class="spec-num">۰۲</span><span class="spec-key">یک لمس، فارسی اول</span><span class="spec-val">لینک <code>parvaz://</code> را از تلگرام بچسبانید یا QR را اسکن کنید → Connect را بزنید. <code>VpnService</code> همهٔ ترافیک گوشی را می‌گیرد. رابط به صورت پیش‌فرض فارسی است؛ انگلیسی فقط بازنویسی.</span></div>
+      <div class="spec"><span class="spec-num">۰۳</span><span class="spec-key">APK متن‌باز</span><span class="spec-val">رابط Kotlin + Compose، هستهٔ تعبیه‌شدهٔ Go برای SOCKS5، Worker ~۵۰ خطی JavaScript. بدون وابستگی انحصاری. خارج از Play Store — فقط F-Droid و sideload.</span></div>
+      <div class="spec"><span class="spec-num">۰۴</span><span class="spec-key">دستنامهٔ میدانی</span><span class="spec-val">زیبایی‌شناسی NOTAM. تایپوگرافی Vazirmatn (فارسی)، Redaction (نمایشی)، JetBrains Mono (کد). رابط فارسی از پایه — RTL درجه یک، نه یک الحاقیه.</span></div>
+      <div class="spec"><span class="spec-num">۰۵</span><span class="spec-key">عبور خام TCP</span><span class="spec-val">Worker از API <code>cloudflare:sockets</code> <code>connect()</code> استفاده می‌کند — سوکت TCP خروجی واقعی باز می‌کند. بایت‌ها بدون دست‌کاری عبور می‌کنند — بدون MITM، بدون نصب CA، همهٔ اپ‌ها کار می‌کنند.</span></div>
+      <div class="spec"><span class="spec-num">۰۶</span><span class="spec-key">بدون تله‌متری</span><span class="spec-val">بدون آنالیتیکس، بدون پینگ به‌روزرسانی، بدون گزارش کرش. کلید دسترسی شما در <code>EncryptedSharedPreferences</code> می‌ماند. هیچ تماس شبکه‌ای به خارج، جز خود Worker.</span></div>
     </div>
   </section>
 
@@ -193,17 +193,18 @@
         <span>proc · install.001</span>
         <span>sh · POSIX</span>
       </div>
-      <div class="listing-body"><span class="c"># ۱. رله را روی حساب Google خودتان مستقر کنید</span>
-open https://script.google.com · paste <span class="hl">reference/apps_script/Code.gs</span>
-deploy → URL‌ و کلید auth را یادداشت کنید
+      <div class="listing-body"><span class="c"># ۱. فرد آشنا به فن: Worker را روی حساب Cloudflare خودش مستقر می‌کند</span>
+cd worker
+<span class="k">npx</span> wrangler deploy    <span class="c"># → wss://your-worker.workers.dev</span>
 
-<span class="c"># ۲. APK را دانلود کنید</span>
+<span class="c"># ۲. فرد آشنا به فن: لینک دسترسی را از طریق تلگرام می‌فرستد</span>
+parvaz://your-worker.workers.dev/<span class="hl">&lt;کلید-دسترسی&gt;</span>#رلهٔ‌من
+
+<span class="c"># ۳. کاربر: پرواز را نصب می‌کند، روی لینک می‌زند (یا QR را اسکن می‌کند)</span>
 curl -LO https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
-adb install Parvaz.apk        <span class="c"># یا sideload از گوشی</span>
+adb install Parvaz.apk
 
-<span class="c"># ۳. پرواز را باز کنید → URL و access key را بچسبانید → Connect</span>
-
-<span class="c"># ۴. پرواز کنید.</span></div>
+<span class="c"># ۴. پرواز.</span></div>
     </div>
   </section>
 
@@ -219,20 +220,19 @@ adb install Parvaz.apk        <span class="c"># یا sideload از گوشی</spa
         <span>MIT · Android 7.0+</span>
       </div>
       <pre class="schematic-body">parvaz/
-├── <span class="hl">app/</span>             رابط Kotlin + Compose · VpnService · tun2socks
-│                 · launcher · تم NOTAM · تنظیمات
-├── <span class="hl">core/</span>            Go SOCKS5 + transport دامین فرانتینگ
-│   ├── <span class="hl">protocol/</span>    انکد/دیکد envelope JSON (خالص)
-│   ├── <span class="hl">fronter/</span>     dialer با SNI دلخواه + کلاینت h2
-│   ├── <span class="hl">codec/</span>       دیکودر gzip / br / zstd / identity
-│   ├── <span class="hl">relay/</span>       چسب: envelope + شبکه + codec
+├── <span class="hl">app/</span>             رابط Kotlin + Compose (فارسی پیش‌فرض)
+│                 · VpnService · tun2socks · launcher · تم NOTAM
+├── <span class="hl">core/</span>            sidecar Go برای SOCKS5
+│   ├── <span class="hl">fronter/</span>     dialer با SNI دلخواه + کلاینت HTTP
+│   ├── <span class="hl">relay/</span>       تونل WebSocket به Worker
 │   ├── <span class="hl">socks5/</span>      listener محلی SOCKS5 روی ۱۰۸۰
 │   └── <span class="hl">cmd/parvazd/</span> باینری sidecar → libparvaz.so
-├── reference/      کد پایتون upstream · فقط-خواندنی
+├── <span class="hl">worker/</span>          Cloudflare Worker (worker.js, wrangler.toml)
+├── reference/      MasterHttpRelayVPN · فقط-خواندنی (محصول عوض شد)
 └── website/        GitHub Pages دو-زبانه
 
 <span class="note">· core از app با ProcessBuilder صدا زده می‌شود، نه JNI</span>
-<span class="note">· یک APK، یک ریلیز، یک تگ — monorepo</span>
+<span class="note">· یک APK + یک worker.js + یک تگ ریلیز — monorepo</span>
 </pre>
       <div class="schematic-foot">
         <span>drawn by · parvaz.doc</span>
@@ -248,7 +248,7 @@ adb install Parvaz.apk        <span class="c"># یا sideload از گوشی</spa
       <span class="sec-stamp">موردنیاز · upstream</span>
     </div>
     <div class="sec-body">
-      <p>پرواز فقط نیمهٔ <em>کلاینت</em> MasterHttpRelayVPN را جایگزین می‌کند. سرور Apps Script دقیقاً همان چیزی است که upstream عرضه می‌کند. برای مستقر کردن رله روی حساب Google خودتان به <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">reference/apps_script/Code.gs</a> و دستورالعمل استقرار upstream مراجعه کنید. بدون یک deployment، پرواز چیزی برای تونل‌زنی ندارد.</p>
+      <p>پرواز از بک‌اند Apps Script در MasterHttpRelayVPN فاصله گرفت — <code>UrlFetchApp.fetch()</code> مبتنی بر URL است و نمی‌تواند بایت‌های HTTPS را بدون MITM عبور دهد، و اندروید ۷+ به CAهای نصب‌شدهٔ کاربر به صورت پیش‌فرض اعتماد نمی‌کند. نیمهٔ سرور جدید یک <a href="https://github.com/cocodedk/parvaz/blob/main/worker/worker.js">Cloudflare Worker</a> ~۵۰ خطی است که از API <code>cloudflare:sockets</code> برای TCP خروجی خام استفاده می‌کند. برای استقرار ۵ مرحله‌ای، <a href="https://github.com/cocodedk/parvaz/blob/main/worker/README.md">worker/README.md</a> را ببینید.</p>
     </div>
   </section>
 

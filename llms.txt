@@ -1,37 +1,45 @@
 # Parvaz
 
-> An Android VPN app that routes phone traffic through a user-deployed
-> Google Apps Script relay using domain fronting (TLS SNI =
-> www.google.com, HTTP Host = script.google.com). Monorepo with a
-> Kotlin/Compose front end and a Go SOCKS5 sidecar core.
+> Android VPN app that tunnels phone traffic through a user-deployed
+> Cloudflare Worker via a raw-TCP WebSocket with domain fronting.
+> Farsi-first UX designed for Iranian users with no technical background.
+> Monorepo: Kotlin front end + Go sidecar + JavaScript Worker.
 
 ## Overview
 
-Parvaz ships as a single APK. The Kotlin app provides the UI, `VpnService`
-subclass, tun2socks glue, settings, and theme. The Go core (compiled per
-Android ABI into `libparvaz.so`) runs as a sidecar process inside the app,
-serves SOCKS5 on `127.0.0.1:1080`, and smuggles traffic through Google
-Apps Script using domain fronting. One install, one release artifact.
+Parvaz ships as one APK. Inside it: a Kotlin/Compose UI (Farsi default),
+an Android `VpnService` subclass, `tun2socks`, and a Go sidecar
+(`libparvaz.so`) that runs a local SOCKS5 server on `127.0.0.1:1080`
+and smuggles traffic through a Cloudflare Worker. One-tap onboarding:
+scan a `parvaz://` QR code (received via Telegram from a technical
+helper) and tap Connect.
+
+The backend is a **Cloudflare Worker** (~50 lines of JavaScript) using
+the `cloudflare:sockets` API for raw outbound TCP — bytes pass through
+opaque, no MITM, full HTTPS coverage. The app originally planned to use
+Google Apps Script, but that path is blocked on Android because
+`UrlFetchApp.fetch()` cannot tunnel TLS and user-CA trust is per-app.
 
 ## Technology Stack
 
 - Kotlin 2.2.x + Jetpack Compose (Material3), min SDK 24, target SDK 36
-- Go 1.22+ (stdlib first: crypto/tls, net/http, encoding/json, compress/gzip)
+- Go 1.24+ (stdlib first; deps: `github.com/coder/websocket`)
 - Android VpnService API + tun2socks
 - Gradle 9.3.x (Kotlin DSL) + AGP 9.1.x
+- Cloudflare Workers with `cloudflare:sockets` API (free tier)
 - Light-theme NOTAM / declassified-briefing aesthetic
-- Fonts: Redaction (display), JetBrains Mono (body), Vazirmatn (Persian)
+- Fonts: Vazirmatn (Persian default), Redaction (Latin display), JetBrains Mono
 
 ## Architecture
 
-- `app/` — Kotlin + Compose UI, VpnService subclass, tun2socks wrapper, sidecar launcher, settings storage (SharedPreferences + EncryptedSharedPreferences), NOTAM theme
-- `core/protocol/` — JSON envelope encode/decode (single + batch), no network
-- `core/fronter/` — TLS-with-custom-SNI dialer + HTTP/1.1 + h2 client
-- `core/codec/` — gzip / br / zstd / identity decoders
-- `core/relay/` — glue: envelope + client + codec
-- `core/socks5/` — local SOCKS5 listener forwarding via `relay/`
-- `core/cmd/parvazd/` — main sidecar binary, packaged as `libparvaz.so`
-- `reference/` — upstream Python client, read-only study material
+- `app/` — Kotlin + Compose UI (Farsi-first), VpnService subclass, tun2socks wrapper, sidecar launcher, settings (SharedPreferences + EncryptedSharedPreferences), NOTAM theme
+- `core/fronter/` — TLS-with-custom-SNI dialer + HTTP/1.1 client (used for the WebSocket upgrade)
+- `core/relay/` — WebSocket tunnel to the Cloudflare Worker; implements `socks5.Dialer`
+- `core/socks5/` — local SOCKS5 listener
+- `core/cmd/parvazd/` — sidecar main, packaged per-ABI as `libparvaz.so`
+- `core/protocol/` + `core/codec/` — reserved for future control channel / HTTP interception (not on critical path)
+- `worker/worker.js` — Cloudflare Worker server (TCP piping + access-key validation)
+- `reference/` — MasterHttpRelayVPN upstream, read-only historical
 - `website/` — bilingual GitHub Pages (EN + FA)
 
 ## Key Files
@@ -40,25 +48,38 @@ Apps Script using domain fronting. One install, one release artifact.
 - `PLAN.md` — TDD milestone list (Phase A core, Phase B app, Phase C integration)
 - `ARCHITECTURE.md` — full data path diagram and core/app boundary
 - `core/go.mod` — Go module `github.com/cocodedk/parvaz/core`
-- `version.txt` — semantic version (MAJOR.MINOR.PATCH)
-- `reference/apps_script/Code.gs` — server-side contract Parvaz must speak
+- `worker/worker.js` — the 50-line TCP-passthrough Worker
+- `version.txt` — semantic version
 
 ## Wire Protocol
 
-- Dial `<google_ip>:443` with TLS SNI = `www.google.com`
-- POST JSON to `https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec`
-- Body: `{ "k", "m", "u", "h", "b", "ct", "r" }`
-- Response: `{ "s", "h", "b" }` or `{ "e": "unauthorized" }`
+```
+Per SOCKS5 CONNECT:
+    TCP connect <cloudflare_ip>:443
+    TLS handshake  SNI = <popular-cf-hosted-site>
+    HTTP upgrade → wss://<worker>.workers.dev/tunnel?k=<key>&host=<t>&port=<p>
+    Worker opens connect({hostname:<t>, port:<p>}), pipes bytes both ways
+```
+
+No JSON envelope. No base64. No batching. Transparent TCP.
+
+## Access URL format
+
+`parvaz://<worker-host>/<access-key>#<optional-display-name>`
+
+Registered as a URI scheme by the Android app — Telegram/WhatsApp deep
+links open Parvaz directly; same format encoded in QR codes.
 
 ## Links
 
 - Repo: https://github.com/cocodedk/parvaz
 - Releases: https://github.com/cocodedk/parvaz/releases/latest
 - Website: https://cocodedk.github.io/parvaz/
-- Upstream: https://github.com/masterking32/MasterHttpRelayVPN
+- Historical upstream: https://github.com/masterking32/MasterHttpRelayVPN (product pivoted away)
 - Built by: [Cocode](https://cocode.dk) · [Babak Bandpey](https://linkedin.com/in/babakbandpey)
 
 ## Legal / ToS
 
-Google Apps Script's terms forbid this use. Deploy `Code.gs` to your own
-Google account only. Personal, research, and educational use only.
+Cloudflare Workers' acceptable-use policy is strict about proxy
+services. Deploy to your own Cloudflare account only. Personal,
+research, and educational use only.

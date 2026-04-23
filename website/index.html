@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Parvaz — A flight over the filter. Android VPN over Apps Script domain fronting.</title>
-<meta name="description" content="Parvaz is an Android VPN app that routes phone traffic through a user-deployed Google Apps Script relay using domain fronting. One APK, one connect button, your own relay."/>
+<title>Parvaz — A flight over the filter. Android VPN over Cloudflare Workers.</title>
+<meta name="description" content="Parvaz is an Android VPN for Iranian users that tunnels phone traffic through a user-deployed Cloudflare Worker using domain fronting. One APK, one tap, Farsi-first."/>
 <meta name="robots" content="index, follow"/>
-<meta name="keywords" content="parvaz, android vpn, masterhttprelayvpn, apps script, domain fronting, circumvention, vpnservice, kotlin, go, open source"/>
+<meta name="keywords" content="parvaz, android vpn, iran, cloudflare workers, domain fronting, circumvention, vpnservice, kotlin, go, farsi, open source"/>
 <link rel="canonical" href="https://cocodedk.github.io/parvaz/"/>
 <link rel="alternate" hreflang="en" href="https://cocodedk.github.io/parvaz/"/>
 <link rel="alternate" hreflang="fa" href="https://cocodedk.github.io/parvaz/fa/"/>
@@ -16,7 +16,7 @@
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Parvaz"/>
 <meta property="og:title" content="Parvaz — A flight over the filter"/>
-<meta property="og:description" content="Android VPN that routes phone traffic through a user-deployed Google Apps Script relay using domain fronting. One APK, one connect button, your own relay."/>
+<meta property="og:description" content="Android VPN for Iranian users. Tunnels phone traffic through a user-deployed Cloudflare Worker via a WebSocket. One APK, one tap, Farsi-first."/>
 <meta property="og:url" content="https://cocodedk.github.io/parvaz/"/>
 <meta property="og:image" content="https://cocodedk.github.io/parvaz/og.png"/>
 <meta property="og:image:width" content="1200"/>
@@ -28,7 +28,7 @@
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="Parvaz — A flight over the filter"/>
-<meta name="twitter:description" content="Android VPN app that routes phone traffic through a user-deployed Google Apps Script relay using domain fronting."/>
+<meta name="twitter:description" content="Android VPN for Iranian users that tunnels traffic through a user-deployed Cloudflare Worker. Farsi-first, one-tap."/>
 <meta name="twitter:image" content="https://cocodedk.github.io/parvaz/og.png"/>
 <meta name="twitter:image:alt" content="Parvaz — declassified flight briefing document."/>
 
@@ -43,12 +43,12 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Parvaz",
-  "description": "Android VPN app that routes phone traffic through a user-deployed Google Apps Script relay using domain fronting. Kotlin + Compose front end with an embedded Go SOCKS5 core.",
+  "description": "Android VPN app for Iranian users that tunnels phone traffic through a user-deployed Cloudflare Worker via a WebSocket TCP passthrough with domain fronting. Kotlin + Compose front end, embedded Go SOCKS5 sidecar, Farsi-first UX.",
   "url": "https://cocodedk.github.io/parvaz/",
   "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Android 7.0+",
-  "programmingLanguage": ["Kotlin", "Go"],
+  "programmingLanguage": ["Kotlin", "Go", "JavaScript"],
   "license": "https://opensource.org/licenses/MIT",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "author": {
@@ -65,7 +65,7 @@
 
 <div class="doc-strip">
   <span><strong>NOTAM #PVZ-001</strong> · Declassified · Flight briefing</span>
-  <span>Sheet 01 / 01 · Rev 2026.04.23 · Status // Pre-alpha</span>
+  <span>Sheet 01 / 01 · Rev 2026.04.23 · Status // Pre-alpha (pivoted to Cloudflare)</span>
 </div>
 
 <a href="fa/" class="lang-switch">فارسی ⇄ FA</a>
@@ -83,7 +83,7 @@
     <div>
       <h1 class="brand"><span class="en-name">Parvaz</span><span class="fa-name">پرواز</span></h1>
       <p class="tagline">A flight over the filter</p>
-      <p class="subtitle">Android VPN · Apps Script relay · domain fronting · open source</p>
+      <p class="subtitle">Android VPN · Cloudflare Worker · domain fronting · Farsi-first</p>
       <div class="cta-row">
         <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="btn primary">Begin descent · Download APK</a>
         <a href="https://github.com/cocodedk/parvaz" class="btn">Flight plan · Source</a>
@@ -99,8 +99,8 @@
       <span class="sec-stamp">Mission brief</span>
     </div>
     <div class="sec-body">
-      <p>Parvaz is an <strong>Android VPN app</strong>. It routes every byte of phone traffic through a Google Apps Script relay you deploy yourself, using the domain-fronting protocol rewritten from <a href="https://github.com/masterking32/MasterHttpRelayVPN">MasterHttpRelayVPN</a> — TLS SNI <strong>www.google.com</strong>, HTTP Host <strong>script.google.com</strong>. DPI only sees "traffic to google.com"; Google routes internally to your Apps Script deployment.</p>
-      <p>One APK. One Connect button. Your relay. No Python runtime, no shared server, no telemetry, no Play Store. Kotlin + Compose front end. Go SOCKS5 core. Both open source, MIT-licensed.</p>
+      <p>Parvaz is an <strong>Android VPN app</strong> built for Iranian users with no technical background. A helper deploys a one-file <strong>Cloudflare Worker</strong>; the user receives a <code>parvaz://</code> link over Telegram, scans a QR or taps Paste, and every byte of phone traffic tunnels through their own Worker — TLS SNI to a popular Cloudflare-hosted site, HTTP Host to the user's <code>*.workers.dev</code> deployment.</p>
+      <p>One APK. One tap. Farsi-first. No Play Store, no account, no telemetry. Kotlin + Compose front end. Go SOCKS5 sidecar. ~50-line JavaScript Worker. All open source, MIT-licensed.</p>
     </div>
   </section>
 
@@ -128,19 +128,19 @@
                    │
                    │  envelope:  { k · m · u · h · b }
                    │
-                   │  TLS  SNI   <span class="hl">www.google.com</span>         <span class="note">← what DPI sees</span>
-                   │  HTTP Host  <span class="secret">script.google.com</span>      <span class="note">← real routing</span>
+                   │  TLS  SNI   <span class="hl">www.cloudflare.com</span>         <span class="note">← what DPI sees</span>
+                   │  HTTP Host  <span class="secret">your-worker.workers.dev</span>   <span class="note">← real routing</span>
                    ▼
        ═══════════════════════════════
-       ║   google front   :443       ║
+       ║   cloudflare edge :443      ║
        ═══════════════════════════════
                    │
-                   │  <span class="dir">Google routes internally by Host</span>
+                   │  <span class="dir">Cloudflare routes internally by Host</span>
                    ▼
   ┌───────────────────────────────────┐
-  │  your code.gs relay deployment    │   <span class="note">◀─ your google account</span>
+  │  your worker.js deployment        │   <span class="note">◀─ your cloudflare account</span>
   └────────────────┬──────────────────┘
-                   │  fetches target.com
+                   │  connect() raw TCP → target.com
                    ▼
             { s · h · b }                  <span class="note">← response envelope</span>
 </pre>
@@ -163,7 +163,7 @@
         <span>NOTAM A0001/26</span>
       </div>
       <div class="notam-body">
-        <strong>Google Apps Script's terms forbid this use.</strong> Deploy the relay script to your <em>own</em> Google account only — do not centralize deployments or distribute a shared one. Personal, research, and educational use only. If you do not understand the legal implications, do not deploy.
+        <strong>Cloudflare's acceptable-use policy is strict about proxy services.</strong> Deploy the Worker to your <em>own</em> Cloudflare account only — do not centralize deployments, do not commercialise, do not share your worker with strangers you can't vouch for. Personal, research, and educational use only.
       </div>
     </div>
   </section>
@@ -175,12 +175,12 @@
       <span class="sec-stamp">Features</span>
     </div>
     <div class="specs">
-      <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">TLS SNI says <code>www.google.com</code>. HTTP Host says <code>script.google.com</code>. DPI sees the front; Google routes by the real Host internally.</span></div>
-      <div class="spec"><span class="spec-num">02</span><span class="spec-key">One-tap VPN</span><span class="spec-val">Paste your relay URL + access key, tap Connect. <code>VpnService</code> captures all phone traffic — no per-app configuration, no browser proxy setup.</span></div>
-      <div class="spec"><span class="spec-num">03</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose front end, embedded Go SOCKS5 core. No proprietary dependencies. Ships outside the Play Store — F-Droid and sideload only.</span></div>
-      <div class="spec"><span class="spec-num">04</span><span class="spec-key">Light-theme field manual</span><span class="spec-val">NOTAM aesthetic. Redaction, JetBrains Mono, and Vazirmatn typography. Persian UI built in — first-class RTL, not an afterthought.</span></div>
-      <div class="spec"><span class="spec-num">05</span><span class="spec-key">h2 + batching</span><span class="spec-val">HTTP/2 multiplexed transport with connection pooling and request batching, mirroring upstream's performance characteristics.</span></div>
-      <div class="spec"><span class="spec-num">06</span><span class="spec-key">Zero telemetry</span><span class="spec-val">No analytics, no auto-update pings, no crash reporting. Your <code>access_key</code> stays in <code>EncryptedSharedPreferences</code>. No third-party network calls other than the relay itself.</span></div>
+      <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">TLS SNI says a popular Cloudflare-hosted site. HTTP Host says your <code>*.workers.dev</code>. DPI sees "Cloudflare traffic"; Cloudflare routes by the real Host internally.</span></div>
+      <div class="spec"><span class="spec-num">02</span><span class="spec-key">One-tap, Farsi-first</span><span class="spec-val">Paste a <code>parvaz://</code> URL or scan a QR from Telegram → tap Connect. <code>VpnService</code> captures all phone traffic. UI defaults to Persian; English is the override.</span></div>
+      <div class="spec"><span class="spec-num">03</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose front end, embedded Go SOCKS5 sidecar, ~50-line Cloudflare Worker. No proprietary deps. Ships outside the Play Store — F-Droid and sideload only.</span></div>
+      <div class="spec"><span class="spec-num">04</span><span class="spec-key">Light-theme field manual</span><span class="spec-val">NOTAM aesthetic. Vazirmatn (Persian), Redaction (display), JetBrains Mono (code). Persian UI built in — first-class RTL, not an afterthought.</span></div>
+      <div class="spec"><span class="spec-num">05</span><span class="spec-key">Raw TCP passthrough</span><span class="spec-val">The Worker uses <code>cloudflare:sockets</code> <code>connect()</code> to open a real outbound TCP socket. Bytes pass through opaque — no MITM, no CA install, every app works.</span></div>
+      <div class="spec"><span class="spec-num">06</span><span class="spec-key">Zero telemetry</span><span class="spec-val">No analytics, no auto-update pings, no crash reporting. Your access key stays in <code>EncryptedSharedPreferences</code>. No third-party network calls other than the Worker itself.</span></div>
     </div>
   </section>
 
@@ -195,15 +195,16 @@
         <span>proc · install.001</span>
         <span>sh · POSIX</span>
       </div>
-      <div class="listing-body"><span class="c"># 1. deploy the relay on your own google account</span>
-open https://script.google.com · paste <span class="hl">reference/apps_script/Code.gs</span>
-deploy → note the deployment URL + your chosen auth key
+      <div class="listing-body"><span class="c"># 1. helper: deploy the worker to your own cloudflare account</span>
+cd worker
+<span class="k">npx</span> wrangler deploy    <span class="c"># → wss://your-worker.workers.dev</span>
 
-<span class="c"># 2. download the APK</span>
+<span class="c"># 2. helper: share the access URL over Telegram</span>
+parvaz://your-worker.workers.dev/<span class="hl">&lt;access-key&gt;</span>#رلهٔ‌من
+
+<span class="c"># 3. user: install parvaz.apk and tap the parvaz:// link (or scan QR)</span>
 curl -LO https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
-adb install Parvaz.apk        <span class="c"># or sideload from phone</span>
-
-<span class="c"># 3. open parvaz → paste deployment URL + access key → tap Connect</span>
+adb install Parvaz.apk
 
 <span class="c"># 4. fly.</span></div>
     </div>
@@ -222,19 +223,18 @@ adb install Parvaz.apk        <span class="c"># or sideload from phone</span>
       </div>
       <pre class="schematic-body">parvaz/
 ├── <span class="hl">app/</span>             kotlin + compose UI · VpnService · tun2socks
-│                 · sidecar launcher · NOTAM theme · settings
-├── <span class="hl">core/</span>            go SOCKS5 + domain-fronting transport
-│   ├── <span class="hl">protocol/</span>    pure JSON envelope encode/decode
-│   ├── <span class="hl">fronter/</span>     TLS-with-custom-SNI dialer + h2 client
-│   ├── <span class="hl">codec/</span>       gzip / br / zstd / identity decoders
-│   ├── <span class="hl">relay/</span>       glue: envelope + client + codec
+│                 · sidecar launcher · NOTAM theme · farsi-first
+├── <span class="hl">core/</span>            go SOCKS5 sidecar
+│   ├── <span class="hl">fronter/</span>     TLS-with-custom-SNI dialer + HTTP client
+│   ├── <span class="hl">relay/</span>       WebSocket tunnel to the worker
 │   ├── <span class="hl">socks5/</span>      local SOCKS5 listener on :1080
 │   └── <span class="hl">cmd/parvazd/</span> sidecar main → libparvaz.so (per ABI)
-├── reference/      upstream python · read-only study material
+├── <span class="hl">worker/</span>          cloudflare worker (worker.js, wrangler.toml)
+├── reference/      MasterHttpRelayVPN · historical (product pivoted)
 └── website/        bilingual GitHub Pages
 
 <span class="note">· core is called from app via ProcessBuilder, not JNI</span>
-<span class="note">· one apk, one release, one tag — monorepo</span>
+<span class="note">· one apk + one worker.js + one release tag — monorepo</span>
 </pre>
       <div class="schematic-foot">
         <span>drawn by · parvaz.doc</span>
@@ -250,7 +250,7 @@ adb install Parvaz.apk        <span class="c"># or sideload from phone</span>
       <span class="sec-stamp">Required · upstream</span>
     </div>
     <div class="sec-body">
-      <p>Parvaz replaces only the <em>client</em> half of MasterHttpRelayVPN. The Apps Script server stays exactly as upstream ships it. See <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">reference/apps_script/Code.gs</a> and upstream deployment steps to deploy the relay on your own Google account. Without a deployment, Parvaz has nothing to tunnel to.</p>
+      <p>Parvaz pivoted away from the MasterHttpRelayVPN Apps Script backend — <code>UrlFetchApp.fetch()</code> is URL-based HTTP and cannot tunnel opaque HTTPS without MITM, and Android 7+ won't trust user-installed CAs per-app. The new server half is a ~50-line <a href="https://github.com/cocodedk/parvaz/blob/main/worker/worker.js">Cloudflare Worker</a> that uses the <code>cloudflare:sockets</code> API for raw outbound TCP. See <a href="https://github.com/cocodedk/parvaz/blob/main/worker/README.md">worker/README.md</a> for the 5-step deployment.</p>
     </div>
   </section>
 

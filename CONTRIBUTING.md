@@ -50,7 +50,7 @@ CGO_ENABLED=0 GOOS=android GOARCH=arm64 \
 ./gradlew assembleRelease             # release APK (needs signing env)
 ./gradlew buildSmoke                  # CI smoke check
 
-# Live-network tests (needs deployed Code.gs)
+# Live-network tests (needs a deployed Cloudflare Worker)
 PARVAZ_E2E=1 go test -C core ./...
 ```
 

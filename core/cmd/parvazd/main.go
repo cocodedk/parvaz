@@ -2,9 +2,8 @@
 // pipes a JSON config on stdin, reads the single line "READY" on stdout,
 // and connects to 127.0.0.1:<listen_port> as a SOCKS5 client.
 //
-// HTTP-over-SOCKS5 bridging (turn raw TCP flows into Apps Script fetches) is
-// not yet wired — this binary stands up the network shell so Phase B can
-// validate the launcher. The actual bridge arrives in a follow-up milestone.
+// Each SOCKS5 CONNECT opens one WebSocket to the configured Cloudflare
+// Worker, which pipes raw TCP bytes to the final destination.
 package main
 
 import (
@@ -18,7 +17,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/cocodedk/parvaz/core/fronter"
@@ -28,31 +26,24 @@ import (
 
 var version = "dev"
 
-// Config mirrors reference/src/config.example.json. Fields can be supplied
-// via flags or via a JSON document on stdin; stdin wins on overlap.
+// Config is the JSON document piped on stdin (or set via flags).
 type Config struct {
-	ScriptURLs  []string `json:"script_urls"`
-	AuthKey     string   `json:"auth_key"`
-	GoogleIP    string   `json:"google_ip"`
-	FrontDomain string   `json:"front_domain"`
-	ListenHost  string   `json:"listen_host"`
-	ListenPort  int      `json:"listen_port"`
+	WorkerURL   string `json:"worker_url"`   // wss://<worker>.workers.dev/tunnel
+	AuthKey     string `json:"auth_key"`     // shared secret with worker.js
+	FrontIP     string `json:"front_ip"`     // Cloudflare edge IP to dial (TCP)
+	FrontDomain string `json:"front_domain"` // TLS SNI (any popular CF-hosted site)
+	ListenHost  string `json:"listen_host"`
+	ListenPort  int    `json:"listen_port"`
 }
 
 const (
-	defaultGoogleIP    = "216.239.38.120"
-	defaultFrontDomain = "www.google.com"
+	// defaultFrontIP is a public Cloudflare anycast IP. Override via flag/stdin
+	// when operating in regions where a specific IP is preferred.
+	defaultFrontIP     = "104.16.132.229"
+	defaultFrontDomain = "www.cloudflare.com"
 	defaultListenHost  = "127.0.0.1"
 	defaultListenPort  = 1080
 )
-
-// stubDialer rejects every CONNECT until the HTTP-over-SOCKS5 bridge exists.
-// Kept here so the process listens and Phase B's launcher can probe it.
-type stubDialer struct{}
-
-func (stubDialer) Dial(_ context.Context, host string, port uint16) (net.Conn, error) {
-	return nil, fmt.Errorf("parvazd: CONNECT %s:%d — bridge not yet implemented", host, port)
-}
 
 func main() {
 	if err := run(); err != nil {
@@ -64,10 +55,10 @@ func main() {
 func run() error {
 	var (
 		useStdin     = flag.Bool("stdin", false, "read JSON config from stdin")
-		scriptURLs   = flag.String("script-urls", "", "comma-separated Apps Script deployment URLs")
-		authKey      = flag.String("auth-key", "", "shared secret with Code.gs")
-		googleIP     = flag.String("google-ip", defaultGoogleIP, "TCP target (Google front IP)")
-		frontDomain  = flag.String("front-domain", defaultFrontDomain, "TLS SNI")
+		workerURL    = flag.String("worker-url", "", "Cloudflare Worker WebSocket URL (wss://...)")
+		authKey      = flag.String("auth-key", "", "shared secret with the worker")
+		frontIP      = flag.String("front-ip", defaultFrontIP, "Cloudflare edge IP (TCP target)")
+		frontDomain  = flag.String("front-domain", defaultFrontDomain, "TLS SNI (popular CF-hosted site)")
 		listenHost   = flag.String("listen-host", defaultListenHost, "SOCKS5 listen host")
 		listenPort   = flag.Int("listen-port", defaultListenPort, "SOCKS5 listen port")
 		printVersion = flag.Bool("version", false, "print version and exit")
@@ -79,16 +70,9 @@ func run() error {
 	}
 
 	cfg := Config{
-		GoogleIP: *googleIP, FrontDomain: *frontDomain,
+		WorkerURL: *workerURL, AuthKey: *authKey,
+		FrontIP: *frontIP, FrontDomain: *frontDomain,
 		ListenHost: *listenHost, ListenPort: *listenPort,
-		AuthKey: *authKey,
-	}
-	if *scriptURLs != "" {
-		for _, u := range strings.Split(*scriptURLs, ",") {
-			if u = strings.TrimSpace(u); u != "" {
-				cfg.ScriptURLs = append(cfg.ScriptURLs, u)
-			}
-		}
 	}
 	if *useStdin {
 		var fromStdin Config
@@ -103,12 +87,11 @@ func run() error {
 
 	client := buildHTTPClient(cfg)
 	rel, err := relay.New(relay.Config{
-		HTTPClient: client, ScriptURLs: cfg.ScriptURLs, AuthKey: cfg.AuthKey,
+		HTTPClient: client, WorkerURL: cfg.WorkerURL, AuthKey: cfg.AuthKey,
 	})
 	if err != nil {
 		return err
 	}
-	_ = rel // future HTTP-over-SOCKS5 bridge will consume this
 
 	ln, err := net.Listen("tcp", net.JoinHostPort(cfg.ListenHost, fmt.Sprint(cfg.ListenPort)))
 	if err != nil {
@@ -116,7 +99,7 @@ func run() error {
 	}
 	defer ln.Close()
 
-	srv := &socks5.Server{Dialer: stubDialer{}}
+	srv := &socks5.Server{Dialer: rel}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -136,19 +119,19 @@ func run() error {
 
 func buildHTTPClient(cfg Config) *http.Client {
 	d := &fronter.Dialer{FrontDomain: cfg.FrontDomain}
-	target := net.JoinHostPort(cfg.GoogleIP, "443")
+	target := net.JoinHostPort(cfg.FrontIP, "443")
 	return fronter.NewHTTPClient(d, target)
 }
 
 func merge(base, over Config) Config {
-	if len(over.ScriptURLs) > 0 {
-		base.ScriptURLs = over.ScriptURLs
+	if over.WorkerURL != "" {
+		base.WorkerURL = over.WorkerURL
 	}
 	if over.AuthKey != "" {
 		base.AuthKey = over.AuthKey
 	}
-	if over.GoogleIP != "" {
-		base.GoogleIP = over.GoogleIP
+	if over.FrontIP != "" {
+		base.FrontIP = over.FrontIP
 	}
 	if over.FrontDomain != "" {
 		base.FrontDomain = over.FrontDomain
@@ -166,8 +149,8 @@ func (c Config) validate() error {
 	if c.AuthKey == "" {
 		return errors.New("auth_key required")
 	}
-	if len(c.ScriptURLs) == 0 {
-		return errors.New("at least one script_url required")
+	if c.WorkerURL == "" {
+		return errors.New("worker_url required")
 	}
 	return nil
 }

@@ -1,0 +1,19 @@
+name = "parvaz-relay"
+main = "worker.js"
+compatibility_date = "2026-04-15"
+
+# cloudflare:sockets (connect) requires this flag as of the date above.
+compatibility_flags = ["nodejs_compat"]
+
+# Optional — set a custom route when you own a CF-managed domain:
+# [[routes]]
+# pattern = "relay.example.com/*"
+# zone_name = "example.com"
+
+# Free plan is enough for personal use (100K requests/day).
+workers_dev = true
+
+# --- Secrets ---
+# Do NOT put the access key here in plaintext for production. Instead:
+#     npx wrangler secret put ACCESS_KEY
+# And replace the hard-coded ACCESS_KEY in worker.js with `env.ACCESS_KEY`.
