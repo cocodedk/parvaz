@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -56,6 +57,19 @@ fun ImportAccessScreen(
 ) {
     var text by rememberSaveable { mutableStateOf(initialUrl.orEmpty()) }
     var error by rememberSaveable { mutableStateOf(initialError) }
+
+    // A fresh parvaz:// intent delivered via onNewIntent updates our
+    // callers' initialUrl/initialError while this screen is already on
+    // screen. rememberSaveable keys off first composition only, so we
+    // re-seed the field when those inputs change.
+    LaunchedEffect(initialUrl, initialError) {
+        if (initialUrl != null) {
+            text = initialUrl
+            error = initialError
+        } else if (initialError != null) {
+            error = initialError
+        }
+    }
 
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current

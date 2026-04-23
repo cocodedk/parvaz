@@ -13,8 +13,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import dk.cocode.parvaz.settings.Access
 import dk.cocode.parvaz.settings.AccessImport
 import dk.cocode.parvaz.settings.AccessParseException
+import dk.cocode.parvaz.settings.ParvazSettings
 import dk.cocode.parvaz.ui.onboarding.OnboardingHost
 import dk.cocode.parvaz.ui.theme.Paper
 import dk.cocode.parvaz.ui.theme.ParvazTheme
@@ -31,6 +33,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleDeepLink(intent)
+        // Load once per activity creation; on rotation/process-death this
+        // re-reads from disk so state survives without a bundle Saver.
+        val bootstrapAccess: Access? = ParvazSettings(this).load()
         enableEdgeToEdge()
         setContent {
             ParvazTheme {
@@ -40,6 +45,7 @@ class MainActivity : ComponentActivity() {
                     OnboardingHost(
                         initialDeepLinkUrl = pendingParvazUrl,
                         initialDeepLinkError = pendingParvazUrlError,
+                        alreadyImportedAccess = bootstrapAccess,
                         onFinished = {
                             // M13 (main screen) lands here. For now the
                             // flow just ends at DONE.
