@@ -2,17 +2,16 @@
 set -eu
 
 # Parvaz pre-commit:
-#   · Go vet + test when .go files in core/ are staged
-#   · Gradle buildSmoke when .kt/.kts/.xml files in app/ are staged
+#   · Go vet + test when .go files in core/ are staged (skip when no .go on disk)
+#   · Gradle buildSmoke when .kt/.kts/.xml in app/ are staged
 #   · 200-line text-file limit on every staged text file
 
 STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
 
 STAGED_GO=$(echo "$STAGED" | grep -E '^core/.*\.go$' || true)
-if [ -n "$STAGED_GO" ]; then
+if [ -n "$STAGED_GO" ] && [ -n "$(find core -name '*.go' -print -quit 2>/dev/null)" ]; then
   echo "[pre-commit] go vet -C core ./..."
   go vet -C core ./...
-
   echo "[pre-commit] go test -C core ./..."
   go test -C core ./...
 fi

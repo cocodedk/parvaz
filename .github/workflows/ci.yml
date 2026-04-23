@@ -22,13 +22,26 @@ jobs:
           cache: true
           cache-dependency-path: core/go.sum
 
+      - name: Probe for Go sources
+        id: go_src
+        run: |
+          if [ -n "$(find core -name '*.go' -print -quit 2>/dev/null)" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::core/ has no .go files yet — skipping Go steps."
+          fi
+
       - name: Go vet
+        if: steps.go_src.outputs.present == 'true'
         run: go vet -C core ./...
 
       - name: Go test (race + cover)
+        if: steps.go_src.outputs.present == 'true'
         run: go test -C core -race -cover ./...
 
       - name: Go build (all packages)
+        if: steps.go_src.outputs.present == 'true'
         run: go build -C core ./...
 
       - name: Setup Java
@@ -41,7 +54,9 @@ jobs:
 
       - name: Gradle buildSmoke
         if: hashFiles('gradlew') != ''
-        run: ./gradlew buildSmoke --no-daemon
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          ./gradlew buildSmoke --no-daemon
 
       - name: Check no file exceeds 200 lines
         run: |

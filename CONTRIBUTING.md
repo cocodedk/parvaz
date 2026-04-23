@@ -54,6 +54,35 @@ CGO_ENABLED=0 GOOS=android GOARCH=arm64 \
 PARVAZ_E2E=1 go test -C core ./...
 ```
 
+## Release signing (one-time, maintainers only)
+
+Release APKs must be signed. Four GitHub repository secrets are required:
+
+| Secret | What it is |
+|---|---|
+| `KEYSTORE_BASE64` | Base64-encoded release keystore |
+| `KEYSTORE_PASSWORD` | Keystore password |
+| `KEY_ALIAS` | Signing key alias inside the keystore |
+| `KEY_PASSWORD` | Signing key password |
+
+Run the helper once after cloning — it generates or reuses a local keystore,
+verifies it with `keytool`, and uploads all four secrets via `gh`:
+
+```sh
+./scripts/setup-signing.sh
+```
+
+Then trigger a release from the Actions tab (Release workflow → Run workflow)
+or via:
+
+```sh
+gh workflow run release.yml -f bump=patch   # or minor / major
+```
+
+The workflow builds the Go core for 4 Android ABIs, drops the `.so` into
+`app/src/main/jniLibs/`, signs the APK, tags `v<version>`, and attaches
+`Parvaz.apk` to the GitHub Release.
+
 ## Coding Style
 
 - **200-line maximum per file** — extract helpers, composables, or packages when approaching the limit.
