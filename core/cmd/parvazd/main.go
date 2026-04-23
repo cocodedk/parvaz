@@ -64,6 +64,7 @@ func run() error {
 		printVersion = flag.Bool("version", false, "print version and exit")
 		logLevelStr  = flag.String("log-level", "warn", "slog level: debug|info|warn|error")
 		dataDir      = flag.String("data-dir", defaultDataDir, "persistent app data dir (CA lives at <data-dir>/ca/)")
+		genCAOnly    = flag.Bool("gen-ca", false, "create the MITM CA in <data-dir>/ca/ and exit 0 (idempotent)")
 	)
 	flag.Parse()
 	if *printVersion {
@@ -74,6 +75,12 @@ func run() error {
 	logger, err := newLogger(*logLevelStr)
 	if err != nil {
 		return err
+	}
+
+	// -gen-ca runs without auth_key / script_urls; the Android side uses
+	// it to materialise the CA before onboarding's install step.
+	if *genCAOnly {
+		return genCA(*dataDir)
 	}
 
 	cfg := Config{

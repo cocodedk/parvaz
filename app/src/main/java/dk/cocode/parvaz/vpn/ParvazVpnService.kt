@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import dk.cocode.parvaz.settings.ParvazDataDir
 import dk.cocode.parvaz.settings.ParvazSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +13,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.io.File
 
 /**
  * ParvazVpnService establishes a system VPN TUN interface and spawns
@@ -75,7 +75,9 @@ class ParvazVpnService : VpnService() {
                 return@launch
             }
 
-            val dataDir = File(filesDir, "sidecar").apply { mkdirs() }
+            // MUST point at the same dir CaInstallController uses, or the
+            // sidecar signs leaves with a CA the user never installed.
+            val dataDir = ParvazDataDir.forContext(this@ParvazVpnService)
             val cfg = SidecarConfig(access = access, dataDir = dataDir.absolutePath)
 
             launcher = CoreLauncher(this@ParvazVpnService).also { l ->
