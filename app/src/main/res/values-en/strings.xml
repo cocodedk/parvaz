@@ -1,0 +1,31 @@
+<resources>
+    <!--
+      English override. Shown only when the user explicitly switches
+      language; res/values/strings.xml is the Farsi default.
+    -->
+
+    <string name="app_name">Parvaz</string>
+
+    <string name="splash_title">PARVAZ</string>
+    <string name="splash_subtitle">Clear path to the open internet</string>
+    <string name="splash_start_cta">Start</string>
+
+    <string name="import_title">Access URL</string>
+    <string name="import_subtitle">A technical helper should have sent you a parvaz:// URL</string>
+    <string name="import_paste_cta">Paste</string>
+    <string name="import_scan_cta">Scan QR</string>
+    <string name="import_field_hint">parvaz://…</string>
+    <string name="import_submit_cta">Continue</string>
+
+    <string name="ca_install_title">Install certificate</string>
+    <string name="ca_install_body">To start, Parvaz must install a certificate on this phone — it\'s local, only this phone uses it</string>
+    <string name="ca_install_cta">Install</string>
+    <string name="ca_install_done_label">Installed</string>
+
+    <string name="vpn_explain_title">VPN permission</string>
+    <string name="vpn_explain_body">Parvaz needs Android\'s VPN permission to tunnel browser traffic. This is a per-app permission.</string>
+    <string name="vpn_explain_cta">Allow</string>
+
+    <string name="main_disconnected_stamp">PARVAZ</string>
+    <string name="main_connected_stamp">IN FLIGHT</string>
+</resources>

@@ -181,6 +181,12 @@ CGO_ENABLED=0 GOOS=android GOARCH=arm64 \
 ./gradlew test
 ./gradlew assembleDebug
 ./gradlew buildSmoke
+
+# Instrumentation tests (androidTest/) — Android emulator must be running.
+# Use for anything that needs a real Android runtime: CoreLauncher, CA
+# install + AndroidCAStore verify, tun2socks, VpnService. Host JVM tests
+# (./gradlew test) remain the default for domain + pure-Kotlin logic.
+./gradlew connectedAndroidTest
 ```
 
 ---
