@@ -79,8 +79,19 @@ fun SplashScreen(
     }
 }
 
+/**
+ * Test tags for onboarding composables. One place so test files don't
+ * drift from the UI code's idea of what's identifiable.
+ */
 object TestTags {
     const val SplashStartButton = "splash_start_button"
+
+    // ImportAccessScreen (M12.2)
+    const val ImportField = "import_field"
+    const val ImportPasteButton = "import_paste_button"
+    const val ImportScanButton = "import_scan_button"
+    const val ImportSubmitButton = "import_submit_button"
+    const val ImportErrorText = "import_error_text"
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFF1E8D4)

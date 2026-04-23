@@ -18,6 +18,7 @@
     <string name="import_paste_cta">چسباندن</string>
     <string name="import_scan_cta">اسکن QR</string>
     <string name="import_field_hint">parvaz://…</string>
+    <string name="import_submit_cta">ادامه</string>
 
     <!-- CA install -->
     <string name="ca_install_title">نصب گواهی</string>
