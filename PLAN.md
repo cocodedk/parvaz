@@ -83,20 +83,29 @@ Failing-test order:
 4. `TestInterceptor_ForwardsHTTPRequestThroughRelay` — stub relay captures the request; cert + body + method round-trip.
 5. `TestInterceptor_GzipResponse_EchoedIntact` — end-to-end through codec.
 
-## Milestone M-dispatcher · (NEW)
+## Milestone M-dispatcher · DONE
 
-**Target**: `core/dispatcher/dispatcher.go` + tests.
+- [x] `core/dispatcher/dispatcher.go` — routes per SOCKS5 CONNECT:
+      - Path 1 (direct TCP) for `DefaultAllowList` — `*.google.com`,
+        `*.googleusercontent.com`, `*.gstatic.com`, `*.googleapis.com`
+      - Path 3 (MITM + Apps Script relay) — catch-all
+- [x] Wildcard matching: exact + leading `*.` suffix, case-insensitive
+- [x] `TestDispatcher_GoogleHost_UsesDirect`,
+      `TestDispatcher_ArbitraryHost_UsesMITM`,
+      `TestDispatcher_AllowListLookup_MatchesWildcards`
 
-Per SOCKS5 CONNECT, choose:
-- **SNI-rewrite tunnel** — target host is in a hardcoded allow-list of Google-owned domains. Open a direct TCP stream via `fronter.Dialer` with SNI = `www.google.com`, Host (when HTTP) = target. Pipe bytes back.
-- **MITM + Apps Script relay** — default for everything else. Delegate to `mitm.Interceptor`.
+## Milestone M-sni-rewrite · DONE
 
-Allow-list (match mhrv-rs): `*.google.com`, `*.googleusercontent.com`, `*.gstatic.com`, `*.googleapis.com`, `*.youtube.com`, `*.ytimg.com`, `*.ggpht.com`. Exact matches + wildcard suffix.
-
-Failing-test order:
-1. `TestDispatcher_GoogleHost_UsesSNIRewrite`
-2. `TestDispatcher_ArbitraryHost_UsesMITM`
-3. `TestDispatcher_AllowListLookup_MatchesWildcards`
+- [x] `core/mitm/snitunnel.go` — terminate browser TLS with a CA-signed
+      leaf, open upstream via fronter (SNI=www.google.com), pipe
+      plaintext between the two TLS sessions. No Apps Script quota.
+- [x] Dispatcher Path 2: `SNIRewriteList` + `SNITunneler` interface.
+      `DefaultSNIRewriteList` = `*.youtube.com`, `*.ytimg.com`, `*.ggpht.com`
+- [x] Fail-fast on misconfig: `SNIRewriteList` set with `SNITunnel` nil
+      returns an error at `Dial`, not a silent fallback that'd burn
+      Apps Script quota invisibly
+- [x] TLS 1.2 floor enforced on fronter dialer (fixed as part of this
+      milestone — applies to relay + SNI paths + any future fronted leg)
 
 ## Milestone 9b — parvazd wiring · DONE
 
@@ -108,10 +117,10 @@ Failing-test order:
 - [x] `TestBuildPipeline_MITMHandshake` — SOCKS5 CONNECT through the
       real pipeline, TLS handshake succeeds against the generated CA
 
-Next on the dispatcher track: **Milestone M-sni-rewrite** — the third
-path that rescues DPI-blocked Google-owned domains (YouTube, etc.) by
-MITM-terminating the browser and re-encrypting upstream with
-SNI=`www.google.com`.
+Go-side milestones are complete. Everything the sidecar needs is in
+place. Next: **Phase B** — the Android side (VpnService wrapper,
+tun2socks, sidecar launcher, CA-install flow, `parvaz://` intent
+filter). See milestones 10–14 below.
 
 ---
 

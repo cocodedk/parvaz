@@ -134,7 +134,7 @@ func TestDispatcher_ArbitraryHost_UsesMITM(t *testing.T) {
 func TestDispatcher_DefaultAllowList_Coverage(t *testing.T) {
 	d := &Dispatcher{AllowList: DefaultAllowList}
 
-	// Hosts that should take the direct path today.
+	// Hosts that should take the direct path (not DPI-blocked).
 	directHosts := []string{
 		"www.google.com",
 		"fonts.googleapis.com",
@@ -147,18 +147,17 @@ func TestDispatcher_DefaultAllowList_Coverage(t *testing.T) {
 		}
 	}
 
-	// Hosts that must NOT be in the default allow-list until the
-	// SNI-rewrite path lands — they're DPI-blocked in our target region
-	// and socks5 has no direct→MITM fallback. Falling through to MITM is
-	// slow but works; falling through to Path 1 would just break them.
-	blockedFromDirect := []string{
+	// Hosts that must NOT be in DefaultAllowList — they are DPI-blocked
+	// and belong on DefaultSNIRewriteList instead.
+	dpiBlockedHosts := []string{
 		"m.youtube.com",
 		"i.ytimg.com",
 		"yt3.ggpht.com",
 	}
-	for _, h := range blockedFromDirect {
+	for _, h := range dpiBlockedHosts {
 		if d.matchesAllowList(h) {
-			t.Errorf("default allow-list includes DPI-blocked host %q — should wait for SNI-rewrite PR", h)
+			t.Errorf("default allow-list includes DPI-blocked host %q — belongs on SNIRewriteList", h)
 		}
 	}
 }
+

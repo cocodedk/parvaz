@@ -25,12 +25,18 @@ type Interceptor interface {
 	Intercept(ctx context.Context, rawConn net.Conn, host string, port uint16) error
 }
 
-// DefaultAllowList holds the subset of the mhrv-rs list that is safe for
-// Path 1 today. YouTube / ytimg / ggpht are intentionally omitted: they
-// are DPI-blocked in our target region, and socks5 has no direct→MITM
-// fallback (a failed Dial returns replyFail to the client immediately).
-// The SNI-rewrite path lands them in a follow-up PR; until then they
-// fall through to MITM + Apps Script relay, which is slow but works.
+// SNITunneler is what the dispatcher needs from mitm.SNITunnel — the
+// third path that rescues DPI-blocked Google-owned hosts by MITMing the
+// browser and re-encrypting upstream with a safe SNI. *mitm.SNITunnel
+// satisfies this structurally.
+type SNITunneler interface {
+	Tunnel(ctx context.Context, rawConn net.Conn, host string, port uint16) error
+}
+
+// DefaultAllowList holds the subset of mhrv-rs's set that is safe for
+// Path 1 today. These are Google-owned hostnames that are NOT DPI-blocked
+// in our target region, so the browser can reach them directly without
+// any SNI masking.
 var DefaultAllowList = []string{
 	"*.google.com",
 	"*.googleusercontent.com",
@@ -38,16 +44,39 @@ var DefaultAllowList = []string{
 	"*.googleapis.com",
 }
 
-// Dispatcher routes each SOCKS5 CONNECT to either direct TCP (Path 1)
-// or MITM + relay (Path 3) based on AllowList.
+// DefaultSNIRewriteList holds the Google-owned hostnames that ARE
+// DPI-blocked in our target region and need SNI masking to work. The
+// dispatcher terminates browser TLS locally, opens an upstream TLS
+// connection to a Google edge IP with SNI rewritten to a safe value
+// (typically www.google.com), and Google's edge routes internally by
+// the Host header. Skips Apps Script entirely — critical for video.
+var DefaultSNIRewriteList = []string{
+	"*.youtube.com",
+	"*.ytimg.com",
+	"*.ggpht.com",
+}
+
+// Dispatcher routes each SOCKS5 CONNECT to one of three paths based on
+// the target host. Wildcard matching rules for AllowList and
+// SNIRewriteList: exact match, or leading "*." — "*.google.com" matches
+// "google.com", "www.google.com", and "a.b.google.com".
 type Dispatcher struct {
-	// AllowList holds hostname patterns for the direct-TCP path. Exact
-	// match, or a leading "*." wildcard: "*.google.com" matches
-	// "google.com", "www.google.com", and "a.b.google.com".
+	// AllowList is Path 1 (direct TCP): browser talks end-to-end TLS to
+	// the real target. Zero Apps Script quota.
 	AllowList []string
 
-	// Interceptor handles the MITM path. Must be non-nil.
+	// SNIRewriteList is Path 2: MITM the browser, open upstream TLS via
+	// SNITunnel with a safe SNI, pipe plaintext. Skips Apps Script.
+	SNIRewriteList []string
+
+	// Interceptor handles Path 3 (MITM + Apps Script relay) — the
+	// catch-all for everything that isn't in AllowList or SNIRewriteList.
+	// Must be non-nil.
 	Interceptor Interceptor
+
+	// SNITunnel executes Path 2. If nil, SNIRewriteList entries fall
+	// through to Path 3 (safer default than failing closed).
+	SNITunnel SNITunneler
 
 	// DialContext opens the TCP connection for the direct path. If nil,
 	// uses (&net.Dialer{Timeout: 10s}).DialContext.
@@ -61,21 +90,41 @@ const defaultDialTimeout = 10 * time.Second
 
 // Dial implements socks5.Dialer.
 func (d *Dispatcher) Dial(ctx context.Context, host string, port uint16) (net.Conn, error) {
-	if d.matchesAllowList(host) {
+	switch {
+	case matchesPatternList(host, d.AllowList):
 		d.logger().Debug("dispatcher: routing",
 			"host", host, "port", port, "path", "direct")
 		return d.dialDirect(ctx, host, port)
+	case matchesPatternList(host, d.SNIRewriteList):
+		// Misconfig check: a non-empty SNIRewriteList with a nil SNITunnel
+		// is almost always a wiring mistake — silently falling back to
+		// MITM+relay would burn Apps Script quota on every YouTube hit
+		// with no signal to the operator. Fail loudly instead.
+		if d.SNITunnel == nil {
+			return nil, errors.New(
+				"dispatcher: host matches SNIRewriteList but SNITunnel is nil (misconfig)")
+		}
+		d.logger().Debug("dispatcher: routing",
+			"host", host, "port", port, "path", "sni-rewrite")
+		return d.dialViaSNITunnel(ctx, host, port)
+	default:
+		d.logger().Debug("dispatcher: routing",
+			"host", host, "port", port, "path", "mitm")
+		return d.dialMITM(ctx, host, port)
 	}
-	d.logger().Debug("dispatcher: routing",
-		"host", host, "port", port, "path", "mitm")
-	return d.dialMITM(ctx, host, port)
 }
 
-// matchesAllowList reports whether host matches any AllowList pattern.
-// Case-insensitive on both sides.
+// matchesAllowList is retained for test readability; the underlying
+// matcher is reused for SNIRewriteList too.
 func (d *Dispatcher) matchesAllowList(host string) bool {
+	return matchesPatternList(host, d.AllowList)
+}
+
+// matchesPatternList — case-insensitive, exact-match or leading "*."
+// wildcard suffix. Embedded substrings do not match.
+func matchesPatternList(host string, patterns []string) bool {
 	h := strings.ToLower(host)
-	for _, pattern := range d.AllowList {
+	for _, pattern := range patterns {
 		p := strings.ToLower(pattern)
 		if strings.HasPrefix(p, "*.") {
 			suffix := p[2:]
@@ -110,6 +159,19 @@ func (d *Dispatcher) dialMITM(ctx context.Context, host string, port uint16) (ne
 	go func() {
 		if err := d.Interceptor.Intercept(ctx, serverSide, host, port); err != nil {
 			d.logger().Debug("dispatcher: interceptor ended",
+				"host", host, "port", port, "err", err)
+		}
+	}()
+	return clientSide, nil
+}
+
+// dialViaSNITunnel is Path 2 — same pipe trick as dialMITM but the
+// goroutine runs SNITunnel.Tunnel instead of Interceptor.Intercept.
+func (d *Dispatcher) dialViaSNITunnel(ctx context.Context, host string, port uint16) (net.Conn, error) {
+	serverSide, clientSide := net.Pipe()
+	go func() {
+		if err := d.SNITunnel.Tunnel(ctx, serverSide, host, port); err != nil {
+			d.logger().Debug("dispatcher: SNI tunnel ended",
 				"host", host, "port", port, "err", err)
 		}
 	}()

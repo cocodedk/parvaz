@@ -62,6 +62,7 @@ func (d *Dialer) Dial(ctx context.Context, network, addr string) (*tls.Conn, err
 	tlsCfg := &tls.Config{
 		ServerName:         d.FrontDomain,
 		InsecureSkipVerify: d.InsecureSkipVerify, //nolint:gosec // production must set false
+		MinVersion:         tls.VersionTLS12,
 	}
 	if d.TLSConfigHook != nil {
 		d.TLSConfigHook(tlsCfg)

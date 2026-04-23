@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
+	"net"
 	"path/filepath"
+	"time"
 
 	"github.com/cocodedk/parvaz/core/dispatcher"
+	"github.com/cocodedk/parvaz/core/fronter"
 	"github.com/cocodedk/parvaz/core/mitm"
 	"github.com/cocodedk/parvaz/core/relay"
 	"github.com/cocodedk/parvaz/core/socks5"
@@ -13,14 +17,13 @@ import (
 
 // buildPipeline wires the full request path:
 //
-//	socks5.Server → dispatcher.Dispatcher → (allow-list)
-//	                                       → direct TCP (Google hosts)
-//	                                       → mitm.Interceptor → relay.Relay
-//	                                         → fronter.HTTPClient → Apps Script
+//	socks5.Server → dispatcher.Dispatcher
+//	                  ├─ direct TCP       (AllowList: accounts/mail/gmail/etc.)
+//	                  ├─ SNI-rewrite      (SNIRewriteList: YouTube / ytimg / ggpht)
+//	                  └─ MITM + relay     (everything else → Apps Script)
 //
-// Returns a socks5.Server ready to Serve. Everything it touches is
-// refreshable on restart — the CA persists under cfg.DataDir, nothing
-// else needs state.
+// Returns a socks5.Server ready to Serve. The only persistent state is
+// the CA under cfg.DataDir.
 func buildPipeline(cfg Config, logger *slog.Logger) (*socks5.Server, error) {
 	client := buildHTTPClient(cfg)
 	rel, err := relay.New(relay.Config{
@@ -41,11 +44,33 @@ func buildPipeline(cfg Config, logger *slog.Logger) (*socks5.Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("mitm ca: %w", err)
 	}
+
 	interceptor := &mitm.Interceptor{CA: ca, Relay: rel, Logger: logger}
+
+	// A dedicated fronter for the SNI-rewrite path — same FrontDomain as
+	// the Apps Script client (so DPI sees the same SNI in either leg) but
+	// independent so transport tuning can diverge later (e.g. no h2 ALPN
+	// flags for the relay leg vs. h1-only here).
+	sniFronter := &fronter.Dialer{
+		FrontDomain:      cfg.FrontDomain,
+		DialTimeout:      10 * time.Second,
+		HandshakeTimeout: 10 * time.Second,
+	}
+	sniTunnel := &mitm.SNITunnel{
+		CA: ca,
+		UpstreamDial: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return sniFronter.Dial(ctx, network, addr)
+		},
+		UpstreamIP: cfg.GoogleIP,
+		Logger:     logger,
+	}
+
 	disp := &dispatcher.Dispatcher{
-		AllowList:   dispatcher.DefaultAllowList,
-		Interceptor: interceptor,
-		Logger:      logger,
+		AllowList:      dispatcher.DefaultAllowList,
+		SNIRewriteList: dispatcher.DefaultSNIRewriteList,
+		Interceptor:    interceptor,
+		SNITunnel:      sniTunnel,
+		Logger:         logger,
 	}
 	return &socks5.Server{Dialer: disp, Logger: logger}, nil
 }
