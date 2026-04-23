@@ -34,7 +34,7 @@ on `127.0.0.1:1080`**. No JNI, no gomobile bindings.
 - **Min SDK**: 24 (Android 7.0) | **Target SDK**: 36
 - **Kotlin**: 2.2.x | **AGP**: 9.1.x | **Gradle**: 9.3.x (Kotlin DSL)
 - **UI**: Jetpack Compose (Material3) | **Architecture**: MVVM + Clean
-- **Go**: 1.22+ | **CGO_ENABLED**: 0
+- **Go**: 1.24+ | **CGO_ENABLED**: 0
 
 ---
 

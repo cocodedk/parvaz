@@ -45,7 +45,7 @@ MasterHttpRelayVPN; the server half stays exactly as upstream ships it.
 
 ## Build from Source
 
-**Prerequisites:** Android Studio (latest), JDK 17, Go 1.22+.
+**Prerequisites:** Android Studio (latest), JDK 17, Go 1.24+.
 
 ```sh
 git clone https://github.com/cocodedk/parvaz.git

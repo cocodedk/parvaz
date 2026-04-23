@@ -6,7 +6,7 @@ domain-fronting core as a sidecar binary. Two languages, one repo, one APK.
 ## Local Setup
 
 1. Install **Android Studio** (latest stable) and let it pull **JDK 17** + Android SDK (min SDK 24, target SDK 36).
-2. Install **Go 1.22+** (`go version` to verify).
+2. Install **Go 1.24+** (`go version` to verify).
 3. Clone the repo: `git clone https://github.com/cocodedk/parvaz.git && cd parvaz`.
 4. Verify the Go core baseline: `go test -C core ./...`.
 5. Open `parvaz/` in Android Studio and let it sync Gradle.
