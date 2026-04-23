@@ -2,6 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Foreground-service gating.
+         FOREGROUND_SERVICE_SPECIAL_USE pairs with the
+         foregroundServiceType="specialUse" on ParvazVpnService (see
+         the service block for why "vpn" isn't usable on compileSdk 36).
+         POST_NOTIFICATIONS is runtime-granted on API 33+; without it
+         the ongoing notification is silently dropped. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -43,7 +53,18 @@
         <service
             android:name=".vpn.ParvazVpnService"
             android:exported="false"
+            android:foregroundServiceType="specialUse"
             android:permission="android.permission.BIND_VPN_SERVICE">
+            <!--
+              `compileSdk` 36's AAPT does not recognise "vpn" as a flag
+              value for foregroundServiceType (the bitmask omits it).
+              `specialUse` is the catch-all for services outside the
+              named categories; Android 14+ requires the matching
+              PROPERTY_SPECIAL_USE_FGS_SUBTYPE to declare our intent.
+            -->
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="vpn_tunnel" />
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>

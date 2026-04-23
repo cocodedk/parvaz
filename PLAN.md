@@ -150,9 +150,12 @@ Farsi strings default (`res/values/`); English override (`res/values-en/`).
 
 ## Milestone 13 — Main screen
 
-- Disconnected: oxblood outline `پرواز` stamp. Tap → connect state machine.
-- Connected: olive solid `در پرواز` + `T+۰۰:۱۲:۴۷` uptime in Persian numerals.
-- Long-press for hidden settings sheet (language, access reset, SNI pool).
+- [x] **M13a** — Disconnected outline → tap → CONNECTING spinner →
+      CONNECTED olive stamp + `T+HH:MM:SS` uptime (ticks from service's
+      own `connectedAtMs` so recreation doesn't reset). Second tap
+      disconnects. Persian numerals via `ui/util/PersianDigits`.
+- [ ] **M13b** — Long-press → settings sheet (language, access reset, SNI).
+- [ ] **M13c** — Service-binding refactor (with M15b tun2socks).
 
 ## Milestone 14 — URL scheme handler + QR scanner
 

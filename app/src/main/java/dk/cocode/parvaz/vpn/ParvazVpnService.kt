@@ -12,20 +12,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
  * ParvazVpnService establishes a system VPN TUN interface and spawns
- * the Go sidecar that will serve SOCKS5 on `127.0.0.1:<listenPort>`.
+ * the Go sidecar that serves SOCKS5 on `127.0.0.1:<listenPort>`.
  *
- * This milestone (M15a) stops at "sidecar is running, TUN is up". The
- * bridge that pipes packets between the TUN file descriptor and the
- * SOCKS5 port lives in M15b (tun2socks). Until then, traffic routed
- * through the VPN has nowhere to go and will drop.
+ * M15a stops at "sidecar running, TUN established". The bridge that
+ * pipes packets between the TUN fd and SOCKS5 lives in M15b (tun2socks).
+ * Until then, traffic routed through the VPN has nowhere to go and drops.
  *
- * Start with an explicit action + stop with another — standard
- * VpnService pattern so the app UI stays the only place that initiates
- * connection state changes.
+ * State surface — the companion-object [state] StateFlow — is how the
+ * MainScreen learns whether to show `پرواز` (disconnected stamp) or
+ * `در پرواز` (connected). Single source of truth; survives activity
+ * recreation but not process death. A service-binding refactor would
+ * cover the latter; parked until M15b lands.
  */
 class ParvazVpnService : VpnService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -35,7 +39,16 @@ class ParvazVpnService : VpnService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_START -> scheduleStart()
+            ACTION_START -> {
+                // Foreground promotion is required within 5s of a
+                // startForegroundService() call on API 26+. Promote
+                // before scheduling any real work.
+                startForeground(
+                    NOTIFICATION_ID,
+                    VpnNotification.build(this, ongoing = true),
+                )
+                scheduleStart()
+            }
             ACTION_STOP -> teardown()
             else -> Log.w(TAG, "unknown action: ${intent?.action}")
         }
@@ -43,24 +56,27 @@ class ParvazVpnService : VpnService() {
     }
 
     override fun onDestroy() {
-        teardown()
+        // Physical resources only — _state is owned by the start/stop
+        // paths so FAILED isn't clobbered on service destruction after
+        // a failed start.
+        cleanup()
         scope.cancel()
         super.onDestroy()
     }
 
     private fun scheduleStart() {
         startJob?.cancel()
+        _state.value = SessionState.connecting()
         startJob = scope.launch {
             val access = ParvazSettings(this@ParvazVpnService).load()
             if (access == null) {
                 Log.e(TAG, "no Access saved — aborting VPN start")
-                stopSelf()
+                fail()
                 return@launch
             }
 
-            // Establish TUN interface. The address / route here match
-            // what the mhrv-rs Android port uses; tun2socks (M15b) will
-            // own the FD once wired.
+            // TUN interface. The address / route match the mhrv-rs
+            // Android port; tun2socks (M15b) will own the fd once wired.
             tun = Builder()
                 .setSession(SESSION_NAME)
                 .addAddress(TUN_ADDRESS, TUN_PREFIX)
@@ -71,11 +87,11 @@ class ParvazVpnService : VpnService() {
 
             if (tun == null) {
                 Log.e(TAG, "establish() returned null — VPN permission revoked?")
-                stopSelf()
+                fail()
                 return@launch
             }
 
-            // MUST point at the same dir CaInstallController uses, or the
+            // MUST point at the same dir CaInstallController uses or the
             // sidecar signs leaves with a CA the user never installed.
             val dataDir = ParvazDataDir.forContext(this@ParvazVpnService)
             val cfg = SidecarConfig(access = access, dataDir = dataDir.absolutePath)
@@ -84,24 +100,62 @@ class ParvazVpnService : VpnService() {
                 val r = l.start(cfg)
                 if (r.isFailure) {
                     Log.e(TAG, "sidecar failed: ${r.exceptionOrNull()}")
-                    teardown()
+                    fail()
+                    return@launch
                 }
             }
+            _state.value = SessionState.connected(System.currentTimeMillis())
         }
     }
 
-    private fun teardown() {
+    private fun cleanup() {
         launcher?.stop()
         launcher = null
         tun?.close()
         tun = null
+    }
+
+    private fun fail() {
+        cleanup()
+        _state.value = SessionState.failed()
         stopSelf()
+    }
+
+    private fun teardown() {
+        cleanup()
+        _state.value = SessionState.disconnected()
+        stopSelf()
+    }
+
+    enum class ConnectionState { DISCONNECTED, CONNECTING, CONNECTED, FAILED }
+
+    /**
+     * Snapshot of the service's current session. `connectedAtMs` is
+     * set only when phase == CONNECTED; the MainViewModel reads it to
+     * compute uptime that survives activity recreation (just re-reading
+     * the flow would restart the counter from zero every time).
+     */
+    data class SessionState(
+        val phase: ConnectionState,
+        val connectedAtMs: Long = 0L,
+    ) {
+        companion object {
+            fun disconnected() = SessionState(ConnectionState.DISCONNECTED)
+            fun connecting() = SessionState(ConnectionState.CONNECTING)
+            fun connected(atMs: Long) = SessionState(ConnectionState.CONNECTED, atMs)
+            fun failed() = SessionState(ConnectionState.FAILED)
+        }
     }
 
     companion object {
         const val ACTION_START = "dk.cocode.parvaz.vpn.START"
         const val ACTION_STOP = "dk.cocode.parvaz.vpn.STOP"
 
+        private val _state = MutableStateFlow(SessionState.disconnected())
+        /** Observe to drive the main-screen UI. See class-level doc for lifetime caveats. */
+        val state: StateFlow<SessionState> = _state.asStateFlow()
+
+        private const val NOTIFICATION_ID = 1
         private const val TAG = "ParvazVpnService"
         private const val SESSION_NAME = "Parvaz"
         private const val TUN_ADDRESS = "10.0.0.1"
