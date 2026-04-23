@@ -34,6 +34,106 @@ already have a Workspace test tenancy. Name suggestion:
 
 ## 2. Deploy Code.gs
 
+Two paths. **Option A (clasp, recommended)** keeps Code.gs in git and
+makes every redeploy a scripted one-liner. **Option B (web editor)**
+is the manual fallback.
+
+### Option A — clasp (recommended)
+
+`clasp` is Google's official CLI for Apps Script. Makes the script a
+first-class versioned artifact instead of a copy-paste blob.
+
+**One-time host setup:**
+
+1. Install Node.js 18+ (check: `node --version`).
+2. Install clasp globally:
+   ```bash
+   npm i -g @google/clasp
+   ```
+3. Enable the Apps Script API on the test account at
+   <https://script.google.com/home/usersettings> — flip the toggle.
+   (This is a common gotcha; without it `clasp create` fails with
+   a 403.)
+4. Log in:
+   ```bash
+   clasp login
+   ```
+   Opens a browser for OAuth against the **test account**, writes
+   `~/.clasprc.json` on success.
+
+**First deploy:**
+
+1. Set the auth key in `reference/apps_script/Code.gs` before pushing.
+   Generate a strong one:
+   ```bash
+   openssl rand -base64 24 | tr -d '=+/' | head -c 32
+   ```
+   Replace `CHANGE_ME_TO_A_STRONG_SECRET` with that value. **Don't
+   commit the edited Code.gs.** Either keep the change local and
+   revert after deploying, or push a second file via clasp only
+   (see Option A variant below).
+2. Create the standalone Apps Script project bound to the local dir:
+   ```bash
+   cd reference/apps_script
+   clasp create --type standalone --title parvaz-relay --rootDir .
+   ```
+   Writes `.clasp.json` with the new `scriptId`. The file is
+   `.gitignore`d — it's per-account, do not commit it.
+3. Push sources up:
+   ```bash
+   clasp push
+   ```
+   `appsscript.json` (manifest, committed) + `Code.gs` go up together.
+4. Create the first versioned Web App deployment:
+   ```bash
+   clasp deploy --description "parvaz relay v1"
+   ```
+5. Grab the deployment ID:
+   ```bash
+   clasp deployments
+   ```
+   Output looks like:
+   ```
+   - AKfycbxXXXXXXXXXXXXXXXXXXX @1 - parvaz relay v1
+   ```
+   The `AKfycb…` chunk is your `PARVAZ_LIVE_DEPLOYMENT_ID`.
+6. On the first invocation, Google asks to grant the
+   `https://www.googleapis.com/auth/script.external_request` OAuth
+   scope. Open the Web App URL in a browser (test account signed in),
+   click through "Go to (unsafe)" — standard for un-verified personal
+   scripts.
+
+**Subsequent redeploys:**
+
+```bash
+cd reference/apps_script
+# edit Code.gs, bump version description
+clasp push
+clasp deploy --description "parvaz relay v2"
+clasp deployments  # copy the new deployment ID if you want to keep the old stable
+```
+
+**Handling the auth key cleanly (no leak to git):**
+
+Keep `Code.gs` with a placeholder `AUTH_KEY` in the committed source.
+Before every `clasp push`, substitute in the real secret; after push,
+revert. Minimal wrapper:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+cd reference/apps_script
+trap 'git checkout -- Code.gs' EXIT
+sed -i "s|CHANGE_ME_TO_A_STRONG_SECRET|${PARVAZ_LIVE_AUTH_KEY}|" Code.gs
+clasp push
+clasp deploy --description "${1:-parvaz relay}"
+```
+
+Run as `scripts/e2e/deploy-gs.sh "parvaz relay v3"` (save the wrapper
+under `scripts/e2e/` when you're ready — not included yet).
+
+### Option B — Web editor (fallback)
+
 1. Sign in to the test account at <https://script.google.com>.
 2. **New project**. Delete the default `Code.gs` content.
 3. Paste the entire contents of `reference/apps_script/Code.gs` from
