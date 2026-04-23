@@ -1,10 +1,8 @@
 // parvazd — sidecar binary. The Kotlin app launches this via ProcessBuilder,
 // pipes a JSON config on stdin, reads the single line "READY" on stdout,
-// and connects to 127.0.0.1:<listen_port> as a SOCKS5 client.
-//
-// HTTP-over-SOCKS5 bridging (turn raw TCP flows into Apps Script fetches) is
-// not yet wired — this binary stands up the network shell so Phase B can
-// validate the launcher. The actual bridge arrives in a follow-up milestone.
+// and connects to 127.0.0.1:<listen_port> as a SOCKS5 client. Browser
+// traffic routes through socks5.Server → dispatcher → mitm.Interceptor
+// (for non-Google hosts) or direct TCP proxy (for Google allow-list).
 package main
 
 import (
@@ -23,8 +21,6 @@ import (
 	"time"
 
 	"github.com/cocodedk/parvaz/core/fronter"
-	"github.com/cocodedk/parvaz/core/relay"
-	"github.com/cocodedk/parvaz/core/socks5"
 )
 
 var version = "dev"
@@ -38,6 +34,7 @@ type Config struct {
 	FrontDomain string   `json:"front_domain"`
 	ListenHost  string   `json:"listen_host"`
 	ListenPort  int      `json:"listen_port"`
+	DataDir     string   `json:"data_dir"`
 }
 
 const (
@@ -45,15 +42,8 @@ const (
 	defaultFrontDomain = "www.google.com"
 	defaultListenHost  = "127.0.0.1"
 	defaultListenPort  = 1080
+	defaultDataDir     = "./parvaz-data"
 )
-
-// stubDialer rejects every CONNECT until the HTTP-over-SOCKS5 bridge exists.
-// Kept here so the process listens and Phase B's launcher can probe it.
-type stubDialer struct{}
-
-func (stubDialer) Dial(_ context.Context, host string, port uint16) (net.Conn, error) {
-	return nil, fmt.Errorf("parvazd: CONNECT %s:%d — bridge not yet implemented", host, port)
-}
 
 func main() {
 	if err := run(); err != nil {
@@ -73,6 +63,7 @@ func run() error {
 		listenPort   = flag.Int("listen-port", defaultListenPort, "SOCKS5 listen port")
 		printVersion = flag.Bool("version", false, "print version and exit")
 		logLevelStr  = flag.String("log-level", "warn", "slog level: debug|info|warn|error")
+		dataDir      = flag.String("data-dir", defaultDataDir, "persistent app data dir (CA lives at <data-dir>/ca/)")
 	)
 	flag.Parse()
 	if *printVersion {
@@ -88,7 +79,7 @@ func run() error {
 	cfg := Config{
 		GoogleIP: *googleIP, FrontDomain: *frontDomain,
 		ListenHost: *listenHost, ListenPort: *listenPort,
-		AuthKey: *authKey,
+		AuthKey: *authKey, DataDir: *dataDir,
 	}
 	if *scriptURLs != "" {
 		for _, u := range strings.Split(*scriptURLs, ",") {
@@ -108,22 +99,16 @@ func run() error {
 		return err
 	}
 
-	client := buildHTTPClient(cfg)
-	rel, err := relay.New(relay.Config{
-		HTTPClient: client, ScriptURLs: cfg.ScriptURLs, AuthKey: cfg.AuthKey,
-	})
+	srv, err := buildPipeline(cfg, logger)
 	if err != nil {
 		return err
 	}
-	_ = rel // future HTTP-over-SOCKS5 bridge will consume this
 
 	ln, err := net.Listen("tcp", net.JoinHostPort(cfg.ListenHost, fmt.Sprint(cfg.ListenPort)))
 	if err != nil {
 		return fmt.Errorf("listen: %w", err)
 	}
 	defer ln.Close()
-
-	srv := &socks5.Server{Dialer: stubDialer{}, Logger: logger}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -170,6 +155,9 @@ func merge(base, over Config) Config {
 	if over.ListenPort != 0 {
 		base.ListenPort = over.ListenPort
 	}
+	if over.DataDir != "" {
+		base.DataDir = over.DataDir
+	}
 	return base
 }
 
@@ -179,6 +167,9 @@ func (c Config) validate() error {
 	}
 	if len(c.ScriptURLs) == 0 {
 		return errors.New("at least one script_url required")
+	}
+	if c.DataDir == "" {
+		return errors.New("data_dir required")
 	}
 	return nil
 }
