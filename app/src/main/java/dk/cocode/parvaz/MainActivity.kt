@@ -38,9 +38,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize().background(Paper),
                 ) { padding ->
                     OnboardingHost(
+                        initialDeepLinkUrl = pendingParvazUrl,
+                        initialDeepLinkError = pendingParvazUrlError,
                         onFinished = {
-                            // M13 (main screen) lands here. For now
-                            // Compose cycles; the flow just ends.
+                            // M13 (main screen) lands here. For now the
+                            // flow just ends at DONE.
                         },
                         modifier = Modifier.padding(padding),
                     )

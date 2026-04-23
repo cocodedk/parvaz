@@ -15,6 +15,7 @@
     <string name="import_paste_cta">Paste</string>
     <string name="import_scan_cta">Scan QR</string>
     <string name="import_field_hint">parvaz://…</string>
+    <string name="import_submit_cta">Continue</string>
 
     <string name="ca_install_title">Install certificate</string>
     <string name="ca_install_body">To start, Parvaz must install a certificate on this phone — it\'s local, only this phone uses it</string>
