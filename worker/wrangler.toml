@@ -1,9 +1,8 @@
 name = "parvaz-relay"
 main = "worker.js"
-compatibility_date = "2026-04-15"
 
-# cloudflare:sockets (connect) requires this flag as of the date above.
-compatibility_flags = ["nodejs_compat"]
+# cloudflare:sockets (connect) went GA before this date — no special flag needed.
+compatibility_date = "2024-04-03"
 
 # Optional — set a custom route when you own a CF-managed domain:
 # [[routes]]
