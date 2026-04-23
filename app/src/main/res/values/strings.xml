@@ -47,6 +47,19 @@
     <string name="main_connecting_label">در حال اتصال…</string>
     <string name="main_failed_label">اتصال ناموفق — دوباره تلاش کنید</string>
 
+    <!-- Main-screen hidden settings (long-press on the stamp) -->
+    <string name="settings_title">تنظیمات</string>
+    <string name="settings_language_label">زبان</string>
+    <string name="settings_language_fa">فارسی</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_reset_access_label">بازنشانی دسترسی</string>
+    <string name="settings_reset_access_body">با بازنشانی، پرواز دسترسی شما را فراموش می‌کند و به مرحلهٔ نخست برمی‌گردد</string>
+    <string name="settings_reset_access_cta">بازنشانی</string>
+    <string name="settings_reset_confirm_title">مطمئن هستید؟</string>
+    <string name="settings_reset_confirm_body">این کار تمام تنظیمات را پاک می‌کند — باید دوباره آدرس پرواز را وارد کنید</string>
+    <string name="settings_cancel_cta">انصراف</string>
+    <string name="settings_close_cta">بستن</string>
+
     <!-- VPN notification (ongoing while service runs) -->
     <string name="vpn_notification_channel_name">اتصال پرواز</string>
     <string name="vpn_notification_channel_description">نوتیفیکیشن پایدار هنگام فعال بودن تونل</string>
