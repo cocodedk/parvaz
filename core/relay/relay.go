@@ -90,6 +90,7 @@ func (r *Relay) Do(ctx context.Context, req protocol.Request) (*protocol.Respons
 		}
 		resp.Body = decoded
 		resp.Header.Del("Content-Encoding")
+		resp.Header.Del("Content-Length")
 	}
 	return resp, nil
 }
