@@ -6,6 +6,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dk.cocode.parvaz.vpn.ConnectionState
+import dk.cocode.parvaz.vpn.FailReason
 import dk.cocode.parvaz.vpn.ParvazVpnService
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 data class MainUiState(
     val phase: ConnectionState = ConnectionState.DISCONNECTED,
     val uptimeSeconds: Long = 0L,
+    val failReason: FailReason? = null,
 )
 
 /**
@@ -43,7 +45,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     init {
         viewModelScope.launch {
             ParvazVpnService.state.collectLatest { s ->
-                _ui.value = _ui.value.copy(phase = s.phase)
+                _ui.value = _ui.value.copy(phase = s.phase, failReason = s.failReason)
                 when (s.phase) {
                     ConnectionState.CONNECTED -> startTicker(s.connectedAtMs)
                     else -> stopTicker()

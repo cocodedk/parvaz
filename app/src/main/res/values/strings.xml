@@ -46,6 +46,10 @@
     <string name="main_connected_stamp">در پرواز</string>
     <string name="main_connecting_label">در حال اتصال…</string>
     <string name="main_failed_label">اتصال ناموفق — دوباره تلاش کنید</string>
+    <string name="main_failed_no_internet">اینترنت در دسترس نیست — اتصال را بررسی کنید</string>
+    <string name="main_failed_vpn_revoked">اجازهٔ VPN لغو شده — در تنظیمات اندروید بازگردانید</string>
+    <string name="main_failed_no_access">آدرس پرواز ذخیره نشده — دوباره وارد کنید</string>
+    <string name="main_failed_sidecar">راه‌اندازی هستهٔ پرواز انجام نشد — دوباره تلاش کنید</string>
 
     <!-- Main-screen hidden settings (long-press on the stamp) -->
     <string name="settings_title">تنظیمات</string>

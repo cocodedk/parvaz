@@ -40,6 +40,10 @@
     <string name="main_connected_stamp">IN FLIGHT</string>
     <string name="main_connecting_label">Connecting…</string>
     <string name="main_failed_label">Connection failed — try again</string>
+    <string name="main_failed_no_internet">No internet — check your connection</string>
+    <string name="main_failed_vpn_revoked">VPN permission revoked — re-grant in Android settings</string>
+    <string name="main_failed_no_access">No access URL saved — import one first</string>
+    <string name="main_failed_sidecar">Core failed to start — try again</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_language_label">Language</string>

@@ -35,6 +35,7 @@ import dk.cocode.parvaz.ui.theme.Oxblood
 import dk.cocode.parvaz.ui.theme.Paper
 import dk.cocode.parvaz.ui.util.formatUptime
 import dk.cocode.parvaz.vpn.ConnectionState
+import dk.cocode.parvaz.vpn.FailReason
 
 /**
  * Post-onboarding main screen. One big rubber-stamp button:
@@ -75,6 +76,7 @@ fun MainScreen(
         when (ui.phase) {
             ConnectionState.DISCONNECTED, ConnectionState.FAILED -> DisconnectedStamp(
                 failed = ui.phase == ConnectionState.FAILED,
+                failReason = ui.failReason,
                 onClick = { viewModel.connect() },
             )
             ConnectionState.CONNECTING -> ConnectingIndicator()
@@ -88,7 +90,11 @@ fun MainScreen(
 }
 
 @Composable
-private fun DisconnectedStamp(failed: Boolean, onClick: () -> Unit) {
+private fun DisconnectedStamp(
+    failed: Boolean,
+    failReason: FailReason?,
+    onClick: () -> Unit,
+) {
     OutlinedButton(
         onClick = onClick,
         border = BorderStroke(3.dp, Oxblood),
@@ -104,11 +110,19 @@ private fun DisconnectedStamp(failed: Boolean, onClick: () -> Unit) {
     if (failed) {
         Spacer(Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.main_failed_label),
+            text = stringResource(failReasonStringRes(failReason)),
             style = MaterialTheme.typography.bodyMedium,
             color = Oxblood,
         )
     }
+}
+
+private fun failReasonStringRes(reason: FailReason?): Int = when (reason) {
+    FailReason.NO_INTERNET -> R.string.main_failed_no_internet
+    FailReason.VPN_REVOKED -> R.string.main_failed_vpn_revoked
+    FailReason.NO_ACCESS -> R.string.main_failed_no_access
+    FailReason.SIDECAR_FAILED -> R.string.main_failed_sidecar
+    FailReason.UNKNOWN, null -> R.string.main_failed_label
 }
 
 @Composable

@@ -1,7 +1,10 @@
 package dk.cocode.parvaz.vpn
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -78,13 +81,19 @@ class ParvazVpnService : VpnService() {
             // Android is too old" message (copy ships with M16).
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
                 Log.e(TAG, "Android ${Build.VERSION.SDK_INT} < R; tun2socks fd passing unavailable")
-                fail()
+                fail(FailReason.UNKNOWN)
                 return@launch
             }
             val access = ParvazSettings(this@ParvazVpnService).load()
             if (access == null) {
                 Log.e(TAG, "no Access saved — aborting VPN start")
-                fail()
+                fail(FailReason.NO_ACCESS)
+                return@launch
+            }
+
+            if (!hasInternet()) {
+                Log.w(TAG, "no active network before tun establish — aborting")
+                fail(FailReason.NO_INTERNET)
                 return@launch
             }
 
@@ -110,7 +119,7 @@ class ParvazVpnService : VpnService() {
 
             if (tun == null) {
                 Log.e(TAG, "establish() returned null — VPN permission revoked?")
-                fail()
+                fail(FailReason.VPN_REVOKED)
                 return@launch
             }
 
@@ -126,7 +135,7 @@ class ParvazVpnService : VpnService() {
                 tun!!.fd
             } catch (e: Throwable) {
                 Log.e(TAG, "fcntl F_SETFD clear failed: ${e.message}")
-                fail()
+                fail(FailReason.SIDECAR_FAILED)
                 return@launch
             }
 
@@ -144,12 +153,20 @@ class ParvazVpnService : VpnService() {
                 val r = l.start(cfg)
                 if (r.isFailure) {
                     Log.e(TAG, "sidecar failed: ${r.exceptionOrNull()}")
-                    fail()
+                    fail(FailReason.SIDECAR_FAILED)
                     return@launch
                 }
             }
             _state.value = SessionState.connected(System.currentTimeMillis())
         }
+    }
+
+    private fun hasInternet(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return true // can't check — assume yes, fail later paths will surface
+        val net = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(net) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     private fun cleanup() {
@@ -159,11 +176,11 @@ class ParvazVpnService : VpnService() {
         tun = null
     }
 
-    private fun fail() {
+    private fun fail(reason: FailReason) {
         startJob?.cancel()
         startJob = null
         cleanup()
-        _state.value = SessionState.failed()
+        _state.value = SessionState.failed(reason)
         stopSelf()
     }
 
