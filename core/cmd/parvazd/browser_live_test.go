@@ -95,8 +95,11 @@ func TestBrowser_Live_CocodeDk(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("status = %d, want 200", resp.StatusCode)
 	}
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	_ = resp.Body.Close()
+	if err != nil {
+		t.Fatalf("read body: %v", err)
+	}
 	// cocode.dk renders the user's site; the word "Cocode" is a stable
 	// identifier in the HTML across redesigns.
 	if !bytes.Contains(bytes.ToLower(body), []byte("cocode")) {
