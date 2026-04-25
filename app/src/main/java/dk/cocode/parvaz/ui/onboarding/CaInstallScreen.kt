@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import dk.cocode.parvaz.mitm.CaInstaller
@@ -30,8 +31,10 @@ import dk.cocode.parvaz.vpn.CaGenerator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+private const val TAG = "CaInstall"
+
 enum class CaInstallPhase {
-    GENERATING, READY, AWAITING_INSTALL, VERIFYING, INSTALLED, FAILED, NO_SCREEN_LOCK,
+    GENERATING, READY, AWAITING_INSTALL, VERIFYING, INSTALLED, UNVERIFIED, FAILED, NO_SCREEN_LOCK,
 }
 
 /**
@@ -66,54 +69,60 @@ fun CaInstallScreen(
     }
 
     var phase by rememberSaveable { mutableStateOf(CaInstallPhase.GENERATING) }
-    // `notified` stays in-memory only: if rotation happens during the
-    // 600ms celebrate-delay below, a persisted latch would tell the
-    // restored composition "already fired" — but the callback never
-    // actually ran, and the user lands on INSTALLED with no way forward.
+    // In-memory only: a persisted latch would block onInstalled() if rotation hits during the 600ms delay.
     var notified by remember { mutableStateOf(false) }
     var caPem by remember { mutableStateOf<ByteArray?>(controller.loadPersistedCA()) }
+
+    fun verify(pem: ByteArray) = scope.launch {
+        phase = if (controller.isInstalled(pem)) {
+            CaInstallPhase.INSTALLED
+        } else {
+            // Samsung + some OEMs on API 34 hide user CAs from AndroidCAStore in non-system processes;
+            // UNVERIFIED lets the user continue (browsers use a separate codepath).
+            Log.w(TAG, "AndroidCAStore walk could not confirm install; entering UNVERIFIED")
+            CaInstallPhase.UNVERIFIED
+        }
+    }
+
+    fun generate() = scope.launch {
+        phase = CaInstallPhase.GENERATING
+        controller.materialiseCA().fold(
+            onSuccess = { pem -> caPem = pem; phase = CaInstallPhase.READY },
+            onFailure = { phase = CaInstallPhase.FAILED },
+        )
+    }
 
     val launcher = rememberLauncherForActivityResult(StartActivityForResult()) {
         val pem = caPem ?: controller.loadPersistedCA()
         if (pem == null) { phase = CaInstallPhase.FAILED; return@rememberLauncherForActivityResult }
         caPem = pem
         phase = CaInstallPhase.VERIFYING
-        scope.launch {
-            phase = if (controller.isInstalled(pem)) CaInstallPhase.INSTALLED else CaInstallPhase.FAILED
-        }
+        verify(pem)
     }
 
     LaunchedEffect(Unit) {
         if (!controller.isDeviceSecure()) { phase = CaInstallPhase.NO_SCREEN_LOCK; return@LaunchedEffect }
         when (phase) {
             CaInstallPhase.VERIFYING -> {
-                // Rotation killed our verification coroutine; isInstalled
-                // is idempotent, just run it again.
+                // Rotation killed prior verification coroutine; isInstalled is idempotent.
                 val pem = caPem ?: controller.loadPersistedCA()
                 if (pem == null) { phase = CaInstallPhase.FAILED; return@LaunchedEffect }
                 caPem = pem
-                phase = if (controller.isInstalled(pem)) CaInstallPhase.INSTALLED else CaInstallPhase.FAILED
+                verify(pem)
             }
             CaInstallPhase.AWAITING_INSTALL,
             CaInstallPhase.READY,
             CaInstallPhase.INSTALLED,
+            CaInstallPhase.UNVERIFIED,
             CaInstallPhase.FAILED -> {
-                // State preserved across recreation; ensure caPem is populated.
                 caPem = caPem ?: controller.loadPersistedCA()
             }
             CaInstallPhase.NO_SCREEN_LOCK -> Unit
-            CaInstallPhase.GENERATING -> {
-                controller.materialiseCA().fold(
-                    onSuccess = { pem -> caPem = pem; phase = CaInstallPhase.READY },
-                    onFailure = { phase = CaInstallPhase.FAILED },
-                )
-            }
+            CaInstallPhase.GENERATING -> generate()
         }
     }
 
-    // `notified` deliberately NOT a key — writing to it inside the
-    // body would cancel the in-flight delay(600) before onInstalled()
-    // could run. Keying on `phase` is sufficient.
+    // Not keyed on `notified` — that would cancel the delay before onInstalled() fires.
     LaunchedEffect(phase) {
         if (phase == CaInstallPhase.INSTALLED && !notified) {
             notified = true
@@ -122,23 +131,14 @@ fun CaInstallScreen(
         }
     }
 
-    // Let the user recover from NO_SCREEN_LOCK without restarting: when
-    // the activity resumes and a lock is now set, proceed with generation.
+    // Recover from NO_SCREEN_LOCK without restart: if a lock gets set while backgrounded, retry on resume.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME &&
                 phase == CaInstallPhase.NO_SCREEN_LOCK &&
                 controller.isDeviceSecure()
-            ) {
-                phase = CaInstallPhase.GENERATING
-                scope.launch {
-                    controller.materialiseCA().fold(
-                        onSuccess = { pem -> caPem = pem; phase = CaInstallPhase.READY },
-                        onFailure = { phase = CaInstallPhase.FAILED },
-                    )
-                }
-            }
+            ) generate()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -155,7 +155,8 @@ fun CaInstallScreen(
         Spacer(Modifier.height(8.dp))
         CaInstallPrimary(phase) {
             when (phase) {
-                CaInstallPhase.READY -> {
+                // UNVERIFIED retries the system intent with the CA on disk — no re-generation.
+                CaInstallPhase.READY, CaInstallPhase.UNVERIFIED -> {
                     val pem = caPem ?: controller.loadPersistedCA()
                     if (pem == null) { phase = CaInstallPhase.FAILED; return@CaInstallPrimary }
                     controller.buildInstallIntent(pem).fold(
@@ -166,18 +167,12 @@ fun CaInstallScreen(
                         onFailure = { phase = CaInstallPhase.FAILED },
                     )
                 }
-                CaInstallPhase.FAILED -> {
-                    phase = CaInstallPhase.GENERATING
-                    scope.launch {
-                        controller.materialiseCA().fold(
-                            onSuccess = { pem -> caPem = pem; phase = CaInstallPhase.READY },
-                            onFailure = { phase = CaInstallPhase.FAILED },
-                        )
-                    }
-                }
+                CaInstallPhase.FAILED -> generate()
                 else -> Unit
             }
         }
+        // User asserts cert is installed despite our inability to verify; promote to INSTALLED.
+        CaInstallContinue(phase, onContinue = { phase = CaInstallPhase.INSTALLED })
     }
 }
 

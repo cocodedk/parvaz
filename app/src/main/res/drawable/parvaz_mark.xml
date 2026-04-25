@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Full Parvaz mark — paper-plane inside the perforated oxblood postal
+  stamp ring. Used for the in-app splash lockup so it carries the
+  rubber-stamp framing the launcher/cold-splash icons deliberately
+  omit (the system mask would crop the ring inconsistently).
+  Geometry mirrors docs/identity/parvaz-mark.svg (viewBox 100, scaled).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Stamp inset (Paper) -->
+    <path
+        android:fillColor="#F1E8D4"
+        android:pathData="M50,6 a44,44 0 1,0 0.001,0 Z" />
+    <!-- Oxblood stamp ring -->
+    <path
+        android:strokeColor="#A8361C"
+        android:strokeWidth="3"
+        android:pathData="M50,6 a44,44 0 1,0 0.001,0 Z" />
+    <!-- Perforation notches at every 30 around the ring (radius 44 from 50,50) -->
+    <group>
+        <path android:fillColor="#F1E8D4" android:pathData="M50,4 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M72,10 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M88.1,26 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M94,48 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M88.1,70 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M72,86 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M50,92 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M28,86 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M11.9,70 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M6,48 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M11.9,26 a2,2 0 1,0 0.001,0 Z" />
+        <path android:fillColor="#F1E8D4" android:pathData="M28,10 a2,2 0 1,0 0.001,0 Z" />
+    </group>
+    <!-- Paper-plane silhouette in oxblood -->
+    <path
+        android:fillColor="#A8361C"
+        android:pathData="M28,62 L70,32 L62,70 L48,56 Z" />
+    <!-- Inner fold accent -->
+    <path
+        android:strokeColor="#7A2614"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M48,56 L62,70" />
+</vector>

@@ -38,7 +38,7 @@ class CaInstallerInstrumentedTest {
         val name = intent.getStringExtra(KeyChain.EXTRA_NAME)
         assertNotNull(extra)
         assertEquals(5, extra!!.size)
-        assertEquals(1, extra[0])
+        assertEquals(1.toByte(), extra[0])
         assertEquals("Parvaz Test CA", name)
     }
 

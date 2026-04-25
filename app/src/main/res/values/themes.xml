@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Parvaz" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Parvaz" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Pre-Android-12 cold-launch flash: paint Paper instead of white
+             during the few-frame window before installSplashScreen() takes
+             over. core-splashscreen backports the icon overlay too, but the
+             window background is what kills the flash. -->
+        <item name="android:windowBackground">@color/paper</item>
+    </style>
+
+    <!-- Cold-launch splash. Applied on the activity in AndroidManifest;
+         MainActivity calls installSplashScreen() before super.onCreate()
+         so postSplashScreenTheme swaps in Theme.Parvaz cleanly. -->
+    <style name="Theme.Parvaz.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/paper</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_mark</item>
+        <item name="postSplashScreenTheme">@style/Theme.Parvaz</item>
+    </style>
 </resources>

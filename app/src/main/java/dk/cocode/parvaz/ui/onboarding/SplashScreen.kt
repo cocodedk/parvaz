@@ -1,5 +1,6 @@
 package dk.cocode.parvaz.ui.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -17,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,12 +51,18 @@ fun SplashScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Image(
+                painter = painterResource(R.drawable.parvaz_mark),
+                contentDescription = null,
+                modifier = Modifier.size(140.dp),
+            )
+            Spacer(Modifier.height(32.dp))
             Text(
                 text = stringResource(R.string.splash_title),
                 style = MaterialTheme.typography.displayLarge,
                 color = Ink,
             )
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.splash_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
@@ -96,6 +105,7 @@ object TestTags {
     // CaInstallScreen (M12.3)
     const val CaInstallPrimary = "ca_install_primary"
     const val CaInstallSpinner = "ca_install_spinner"
+    const val CaInstallContinue = "ca_install_continue"
 
     // VpnPermissionScreen (M12.4)
     const val VpnPermissionPrimary = "vpn_permission_primary"

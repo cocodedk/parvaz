@@ -3,9 +3,13 @@ package dk.cocode.parvaz.vpn
 import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.BufferedReader
@@ -38,7 +42,14 @@ class CoreLauncher(
     private val _state = MutableStateFlow(State.IDLE)
     val state: StateFlow<State> = _state
 
+    private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
+
+    @Volatile
     private var process: Process? = null
+    private val stderrBuf = StringBuilder()
+
+    @Volatile
+    private var stderrJob: Job? = null
 
     /**
      * Start the sidecar. Suspends until READY or until the READY handshake
@@ -69,6 +80,7 @@ class CoreLauncher(
             return@withContext fail("spawn failed: ${e.message}")
         }
         process = proc
+        startStderrDrainer(proc)
 
         // Pipe the JSON config to stdin. The Go side reads until EOF on
         // stdin, so we must close it after writing or parvazd blocks.
@@ -105,6 +117,8 @@ class CoreLauncher(
     fun stop() {
         process?.destroy()
         process = null
+        stderrJob?.cancel()
+        stderrJob = null
         _state.value = State.IDLE
     }
 
@@ -131,13 +145,38 @@ class CoreLauncher(
         return f.takeIf { it.isFile && it.canExecute() }
     }
 
-    private fun fail(reason: String): Result<Unit> {
+    private fun startStderrDrainer(proc: Process) {
+        synchronized(stderrBuf) { stderrBuf.setLength(0) }
+        stderrJob = scope.launch {
+            try {
+                BufferedReader(InputStreamReader(proc.errorStream, Charsets.UTF_8)).use { r ->
+                    while (true) {
+                        val l = r.readLine() ?: break
+                        synchronized(stderrBuf) {
+                            if (stderrBuf.length < STDERR_CAP) stderrBuf.append(l).append('\n')
+                        }
+                        Log.w(TAG, "sidecar: $l")
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun stderrTail(): String =
+        synchronized(stderrBuf) { stderrBuf.toString().trimEnd() }
+
+    private suspend fun fail(reason: String): Result<Unit> {
         _state.value = State.DEAD
-        Log.e(TAG, "launcher: $reason")
-        return Result.failure(IllegalStateException(reason))
+        withTimeoutOrNull(STDERR_DRAIN_GRACE_MS) { stderrJob?.join() }
+        val tail = stderrTail()
+        val full = if (tail.isEmpty()) reason else "$reason | stderr: $tail"
+        Log.e(TAG, "launcher: $full")
+        return Result.failure(IllegalStateException(full))
     }
 
     private companion object {
         const val TAG = "CoreLauncher"
+        const val STDERR_CAP = 4096
+        const val STDERR_DRAIN_GRACE_MS = 150L
     }
 }
