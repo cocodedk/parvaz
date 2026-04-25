@@ -60,16 +60,11 @@ func (i *Interceptor) logger() *slog.Logger {
 	return slog.Default()
 }
 
-// Intercept owns rawConn for the lifetime of the call. On return the
-// connection is closed. The error is nil on a clean client-initiated EOF.
-//
-// host may be an IP literal (e.g. when the upstream layer is tun2socks,
-// which only sees destination addresses) or a hostname (from SOCKS5
-// CONNECT). Either way the TLS handshake uses GetCertificate to mint
-// the leaf for whatever SNI the browser actually sent — so even with
-// an IP target the served cert matches what the browser validates.
-// Post-handshake, ConnectionState().ServerName becomes the
-// authoritative host for the upstream URL.
+// Intercept owns rawConn for the lifetime of the call; on return it's
+// closed. nil error == clean client EOF. host may be an IP literal
+// (tun2socks) or hostname (SOCKS5 CONNECT); GetCertificate mints a
+// leaf for the SNI the browser sends, and post-handshake ServerName
+// drives the upstream URL.
 func (i *Interceptor) Intercept(ctx context.Context, rawConn net.Conn, host string, port uint16) error {
 	defer rawConn.Close()
 
@@ -132,10 +127,8 @@ func (i *Interceptor) roundTrip(ctx context.Context, w io.Writer, req *http.Requ
 		Header:      req.Header.Clone(),
 		Body:        body,
 		ContentType: req.Header.Get("Content-Type"),
-		// A browser expects to see 3xx responses itself so it can update the
-		// URL bar and handle cross-origin Location headers correctly. If the
-		// relay auto-follows, the browser thinks the original URL served the
-		// final-hop content.
+		// Browser must see 3xx itself — auto-follow at the relay would
+		// hide the URL change from the address bar.
 		FollowRedirects: false,
 	}
 	resp, err := i.Relay.Do(ctx, protoReq)
