@@ -61,6 +61,7 @@ class CoreLauncher(
     suspend fun start(
         config: SidecarConfig,
         readyTimeoutMs: Long = 10_000L,
+        afterSpawn: (suspend () -> Unit)? = null,
     ): Result<Unit> = withContext(ioDispatcher) {
         if (_state.value != State.IDLE && _state.value != State.DEAD) {
             return@withContext Result.failure(
@@ -92,6 +93,18 @@ class CoreLauncher(
         } catch (e: Exception) {
             proc.destroy()
             return@withContext fail("write stdin: ${e.message}")
+        }
+
+        // Hook for post-spawn pre-READY work — used on Android to send
+        // the TUN fd via SCM_RIGHTS over an abstract UNIX socket. The
+        // sidecar blocks waiting for that fd before printing READY.
+        if (afterSpawn != null) {
+            try {
+                afterSpawn()
+            } catch (e: Exception) {
+                proc.destroy()
+                return@withContext fail("afterSpawn: ${e.message}")
+            }
         }
 
         val reader = BufferedReader(InputStreamReader(proc.inputStream, Charsets.UTF_8))

@@ -8,8 +8,6 @@ import android.net.NetworkCapabilities
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.system.Os
-import android.system.OsConstants
 import android.util.Log
 import dk.cocode.parvaz.settings.ParvazDataDir
 import dk.cocode.parvaz.settings.ParvazSettings
@@ -66,8 +64,9 @@ class ParvazVpnService : VpnService() {
         startJob?.cancel()
         _state.value = SessionState.connecting()
         startJob = scope.launch {
-            // tun2socks needs FD_CLOEXEC-clear via Os.fcntlInt (API 30+).
-            // Pre-R: TUN installs but every packet blackholes — fail fast.
+            // tun2socks fd handoff uses LocalSocket SCM_RIGHTS, which
+            // requires API 30+. Pre-R: TUN would install but the fd
+            // never reaches the sidecar — fail fast.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
                 Log.e(TAG, "Android ${Build.VERSION.SDK_INT} < R; tun2socks fd passing unavailable")
                 fail(FailReason.UNKNOWN)
@@ -108,30 +107,24 @@ class ParvazVpnService : VpnService() {
                 return@launch
             }
 
-            // Clear FD_CLOEXEC so ProcessBuilder's exec preserves the fd
-            // on the child — without this the sidecar's os.NewFile gets a
-            // closed fd and tun2socks reads EBADF. API ≥ 30 enforced above.
-            val tunFd: Int = try {
-                Os.fcntlInt(tun!!.fileDescriptor, OsConstants.F_SETFD, 0)
-                tun!!.fd
-            } catch (e: Throwable) {
-                Log.e(TAG, "fcntl F_SETFD clear failed: ${e.message}")
-                fail(FailReason.SIDECAR_FAILED)
-                return@launch
-            }
-
-            // MUST point at the same dir CaInstallController uses or the
-            // sidecar signs leaves with a CA the user never installed.
+            // Hand the TUN fd to the sidecar via SCM_RIGHTS over an
+            // abstract UNIX socket — see TunFdSender. ProcessBuilder
+            // closes inherited fds ≥3 in the child regardless of
+            // FD_CLOEXEC on Android, so exec inheritance isn't an
+            // option. SidecarConfig.tunFD = -1 tells parvazd to wait
+            // for the fd; CoreLauncher's afterSpawn hook sends it
+            // before reading READY.
+            val pfd = tun!!
             val dataDir = ParvazDataDir.forContext(this@ParvazVpnService)
             val cfg = SidecarConfig(
                 access = access,
                 dataDir = dataDir.absolutePath,
-                tunFD = tunFd,
+                tunFD = -1,
                 tunMTU = TUN_MTU,
             )
 
             launcher = CoreLauncher(this@ParvazVpnService).also { l ->
-                val r = l.start(cfg)
+                val r = l.start(cfg, afterSpawn = { TunFdSender.send(pfd.fileDescriptor) })
                 if (r.isFailure) {
                     Log.e(TAG, "sidecar failed: ${r.exceptionOrNull()}")
                     fail(FailReason.SIDECAR_FAILED)
