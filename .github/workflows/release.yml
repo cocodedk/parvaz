@@ -79,10 +79,13 @@ jobs:
                 go build -C core -trimpath -ldflags "$LDFLAGS" \
                 -o "../$out" ./cmd/parvazd
           }
-          build_abi arm64 ""  arm64-v8a
-          build_abi arm   "7" armeabi-v7a
-          build_abi amd64 ""  x86_64
-          build_abi 386   ""  x86
+          # 32-bit ABIs (armeabi-v7a, x86) skipped for now: android/arm and
+          # android/386 require external cgo linking due to upstream tun2socks /
+          # gvisor dependencies. Adding NDK clang to CI to enable cgo cross is a
+          # separate task — modern Android (≥API 24) install base is ≥99% arm64
+          # for physical devices, and x86_64 covers the emulator path.
+          build_abi arm64 "" arm64-v8a
+          build_abi amd64 "" x86_64
 
       - name: Verify signing secrets
         env:
