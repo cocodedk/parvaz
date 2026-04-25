@@ -56,28 +56,16 @@ Go core, Android app, integration.
 
 ## Milestone M-mitm · (NEXT, NEW)
 
-**Target**: `core/mitm/{ca.go, leaf.go, interceptor.go}` + tests.
-
-The piece that turns a SOCKS5 CONNECT into an inspectable HTTP request
-which the relay can re-encode as a JSON envelope.
+**Target**: `core/mitm/{ca.go, leaf.go, interceptor.go}` + tests. Turns a
+SOCKS5 CONNECT into an inspectable HTTP request the relay re-encodes as a
+JSON envelope.
 
 Design:
-- CA persisted at `<data-dir>/ca/ca.crt` + `ca/ca.key`. Generate on first
-  launch. Android app reads the PEM and triggers the system CA-install
-  intent.
-- `interceptor.Intercept(ctx, rawConn, host, port)` accepts a SOCKS5-era
-  TCP conn, sends back a SOCKS5 "CONNECT succeeded" reply, performs a
-  TLS handshake WITH the client using a leaf cert signed by our CA,
-  named for `host`.
-- Once the plaintext HTTP flows, each `http.Request` → `relay.Do` →
-  `http.Response` → written back through the TLS server conn.
+- CA at `<data-dir>/ca/ca.{crt,key}`; generated on first launch; Android reads PEM and triggers system CA-install intent.
+- `interceptor.Intercept(ctx, rawConn, host, port)` replies SOCKS5 success then TLS-handshakes the client with a CA-signed leaf for `host`.
+- Plaintext HTTP flows: each `http.Request` → `relay.Do` → response back through the TLS server conn.
 
-Failing-test order:
-1. `TestCA_GenerateAndPersist` — create, reload from disk, PEM-decode.
-2. `TestLeaf_SignedByCA_NameMatchesHost` — x509.Verify succeeds.
-3. `TestInterceptor_TLSServer_AcceptsBrowserClientUsingCA` — in-process client trusts the CA, performs handshake, sees our cert for `example.com`.
-4. `TestInterceptor_ForwardsHTTPRequestThroughRelay` — stub relay captures the request; cert + body + method round-trip.
-5. `TestInterceptor_GzipResponse_EchoedIntact` — end-to-end through codec.
+Failing-test order: `TestCA_GenerateAndPersist`, `TestLeaf_SignedByCA_NameMatchesHost`, `TestInterceptor_TLSServer_AcceptsBrowserClientUsingCA`, `TestInterceptor_ForwardsHTTPRequestThroughRelay`, `TestInterceptor_GzipResponse_EchoedIntact`.
 
 ## Milestone M-dispatcher · DONE
 
@@ -126,6 +114,16 @@ filter). See milestones 10–14 below.
 - [ ] Bundle **Vazirmatn** (required), Redaction, JetBrains Mono in `res/font/`
 - [ ] Swap Type.kt from placeholder FontFamily.Serif/Monospace to bundled fonts
 - [ ] Persian-aware letter-spacing (Vazirmatn = 0, Latin labels 2sp+)
+
+## Milestone 10b — Brand identity (launcher + cold splash + in-app lockup)
+
+Replace AGP-default icon + white system splash with NOTAM identity.
+
+- [ ] Mark — single SVG master at `docs/identity/parvaz-mark.svg`; spec in `docs/identity.md`
+- [ ] Adaptive launcher — vector `ic_launcher_background.xml` (Paper) + `_foreground.xml` (oxblood) + `monochrome` for Android 13+; delete legacy `mipmap-*dpi/ic_launcher*.webp`
+- [ ] Cold splash — `androidx.core:core-splashscreen`; `Theme.Parvaz.Starting` with paper bg + `ic_splash_mark`; `installSplashScreen()` in `MainActivity.onCreate`
+- [ ] In-app splash lockup (M12.1 extension) — mark above `پرواز` wordmark in `SplashScreen.kt`; preserve `شروع` CTA + test tag
+- [ ] Web parity — same SVG in `website/`; set as GitHub social preview
 
 ## Milestone 11 — Settings + parvaz:// URL parser
 

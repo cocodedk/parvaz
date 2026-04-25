@@ -15,6 +15,12 @@
          before spawning the TUN/sidecar. Normal permission, no runtime
          prompt. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- INTERNET is required for the Go sidecar (spawned as a child
+         process via ProcessBuilder) to bind its local SOCKS5 port and
+         dial out to script.google.com. Without it, AF_INET socket
+         creation returns EPERM because Android gates that on the inet
+         group, which is granted only when this permission is declared. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -29,7 +35,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Parvaz">
+            android:theme="@style/Theme.Parvaz.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

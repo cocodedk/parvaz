@@ -30,6 +30,7 @@
     <string name="ca_install_retry_cta">تلاش دوباره</string>
     <string name="ca_install_continue_cta">ادامه</string>
     <string name="ca_install_failed">نصب انجام نشد — دوباره تلاش کنید</string>
+    <string name="ca_install_unverified_body">نصب کامل به‌نظر می‌رسد اما پرواز نتوانست آن را به‌طور خودکار تأیید کند (برخی گوشی‌ها مثل سامسونگ اجازهٔ این بررسی را نمی‌دهند). اگر گواهی را نصب کرده‌اید، ادامه دهید؛ در غیر این صورت دوباره نصب کنید</string>
     <string name="ca_install_no_lock_title">قفل صفحه تنظیم نیست</string>
     <string name="ca_install_no_lock_body">اندروید برای نصب گواهی به قفل صفحه نیاز دارد — یک PIN یا الگو تنظیم کنید و دوباره تلاش کنید</string>
 

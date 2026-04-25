@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Splash icon (cold-launch SplashScreen API). Plane silhouette only —
+  the system splash icon container provides the surrounding circle, so
+  including the stamp ring here would double-frame. The full mark with
+  stamp ring lives in res/drawable/parvaz_mark.xml for in-app use.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
