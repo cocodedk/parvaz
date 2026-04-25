@@ -3,7 +3,10 @@ package dk.cocode.parvaz.vpn
 import android.app.Service
 import android.content.Intent
 import android.net.VpnService
+import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.system.Os
+import android.system.OsConstants
 import android.util.Log
 import dk.cocode.parvaz.settings.ParvazDataDir
 import dk.cocode.parvaz.settings.ParvazSettings
@@ -68,6 +71,16 @@ class ParvazVpnService : VpnService() {
         startJob?.cancel()
         _state.value = SessionState.connecting()
         startJob = scope.launch {
+            // tun2socks needs FD_CLOEXEC-clear via Os.fcntlInt, which
+            // is API 30+. Pre-R Androids would otherwise install the
+            // TUN, show CONNECTED, and blackhole every packet. Fail
+            // fast with a clear state so the UI can surface a "your
+            // Android is too old" message (copy ships with M16).
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                Log.e(TAG, "Android ${Build.VERSION.SDK_INT} < R; tun2socks fd passing unavailable")
+                fail()
+                return@launch
+            }
             val access = ParvazSettings(this@ParvazVpnService).load()
             if (access == null) {
                 Log.e(TAG, "no Access saved — aborting VPN start")
@@ -75,15 +88,25 @@ class ParvazVpnService : VpnService() {
                 return@launch
             }
 
-            // TUN interface. The address / route match the mhrv-rs
-            // Android port; tun2socks (M15b) will own the fd once wired.
-            tun = Builder()
+            // TUN interface. Exempt our own package so parvazd's
+            // outbound traffic (Google edge fronter, Apps Script POSTs)
+            // bypasses the TUN we just installed — otherwise the
+            // sidecar's own sockets would loop back through tun2socks
+            // into itself. addDisallowedApplication throws on the
+            // package of the calling process only when it's also the
+            // only disallowed target, which is exactly what we want.
+            val builder = Builder()
                 .setSession(SESSION_NAME)
                 .addAddress(TUN_ADDRESS, TUN_PREFIX)
                 .addRoute("0.0.0.0", 0)
                 .addDnsServer(DNS_SERVER)
                 .setMtu(TUN_MTU)
-                .establish()
+            try {
+                builder.addDisallowedApplication(packageName)
+            } catch (e: Exception) {
+                Log.w(TAG, "addDisallowedApplication(${packageName}) failed: ${e.message}")
+            }
+            tun = builder.establish()
 
             if (tun == null) {
                 Log.e(TAG, "establish() returned null — VPN permission revoked?")
@@ -91,10 +114,31 @@ class ParvazVpnService : VpnService() {
                 return@launch
             }
 
+            // Clear FD_CLOEXEC on the PFD's FileDescriptor so exec()
+            // inside ProcessBuilder preserves the fd on the child side.
+            // Without this the sidecar's os.NewFile gets an
+            // already-closed fd and tun2socks reads EBADF.
+            //
+            // API check is above — execution is already guaranteed to
+            // be on API 30+ by the time we reach this line.
+            val tunFd: Int = try {
+                Os.fcntlInt(tun!!.fileDescriptor, OsConstants.F_SETFD, 0)
+                tun!!.fd
+            } catch (e: Throwable) {
+                Log.e(TAG, "fcntl F_SETFD clear failed: ${e.message}")
+                fail()
+                return@launch
+            }
+
             // MUST point at the same dir CaInstallController uses or the
             // sidecar signs leaves with a CA the user never installed.
             val dataDir = ParvazDataDir.forContext(this@ParvazVpnService)
-            val cfg = SidecarConfig(access = access, dataDir = dataDir.absolutePath)
+            val cfg = SidecarConfig(
+                access = access,
+                dataDir = dataDir.absolutePath,
+                tunFD = tunFd,
+                tunMTU = TUN_MTU,
+            )
 
             launcher = CoreLauncher(this@ParvazVpnService).also { l ->
                 val r = l.start(cfg)
@@ -135,26 +179,6 @@ class ParvazVpnService : VpnService() {
         stopSelf()
     }
 
-    enum class ConnectionState { DISCONNECTED, CONNECTING, CONNECTED, FAILED }
-
-    /**
-     * Snapshot of the service's current session. `connectedAtMs` is
-     * set only when phase == CONNECTED; the MainViewModel reads it to
-     * compute uptime that survives activity recreation (just re-reading
-     * the flow would restart the counter from zero every time).
-     */
-    data class SessionState(
-        val phase: ConnectionState,
-        val connectedAtMs: Long = 0L,
-    ) {
-        companion object {
-            fun disconnected() = SessionState(ConnectionState.DISCONNECTED)
-            fun connecting() = SessionState(ConnectionState.CONNECTING)
-            fun connected(atMs: Long) = SessionState(ConnectionState.CONNECTED, atMs)
-            fun failed() = SessionState(ConnectionState.FAILED)
-        }
-    }
-
     companion object {
         const val ACTION_START = "dk.cocode.parvaz.vpn.START"
         const val ACTION_STOP = "dk.cocode.parvaz.vpn.STOP"
@@ -169,6 +193,8 @@ class ParvazVpnService : VpnService() {
         private const val TUN_ADDRESS = "10.0.0.1"
         private const val TUN_PREFIX = 24
         private const val TUN_MTU = 1500
-        private const val DNS_SERVER = "8.8.8.8"
+        // Synthetic in-TUN DNS target. Android UDP/53 → tun2socks → SOCKS5
+        // UDP ASSOCIATE → parvazd DoH. Not a real server.
+        private const val DNS_SERVER = "10.0.0.2"
     }
 }

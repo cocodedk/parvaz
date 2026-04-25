@@ -34,7 +34,7 @@ import dk.cocode.parvaz.ui.theme.Olive
 import dk.cocode.parvaz.ui.theme.Oxblood
 import dk.cocode.parvaz.ui.theme.Paper
 import dk.cocode.parvaz.ui.util.formatUptime
-import dk.cocode.parvaz.vpn.ParvazVpnService.ConnectionState
+import dk.cocode.parvaz.vpn.ConnectionState
 
 /**
  * Post-onboarding main screen. One big rubber-stamp button:

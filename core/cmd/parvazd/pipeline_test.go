@@ -91,6 +91,32 @@ func TestBuildPipeline_MITMHandshake(t *testing.T) {
 	}
 }
 
+// TestBuildPipeline_LegacySOCKS_NoDNSHandler ensures the codex-review P3
+// regression stays fixed: running parvazd without a TUN fd (the
+// pre-M15b mode still used by the apps-stub E2E) must not wire the
+// synthetic DNS handler. Otherwise UDP ASSOCIATE would succeed but then
+// silently drop packets for real DNS targets like 8.8.8.8:53, which is
+// worse than the pre-change "REP=0x07 command not supported".
+func TestBuildPipeline_LegacySOCKS_NoDNSHandler(t *testing.T) {
+	cfg := Config{
+		ScriptURLs:  []string{"https://stub.invalid/macros/s/X/exec"},
+		AuthKey:     "test-key",
+		GoogleIP:    "127.0.0.1",
+		FrontDomain: "www.google.com",
+		ListenHost:  "127.0.0.1",
+		ListenPort:  0,
+		DataDir:     t.TempDir(),
+		// TunFD deliberately 0 — legacy SOCKS mode.
+	}
+	srv, err := buildPipeline(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatalf("buildPipeline: %v", err)
+	}
+	if srv.Datagram != nil {
+		t.Error("Datagram wired in TunFD=0 mode — DNS handler leaking into legacy SOCKS path")
+	}
+}
+
 // socks5ConnectOrFatal performs a no-auth SOCKS5 negotiation and a CONNECT
 // to host:port, t.Fatals on any wire-level failure. Exits when the server
 // has written its replyOK (10 bytes starting 0x05,0x00).

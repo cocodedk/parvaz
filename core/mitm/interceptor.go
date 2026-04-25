@@ -60,16 +60,15 @@ func (i *Interceptor) logger() *slog.Logger {
 	return slog.Default()
 }
 
-// Intercept owns rawConn for the lifetime of the call. On return the
-// connection is closed. The error is nil on a clean client-initiated EOF.
+// Intercept owns rawConn for the lifetime of the call; on return it's
+// closed. nil error == clean client EOF. host may be an IP literal
+// (tun2socks) or hostname (SOCKS5 CONNECT); GetCertificate mints a
+// leaf for the SNI the browser sends, and post-handshake ServerName
+// drives the upstream URL.
 func (i *Interceptor) Intercept(ctx context.Context, rawConn net.Conn, host string, port uint16) error {
 	defer rawConn.Close()
 
-	tlsCfg, err := i.tlsConfig(host)
-	if err != nil {
-		return fmt.Errorf("mitm: tls config: %w", err)
-	}
-	tlsConn := tls.Server(rawConn, tlsCfg)
+	tlsConn := tls.Server(rawConn, i.tlsConfig(host))
 
 	hsTimeout := i.HandshakeTimeout
 	if hsTimeout == 0 {
@@ -78,6 +77,10 @@ func (i *Interceptor) Intercept(ctx context.Context, rawConn net.Conn, host stri
 	_ = rawConn.SetDeadline(time.Now().Add(hsTimeout))
 	if err := tlsConn.HandshakeContext(ctx); err != nil {
 		return fmt.Errorf("mitm: tls handshake: %w", err)
+	}
+	effectiveHost := host
+	if sni := tlsConn.ConnectionState().ServerName; sni != "" {
+		effectiveHost = sni
 	}
 	idleTimeout := i.IdleTimeout
 	if idleTimeout == 0 {
@@ -98,7 +101,7 @@ func (i *Interceptor) Intercept(ctx context.Context, rawConn net.Conn, host stri
 			return fmt.Errorf("mitm: read request: %w", err)
 		}
 		_ = rawConn.SetDeadline(time.Time{}) // response + body may be large
-		if err := i.roundTrip(ctx, tlsConn, req, host, port); err != nil {
+		if err := i.roundTrip(ctx, tlsConn, req, effectiveHost, port); err != nil {
 			return err
 		}
 		if req.Close {
@@ -124,10 +127,8 @@ func (i *Interceptor) roundTrip(ctx context.Context, w io.Writer, req *http.Requ
 		Header:      req.Header.Clone(),
 		Body:        body,
 		ContentType: req.Header.Get("Content-Type"),
-		// A browser expects to see 3xx responses itself so it can update the
-		// URL bar and handle cross-origin Location headers correctly. If the
-		// relay auto-follows, the browser thinks the original URL served the
-		// final-hop content.
+		// Browser must see 3xx itself — auto-follow at the relay would
+		// hide the URL change from the address bar.
 		FollowRedirects: false,
 	}
 	resp, err := i.Relay.Do(ctx, protoReq)
@@ -159,18 +160,25 @@ func buildTargetURL(host string, port uint16, req *http.Request) (string, error)
 	return u.String(), nil
 }
 
-func (i *Interceptor) tlsConfig(host string) (*tls.Config, error) {
-	cert, err := i.leafFor(host)
-	if err != nil {
-		return nil, err
-	}
+func (i *Interceptor) tlsConfig(fallbackHost string) *tls.Config {
 	return &tls.Config{
-		Certificates: []tls.Certificate{*cert},
-		MinVersion:   tls.VersionTLS12,
+		// Mint the leaf certificate for whatever SNI the browser sent.
+		// If SNI is empty (bare-IP target, e.g. tun2socks surfacing a
+		// DNS-less IP literal), fall back to the host we got from the
+		// outer protocol — the browser's validation will still flag
+		// the mismatch, but at least we get a usable cert.
+		GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+			name := hello.ServerName
+			if name == "" {
+				name = fallbackHost
+			}
+			return i.leafFor(name)
+		},
+		MinVersion: tls.VersionTLS12,
 		// Chrome/Firefox ALPN-advertise h2 first; without this we'd negotiate
 		// HTTP/2 and then fail on http.ReadRequest (which only speaks h1).
 		NextProtos: []string{"http/1.1"},
-	}, nil
+	}
 }
 
 func (i *Interceptor) leafFor(host string) (*tls.Certificate, error) {

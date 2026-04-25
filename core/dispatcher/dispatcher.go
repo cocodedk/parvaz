@@ -78,6 +78,15 @@ type Dispatcher struct {
 	// through to Path 3 (safer default than failing closed).
 	SNITunnel SNITunneler
 
+	// DNSTCP is the TCP/53 shim for CONNECTs that exactly target
+	// DNSHost:DNSPort. Wired alongside the UDP path so resolver TCP
+	// fallback for the synthetic in-TUN DNS address reaches the same
+	// DoH backend. Nil disables the route — those CONNECTs fall
+	// through to MITM (probably wrong, but matches pre-M15b-beta).
+	DNSTCP  DNSTCPHandler
+	DNSHost string // e.g. "10.0.0.2"; matched case-insensitively
+	DNSPort uint16 // e.g. 53
+
 	// DialContext opens the TCP connection for the direct path. If nil,
 	// uses (&net.Dialer{Timeout: 10s}).DialContext.
 	DialContext func(ctx context.Context, network, address string) (net.Conn, error)
@@ -88,9 +97,14 @@ type Dispatcher struct {
 
 const defaultDialTimeout = 10 * time.Second
 
-// Dial implements socks5.Dialer.
+// Dial implements socks5.Dialer. Route order matters: DNS-TCP first
+// so an operator who lists 10.0.0.2 in AllowList can't bypass DoH.
 func (d *Dispatcher) Dial(ctx context.Context, host string, port uint16) (net.Conn, error) {
 	switch {
+	case d.isDNSTCPTarget(host, port):
+		d.logger().Debug("dispatcher: routing",
+			"host", host, "port", port, "path", "dns-tcp")
+		return d.dialDNSTCP(ctx)
 	case matchesPatternList(host, d.AllowList):
 		d.logger().Debug("dispatcher: routing",
 			"host", host, "port", port, "path", "direct")

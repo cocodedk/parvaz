@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/cocodedk/parvaz/core/fronter"
+	"github.com/cocodedk/parvaz/core/tun2socks"
 )
 
 var version = "dev"
@@ -104,9 +105,33 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	fmt.Fprintln(os.Stdout, "READY")
 	errc := make(chan error, 1)
 	go func() { errc <- srv.Serve(ctx, ln) }()
+
+	// M15b — when Kotlin passed a TUN fd, start the tun2socks engine
+	// and route every flow through the loopback SOCKS5 server above.
+	// The server's dialer is our dispatcher, so MITM / SNI-rewrite /
+	// Apps Script routing all apply without additional wiring.
+	//
+	// Start synchronously BEFORE READY so Kotlin's CoreLauncher doesn't
+	// flip the UI to CONNECTED while packets would still blackhole. If
+	// the engine's internal log.Fatalf fires, the process exits before
+	// READY is ever printed — CoreLauncher treats EOF-before-READY as
+	// failure, which is the truthful signal.
+	if cfg.TunFD > 0 {
+		runner := tun2socks.NewRunner(logger)
+		if err := runner.Start(tun2socks.Config{
+			FD:         cfg.TunFD,
+			MTU:        cfg.TunMTU,
+			SOCKS5Addr: net.JoinHostPort(cfg.ListenHost, fmt.Sprint(cfg.ListenPort)),
+			LogLevel:   *logLevelStr,
+		}); err != nil {
+			return fmt.Errorf("tun2socks: %w", err)
+		}
+		go runner.Wait(ctx)
+	}
+
+	fmt.Fprintln(os.Stdout, "READY")
 
 	select {
 	case err := <-errc:
