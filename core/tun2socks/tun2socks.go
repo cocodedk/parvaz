@@ -13,11 +13,18 @@ package tun2socks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"sync/atomic"
 
 	"github.com/xjasonlyu/tun2socks/v2/engine"
 )
+
+// ErrAlreadyStarted is returned by Runner.Start on a second call.
+// The xjasonlyu engine is a process-global singleton — silently
+// replacing the running config would mask a real wiring bug.
+var ErrAlreadyStarted = errors.New("tun2socks: runner already started")
 
 // Config holds the wiring for a running tun2socks instance.
 type Config struct {
@@ -37,9 +44,11 @@ type Config struct {
 // Runner wraps the xjasonlyu engine's insert/start/stop so the rest
 // of parvazd doesn't have to talk to the global singleton directly.
 // Only one Runner per process — engine.Insert replaces the current
-// configuration, it isn't additive.
+// configuration, it isn't additive. The started flag turns a misuse
+// into a loud error rather than a silent reconfigure.
 type Runner struct {
-	logger *slog.Logger
+	logger  *slog.Logger
+	started atomic.Bool
 }
 
 func NewRunner(logger *slog.Logger) *Runner {
@@ -65,6 +74,12 @@ func (r *Runner) Start(cfg Config) error {
 	}
 	if cfg.SOCKS5Addr == "" {
 		return fmt.Errorf("tun2socks: SOCKS5Addr required")
+	}
+	// Loud-fail on a duplicate Start: the xjasonlyu engine is a
+	// process-global singleton, so a second Insert+Start would swap
+	// the live config out from under whoever's already using it.
+	if !r.started.CompareAndSwap(false, true) {
+		return ErrAlreadyStarted
 	}
 	logLevel := cfg.LogLevel
 	if logLevel == "" {

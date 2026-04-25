@@ -98,6 +98,11 @@ type Dispatcher struct {
 const defaultDialTimeout = 10 * time.Second
 
 // Dial implements socks5.Dialer.
+//
+// Route order matters: the DNS-TCP synthetic target must be checked
+// FIRST so an operator who accidentally lists the synthetic IP
+// (10.0.0.2) in AllowList can't bypass the DoH shim with a direct
+// dial. Don't reorder these cases without revisiting that invariant.
 func (d *Dispatcher) Dial(ctx context.Context, host string, port uint16) (net.Conn, error) {
 	switch {
 	case d.isDNSTCPTarget(host, port):

@@ -154,14 +154,20 @@ func isTimeout(err error) bool {
 	return ok && ne.Timeout()
 }
 
+// dohClientTimeout caps a single DoH round-trip end-to-end: TLS to
+// Google edge → Apps Script execution → fetch to dns.google →
+// response back. Apps Script alone routinely takes 1–2s; 3s SERVFAILed
+// every page load on real networks (deepseek opencode review). 15s
+// matches what dns_live_test.go sets for the same path.
+const dohClientTimeout = 15 * time.Second
+
 // newDoHHTTPClient builds an http.Client whose RoundTripper (see
 // relay_rt.go) wraps each HTTP request into an Apps Script envelope
 // via the shared relay. Code.gs fetches dns.google/dns-query and
-// returns the wire response. Short 3s timeout so SERVFAIL fires fast
-// rather than stalling page loads.
+// returns the wire response.
 func newDoHHTTPClient(rel Relayer) *http.Client {
 	return &http.Client{
 		Transport: &relayRoundTripper{relay: rel},
-		Timeout:   3 * time.Second,
+		Timeout:   dohClientTimeout,
 	}
 }
