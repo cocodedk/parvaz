@@ -118,10 +118,21 @@ func run() error {
 	// the engine's internal log.Fatalf fires, the process exits before
 	// READY is ever printed — CoreLauncher treats EOF-before-READY as
 	// failure, which is the truthful signal.
-	if cfg.TunFD > 0 {
+	tunFD := cfg.TunFD
+	// -1 = "wait for the parent to send the TUN fd via SCM_RIGHTS on the
+	// abstract UNIX socket". Required on Android because ProcessBuilder
+	// closes inherited fds ≥3 in the child regardless of FD_CLOEXEC.
+	if tunFD == -1 {
+		fd, err := recvTunFD()
+		if err != nil {
+			return fmt.Errorf("recvTunFD: %w", err)
+		}
+		tunFD = fd
+	}
+	if tunFD > 0 {
 		runner := tun2socks.NewRunner(logger)
 		if err := runner.Start(tun2socks.Config{
-			FD:         cfg.TunFD,
+			FD:         tunFD,
 			MTU:        cfg.TunMTU,
 			SOCKS5Addr: net.JoinHostPort(cfg.ListenHost, fmt.Sprint(cfg.ListenPort)),
 			LogLevel:   *logLevelStr,
