@@ -24,18 +24,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * ParvazVpnService establishes a system VPN TUN interface and spawns
- * the Go sidecar that serves SOCKS5 on `127.0.0.1:<listenPort>`.
- *
- * M15a stops at "sidecar running, TUN established". The bridge that
- * pipes packets between the TUN fd and SOCKS5 lives in M15b (tun2socks).
- * Until then, traffic routed through the VPN has nowhere to go and drops.
- *
- * State surface — the companion-object [state] StateFlow — is how the
- * MainScreen learns whether to show `پرواز` (disconnected stamp) or
- * `در پرواز` (connected). Single source of truth; survives activity
- * recreation but not process death. A service-binding refactor would
- * cover the latter; parked until M15b lands.
+ * VpnService that establishes the TUN, spawns the Go sidecar (SOCKS5 on
+ * 127.0.0.1:<listenPort>), hands the TUN fd over, and starts tun2socks.
+ * Companion-object [state] StateFlow drives the MainScreen UI — single
+ * source of truth, survives activity recreation but not process death.
  */
 class ParvazVpnService : VpnService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -74,11 +66,8 @@ class ParvazVpnService : VpnService() {
         startJob?.cancel()
         _state.value = SessionState.connecting()
         startJob = scope.launch {
-            // tun2socks needs FD_CLOEXEC-clear via Os.fcntlInt, which
-            // is API 30+. Pre-R Androids would otherwise install the
-            // TUN, show CONNECTED, and blackhole every packet. Fail
-            // fast with a clear state so the UI can surface a "your
-            // Android is too old" message (copy ships with M16).
+            // tun2socks needs FD_CLOEXEC-clear via Os.fcntlInt (API 30+).
+            // Pre-R: TUN installs but every packet blackholes — fail fast.
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
                 Log.e(TAG, "Android ${Build.VERSION.SDK_INT} < R; tun2socks fd passing unavailable")
                 fail(FailReason.UNKNOWN)
@@ -97,13 +86,9 @@ class ParvazVpnService : VpnService() {
                 return@launch
             }
 
-            // TUN interface. Exempt our own package so parvazd's
-            // outbound traffic (Google edge fronter, Apps Script POSTs)
-            // bypasses the TUN we just installed — otherwise the
-            // sidecar's own sockets would loop back through tun2socks
-            // into itself. addDisallowedApplication throws on the
-            // package of the calling process only when it's also the
-            // only disallowed target, which is exactly what we want.
+            // Exempt our own package so parvazd's outbound (Google edge
+            // fronter, Apps Script POSTs) bypasses our TUN — otherwise
+            // the sidecar's sockets would loop back into tun2socks.
             val builder = Builder()
                 .setSession(SESSION_NAME)
                 .addAddress(TUN_ADDRESS, TUN_PREFIX)
@@ -123,13 +108,9 @@ class ParvazVpnService : VpnService() {
                 return@launch
             }
 
-            // Clear FD_CLOEXEC on the PFD's FileDescriptor so exec()
-            // inside ProcessBuilder preserves the fd on the child side.
-            // Without this the sidecar's os.NewFile gets an
-            // already-closed fd and tun2socks reads EBADF.
-            //
-            // API check is above — execution is already guaranteed to
-            // be on API 30+ by the time we reach this line.
+            // Clear FD_CLOEXEC so ProcessBuilder's exec preserves the fd
+            // on the child — without this the sidecar's os.NewFile gets a
+            // closed fd and tun2socks reads EBADF. API ≥ 30 enforced above.
             val tunFd: Int = try {
                 Os.fcntlInt(tun!!.fileDescriptor, OsConstants.F_SETFD, 0)
                 tun!!.fd
