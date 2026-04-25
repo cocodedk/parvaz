@@ -93,6 +93,9 @@ fun CaInstallScreen(
     }
 
     val launcher = rememberLauncherForActivityResult(StartActivityForResult()) {
+        // ON_RESUME may have already advanced phase (process-death path).
+        // Only act if we're still the first to observe the result.
+        if (phase != CaInstallPhase.AWAITING_INSTALL) return@rememberLauncherForActivityResult
         val pem = caPem ?: controller.loadPersistedCA()
         if (pem == null) { phase = CaInstallPhase.FAILED; return@rememberLauncherForActivityResult }
         caPem = pem
@@ -131,14 +134,24 @@ fun CaInstallScreen(
         }
     }
 
-    // Recover from NO_SCREEN_LOCK without restart: if a lock gets set while backgrounded, retry on resume.
+    // Recover stuck states on ON_RESUME:
+    //  • NO_SCREEN_LOCK → user enabled a lock in Settings, then returned.
+    //  • AWAITING_INSTALL → process was killed mid-CA-install; the
+    //    ActivityResultLauncher callback tied to the old Activity will
+    //    never fire, so re-verify against AndroidCAStore ourselves.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME &&
-                phase == CaInstallPhase.NO_SCREEN_LOCK &&
-                controller.isDeviceSecure()
-            ) generate()
+            if (event != Lifecycle.Event.ON_RESUME) return@LifecycleEventObserver
+            when (phase) {
+                CaInstallPhase.NO_SCREEN_LOCK -> if (controller.isDeviceSecure()) generate()
+                CaInstallPhase.AWAITING_INSTALL -> {
+                    val pem = caPem ?: controller.loadPersistedCA()
+                    if (pem == null) phase = CaInstallPhase.FAILED
+                    else { caPem = pem; phase = CaInstallPhase.VERIFYING; verify(pem) }
+                }
+                else -> Unit
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
