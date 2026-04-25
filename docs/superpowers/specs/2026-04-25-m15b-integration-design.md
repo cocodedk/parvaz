@@ -42,12 +42,15 @@ machinery that M16 reintroduced. Resolution rules:
 | File | M16 says | M15b-beta says | Keep |
 |---|---|---|---|
 | `ParvazVpnService.kt` | `FailReason` enum + `failReason` on `SessionState` + `hasInternet()` VALIDATED gate + per-reason `fail(reason)` | Plain `fail()`, no enum, no `hasInternet()`, adds `addDisallowedApplication` + FD_CLOEXEC + tun_fd config + `DNS_SERVER = "10.0.0.2"` | **Both.** Keep M16's enum + VALIDATED check; layer M15b-beta's tun_fd / addDisallowed / DNS plumbing on top of `fail(reason)` paths. |
-| `MainViewModel.kt` | `failReason` field on `MainUiState` | drops it | **M16's version.** |
+| `ParvazConnectionState.kt` (new in M15b-beta) | n/a (didn't exist) | extracts `ConnectionState` + `SessionState` out of `ParvazVpnService` | **Add `FailReason` here too** so the whole failure-state model lives in one file. M16's import paths shift accordingly. |
+| `MainViewModel.kt` | `failReason` field on `MainUiState`; imports `FailReason` from `ParvazVpnService` | drops `failReason` field; imports `ConnectionState` from `ParvazConnectionState` | **M16's `failReason` field, but import `FailReason` from `ParvazConnectionState` (per row above).** |
+| `MainScreen.kt` | `failReasonStringRes(reason)` lookup mapping `FailReason` → string res | doesn't exist | **M16's version, with `FailReason` import path updated.** |
 | `strings.xml` (FA + EN) | adds 4 `main_failed_*` keys | drops them | **M16's keys.** |
 
 Net effect: the rebased `ParvazVpnService.kt` has tun_fd handoff +
-disallowed app + DoH wiring + Android-too-old guard *and* preserves
-the differentiated failure copy.
+disallowed app + DoH wiring + Android-too-old guard. `ParvazConnectionState.kt` owns
+`ConnectionState` + `FailReason` + `SessionState`. The differentiated failure copy
+keeps working with one import-path change in M16's downstream files.
 
 ## Working-tree state at start
 
