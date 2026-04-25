@@ -117,6 +117,32 @@ func TestBuildPipeline_LegacySOCKS_NoDNSHandler(t *testing.T) {
 	}
 }
 
+// TestBuildPipeline_AndroidSCMRights_DNSWired pins the bug fix for the
+// Android SCM_RIGHTS handoff: when Kotlin sends TunFD=-1 (sentinel for
+// "fd will arrive post-spawn over the abstract socket"), buildPipeline
+// runs BEFORE recvTunFD assigns a real fd. The DNS handler must still
+// be wired now — otherwise tun2socks's UDP path gets REP=0x07 from
+// SOCKS5 UDP ASSOCIATE and browsers see ERR_NAME_NOT_RESOLVED.
+func TestBuildPipeline_AndroidSCMRights_DNSWired(t *testing.T) {
+	cfg := Config{
+		ScriptURLs:  []string{"https://stub.invalid/macros/s/X/exec"},
+		AuthKey:     "test-key",
+		GoogleIP:    "127.0.0.1",
+		FrontDomain: "www.google.com",
+		ListenHost:  "127.0.0.1",
+		ListenPort:  0,
+		DataDir:     t.TempDir(),
+		TunFD:       -1, // Android SCM_RIGHTS sentinel.
+	}
+	srv, err := buildPipeline(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatalf("buildPipeline: %v", err)
+	}
+	if srv.Datagram == nil {
+		t.Fatal("Datagram nil with TunFD=-1 — DNS gate broken for SCM_RIGHTS path")
+	}
+}
+
 // socks5ConnectOrFatal performs a no-auth SOCKS5 negotiation and a CONNECT
 // to host:port, t.Fatals on any wire-level failure. Exits when the server
 // has written its replyOK (10 bytes starting 0x05,0x00).

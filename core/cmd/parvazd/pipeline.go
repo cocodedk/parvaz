@@ -84,7 +84,13 @@ func buildPipeline(cfg Config, logger *slog.Logger) (*socks5.Server, error) {
 	// wiring the shim in that mode silently drops normal-DNS UDP
 	// targets like 8.8.8.8:53 instead of replying REP=0x07 as
 	// SOCKS5 semantics prescribe (codex-review P3).
-	if cfg.TunFD > 0 {
+	//
+	// TunFD == -1 is the Android SCM_RIGHTS sentinel: the real fd
+	// is received post-spawn by recvTunFD(), but the SOCKS5 server
+	// is built up-front and serves UDP ASSOCIATE on the loopback
+	// listener that tun2socks dials into — so the Datagram handler
+	// must be wired now, not after recvTunFD.
+	if cfg.TunFD != 0 {
 		dns := newDNSHandler(rel, cfg, logger)
 		disp.DNSTCP = dns
 		disp.DNSHost = cfg.dnsHost()
