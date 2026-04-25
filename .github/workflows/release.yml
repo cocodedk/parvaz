@@ -69,7 +69,13 @@ jobs:
             local out="app/src/main/jniLibs/${abi}/libparvaz.so"
             mkdir -p "$(dirname "$out")"
             echo ">> android/${goarch}${goarm:+-v$goarm} → ${abi}"
-            GOOS=android GOARCH="$goarch" ${goarm:+GOARM=$goarm} \
+            # `env` so the conditional ${goarm:+GOARM=$goarm} gets treated as
+            # an env-var assignment after expansion. In a bare KEY=VAL cmd
+            # invocation bash decides at PARSE time which leading words are
+            # assignments, before expansion runs — so the expanded
+            # GOARM=7 landed in command position and bash exec'd it as the
+            # command name (exit 127 "command not found").
+            env GOOS=android GOARCH="$goarch" ${goarm:+GOARM="$goarm"} \
                 go build -C core -trimpath -ldflags "$LDFLAGS" \
                 -o "../$out" ./cmd/parvazd
           }
