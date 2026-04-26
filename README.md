@@ -13,10 +13,12 @@ helper deploys a Google Apps Script one-file relay and shares the
 access link over a **secure messenger (Signal or Telegram — not
 WhatsApp)**; the user installs Parvaz, scans a QR or taps the
 `parvaz://` link, installs a MITM certificate via Android Settings
-(one-time), installs **Firefox Nightly** and flips one `about:config`
-flag, then taps one button. **Stock Chrome and stock
-Firefox ignore user-installed CAs on Android 7+; Firefox Nightly + the
-flag is the only no-root browser that works (see scope below).**
+(one-time), then taps one button and browses normally in **Chrome**
+(or any Chromium browser — Brave, Edge, Vivaldi). **Chrome trusts the
+user-installed Parvaz CA out of the box on Android — no flags, no
+about:config, no root.** Non-browser apps (Instagram, Telegram native,
+banking, streaming) are out of scope by Android design — see honest
+scope below.
 
 Architecturally aligned with the proven
 [MasterHttpRelayVPN-RUST](https://github.com/therealaleph/MasterHttpRelayVPN-RUST)
@@ -64,12 +66,14 @@ else**, every credential you submit is theirs.
 
 | | |
 |---|---|
-| ✅ **Firefox Nightly** + `enterprise_roots` flag | The supported browser. Tunnels arbitrary HTTPS through the on-device MITM. |
-| ✅ Google-owned sites in any browser | YouTube, Google Search, etc. take the SNI-rewrite fast path — no MITM, no cert needed |
-| ❌ Stock Chrome / Brave / Edge / Vivaldi / Bromite | Chromium ignores user CAs on Android 7+; no flag, no override |
-| ❌ Stock Firefox / Firefox Beta / Firefox Focus | Firefox's NSS root store is baked into the APK; only Nightly's flag bridges it to Android's user CA store |
+| ✅ **Chrome** (and other Chromium: Brave, Edge, Vivaldi) | **Recommended.** Trusts the user-installed CA with no setup; Chrome's Certificate Transparency enforcement has an explicit carve-out for chains rooted in a user CA, so the MITM is transparent. |
+| ✅ Google-owned sites in any browser | YouTube, Google Search, fonts.googleapis.com, etc. take the SNI-rewrite fast path — no MITM, no cert trust needed |
+| ⚠️ Firefox Nightly + `security.enterprise_roots.enabled` | Possible but painful. Stable/Beta hide `about:config` so the flag can't be set there at all; Nightly resets the flag to `false` on every restart (Mozilla bug [fenix#18990](https://github.com/mozilla-mobile/fenix/issues/18990) — open since 2021, never fixed). **Use Chrome instead.** |
+| ❌ DuckDuckGo browser | Confirmed broken. Chromium-based but configured more strictly — rejects the Parvaz CA |
+| ❌ Stock Firefox / Firefox Beta / Firefox Focus | No `about:config` UI on these channels — there is no way to flip the trust flag |
 | ❌ Instagram / Telegram / WhatsApp / banking / streaming apps | Reject user-installed CAs by Android default — cert errors, no tunnel |
 | ❌ Non-HTTP protocols (MTProto, SSH, raw TCP) | Apps Script can't tunnel raw TCP |
+| ⚠️ Bandwidth and WebSockets | Apps Script bottleneck: throughput around ~5 KB/s observed; WebSockets do not establish through the relay |
 
 If you need native-app coverage or raw-TCP tunneling, pair Parvaz with a
 local **xray** (or v2ray / sing-box) pointing at your own VPS —
@@ -78,7 +82,7 @@ documented approach from MasterHttpRelayVPN-RUST.
 ## First-time setup on the phone
 
 After installing the Parvaz APK and tapping a `parvaz://` link, you do
-three small things — once. Then you never touch any of this again.
+two small things — once. Then you never touch any of this again.
 
 ### 1. Install the Parvaz certificate
 
@@ -99,33 +103,17 @@ Parvaz (gesture back); it auto-detects the cert and advances.
 > Pre-condition: your phone must have a screen lock (PIN, pattern, or
 > password) — Android refuses CA install otherwise.
 
-### 2. Install Firefox Nightly
+### 2. Tap Connect, then open Chrome
 
-Stock browsers **ignore** user-installed certificates on Android 7+.
-The only no-root browser that honors them is **Firefox Nightly**:
+Tap the rubber-stamp button on Parvaz's main screen. When it flips to
+**در پرواز** (in flight), open **Chrome** and browse normally — HTTPS
+pages route through Parvaz with no further configuration. Brave, Edge,
+and Vivaldi work the same way; the Parvaz CA you just installed is the
+only piece they need.
 
-- **Play Store:** [Firefox Nightly for Developers](https://play.google.com/store/apps/details?id=org.mozilla.fenix) (`org.mozilla.fenix`)
-- **All download channels (incl. direct APK):** [mozilla.org/firefox/channel/android](https://www.mozilla.org/en-US/firefox/channel/android/)
-- **Mozilla's own F-Droid repo** (no Play Store, no Google account): [github.com/mozilla-mobile/fenix#nightly-builds](https://github.com/mozilla-mobile/fenix#nightly-builds)
-
-> If both stores are blocked on your network, ask the helper who
-> sent you the `parvaz://` link to forward the APK via the same secure
-> messenger you used (Signal or Telegram — not WhatsApp). After
-> install, verify the package is `org.mozilla.fenix` (Settings → Apps
-> → Firefox Nightly).
-
-### 3. Flip one flag in Firefox Nightly
-
-Open Firefox Nightly → paste `about:config` in the URL bar → accept
-the warning → search `security.enterprise_roots.enabled` → tap to
-toggle to **true** → fully close and reopen Firefox Nightly.
-
-> Mozilla's `about:config` reference: [support.mozilla.org/about-config-editor-firefox](https://support.mozilla.org/en-US/kb/about-config-editor-firefox)
-
-That's it. Browse normally in Firefox Nightly; HTTPS pages route
-through Parvaz. Other browsers will still load Google-owned sites
-(YouTube, Search, Maps) via the SNI-rewrite fast path with no cert
-needed; everything else needs Firefox Nightly.
+> Throughput is currently around ~5 KB/s and WebSockets do not work —
+> these are limits of the underlying Apps Script relay, not the
+> browser. Plain HTTPS pages load slowly but reliably.
 
 ## Download
 

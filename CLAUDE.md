@@ -16,9 +16,21 @@ Parvaz's differentiators are the NOTAM visual identity, Farsi-by-default
 UI, and tighter onboarding for non-technical users.
 
 **Honest scope (per MITM reality on Android 7+):**
-- ✅ **Chrome, Firefox** — browser traffic tunnels correctly.
-- ✅ **Google-owned hosts** — google.com, youtube.com, etc. route via
-  SNI-rewrite without MITM; fastest path, no quota.
+- ✅ **Chrome (and other Chromium browsers — Brave, Edge, Vivaldi)** —
+  trust the user-installed CA out of the box, no flags. Chrome's CT
+  enforcement has an explicit carve-out for chains terminating in a
+  user CA, so MITM is transparent. **Recommended browser.**
+- ✅ **Google-owned hosts in any browser** — google.com, youtube.com,
+  etc. take the SNI-rewrite path without MITM; no quota, no cert
+  needed.
+- ⚠️ **Firefox Nightly only** — needs `security.enterprise_roots.enabled`
+  flipped in `about:config`. Stable/Beta hide `about:config` entirely;
+  Nightly resets the pref to `false` on every restart (known Mozilla
+  bug [fenix#18990](https://github.com/mozilla-mobile/fenix/issues/18990),
+  open since 2021). Effectively unusable — do not recommend in user
+  docs without a heavy caveat.
+- ❌ **DuckDuckGo browser** — confirmed broken; rejects the user CA
+  despite being Chromium-based.
 - ❌ **Instagram / Telegram / WhatsApp / banking / streaming native apps**
   — these reject user-CAs and break. This is a general Android-MITM
   constraint, not a Parvaz bug. Users who need those apps pair Parvaz

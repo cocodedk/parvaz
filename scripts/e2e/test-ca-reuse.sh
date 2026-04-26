@@ -35,6 +35,26 @@ ca_fingerprint() {
 
 deep_link() { sh am start -W -a android.intent.action.VIEW -d "'$URL'" >/dev/null; }
 
+tap_id_if_present() {
+    local id="$1" attempts="${2:-5}"
+    for _ in $(seq 1 "$attempts"); do
+        dump
+        if coords=$(find_node "resource-id" "$id" "eq"); then
+            sh input tap $coords
+            return 0
+        fi
+        sleep 0.3
+    done
+    return 1
+}
+
+submit_import_if_present() {
+    # A parvaz:// intent deliberately routes through IMPORT even for
+    # returning users, so the reuse assertion must advance past Continue
+    # before looking for CA/VPN screens.
+    tap_id_if_present "import_submit_button" 8 || true
+}
+
 # One dump per attempt, then check both ids against that snapshot —
 # avoids the 4-dumps-per-iteration cost of `has_id A || has_id B`.
 expect_either_id() {
@@ -58,6 +78,7 @@ pass "updated"
 
 CUR=3; step 3 "deep-link → expect VPN permission (CA reused, install screen skipped)"
 deep_link
+submit_import_if_present
 expect_either_id "vpn_permission_primary" "vpn_permission_spinner" \
     || fail "still on CA install screen after update — reuse path failed"
 pass "VPN permission screen reached → cert was reused"
@@ -81,6 +102,7 @@ pass "reinstalled"
 
 CUR=6; step 6 "deep-link → expect CA install screen (new fingerprint ≠ keystore)"
 deep_link
+submit_import_if_present
 expect_either_id "ca_install_steps" "ca_install_primary" \
     || fail "expected CA install screen after reinstall, got something else"
 pass "CA install screen shown → fresh CA correctly NOT auto-trusted"

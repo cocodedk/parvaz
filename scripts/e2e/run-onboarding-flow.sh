@@ -5,7 +5,7 @@
 # Install from device storage → CA certificate" → tap Install anyway.
 # Stops there: the next step is a biometric/PIN auth that no script can
 # satisfy without root or the user's PIN — the human has to complete
-# that and pick parvaz-ca.crt from the file picker. Returns 0 once
+# that and pick the newest parvaz-ca-*.crt from the file picker. Returns 0 once
 # Install anyway is tapped, or [FAIL step N] earlier.
 # Pre-reqs: adb device, built debug APK, scripts/e2e/live.env, Compose
 # testTagsAsResourceId enabled in MainActivity.
@@ -36,6 +36,16 @@ tap_match() {
 
 tap_id()   { tap_match "resource-id" "$1" "eq" "${2:-2}" "id=$1"; }
 tap_text() { tap_match "text"        "$1" "eq" "${2:-2}" "text='$1'"; }
+
+expect_id() {
+    local id="$1" attempts="${2:-10}"
+    for _ in $(seq 1 "$attempts"); do
+        dump
+        find_node "resource-id" "$id" "eq" >/dev/null && return 0
+        sleep 0.3
+    done
+    return 1
+}
 
 # Samsung's Security & privacy + More security settings rows aren't on
 # screen on first paint — swipe up until the target appears. Each swipe
@@ -77,19 +87,28 @@ CUR=4; step 4 "Import → Continue (id=import_submit_button)"
 tap_id "import_submit_button"
 
 CUR=5; step 5 "verify cert exported (CA install screen visible)"
-has_id "ca_install_steps" || fail "ca_install_steps never appeared"
+expect_id "ca_install_steps" 12 || fail "ca_install_steps never appeared"
 pass "ca_install_steps visible"
 
-crt_size=$(sh stat -c %s /storage/emulated/0/Download/parvaz-ca.crt 2>/dev/null | tr -d '\r')
+crt_path=$(sh "ls -t /storage/emulated/0/Download/parvaz-ca-*.crt 2>/dev/null | head -n 1" | tr -d '\r')
+[[ -n "$crt_path" ]] || fail "no parvaz-ca-*.crt found in Downloads"
+crt_size=$(sh stat -c %s "$crt_path" 2>/dev/null | tr -d '\r')
 [[ -n "$crt_size" && "$crt_size" -gt 100 ]] \
-    || fail "parvaz-ca.crt missing or empty (size='$crt_size')"
-pass "parvaz-ca.crt in Downloads (${crt_size} bytes)"
+    || fail "$crt_path missing or empty (size='$crt_size')"
+pass "$crt_path in Downloads (${crt_size} bytes)"
 
 expected_sha=$(a exec-out run-as "$PKG" cat files/parvaz-data/ca/ca.crt \
     | openssl x509 -fingerprint -sha256 -noout 2>/dev/null \
     | cut -d= -f2 | tr -d ':' | tr -d '\n')
 [[ -n "$expected_sha" ]] || fail "could not compute expected fingerprint"
 pass "expected SHA-256: $expected_sha"
+
+exported_sha=$(a exec-out cat "$crt_path" \
+    | openssl x509 -fingerprint -sha256 -noout 2>/dev/null \
+    | cut -d= -f2 | tr -d ':' | tr -d '\n')
+[[ "$exported_sha" == "$expected_sha" ]] \
+    || fail "exported cert mismatch: Downloads=$exported_sha app=$expected_sha"
+pass "exported cert fingerprint matches app CA"
 
 CUR=6; step 6 "tap Open Settings (id=ca_install_primary)"
 tap_id "ca_install_primary"
@@ -113,7 +132,7 @@ tap_text "Install anyway"
 echo
 echo "=== AUTOMATED STEPS DONE ==="
 echo "Next on the device (manual): biometric/PIN → file picker → pick"
-echo "parvaz-ca.crt → back out of Settings. Parvaz's onResume verify"
+echo "$(basename "$crt_path") → back out of Settings. Parvaz's onResume verify"
 echo "should then advance to the VPN permission screen."
 echo "logcat: $LOG"
 echo "expected fingerprint: $expected_sha"

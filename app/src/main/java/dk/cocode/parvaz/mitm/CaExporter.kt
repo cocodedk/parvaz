@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.util.Locale
 
 /** MIME type for X.509 CA certificates — referenced by `SettingsLauncher` and tests. */
 internal const val CA_MIME_TYPE = "application/x-x509-ca-cert"
@@ -37,8 +38,11 @@ internal const val FILE_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
  *    `ACTION_VIEW`. Avoids requesting WRITE_EXTERNAL_STORAGE — that
  *    runtime ask would alarm Iranian users.
  *
- * Pure I/O on Dispatchers.IO. No Compose deps. Idempotent — re-export
- * with the same displayName replaces the prior file.
+ * Pure I/O on Dispatchers.IO. No Compose deps. The default filename
+ * includes the CA fingerprint prefix so a full app reinstall cannot
+ * leave users picking a stale `parvaz-ca.crt` from Downloads. Before
+ * each export we also remove older visible Parvaz CA files so the
+ * picker presents one obvious choice.
  */
 class CaExporter(
     context: Context,
@@ -50,7 +54,7 @@ class CaExporter(
 
     suspend fun export(
         pem: ByteArray,
-        displayName: String = DEFAULT_FILENAME,
+        displayName: String = defaultFilename(pem),
     ): ExportedCa = withContext(ioDispatcher) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             exportViaMediaStore(pem, displayName)
@@ -62,7 +66,7 @@ class CaExporter(
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun exportViaMediaStore(pem: ByteArray, displayName: String): ExportedCa {
         val resolver = appContext.contentResolver
-        deleteExisting(resolver, displayName)
+        deletePreviousExports(resolver)
         val values = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, displayName)
             put(MediaStore.Downloads.MIME_TYPE, CA_MIME_TYPE)
@@ -98,6 +102,7 @@ class CaExporter(
         val downloadsDir = appContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
             ?: throw IOException("getExternalFilesDir(DIRECTORY_DOWNLOADS) returned null")
         downloadsDir.mkdirs()
+        deletePreviousExports(downloadsDir)
         val out = File(downloadsDir, displayName)
         out.writeBytes(pem)
         val authority = "${appContext.packageName}$FILE_PROVIDER_AUTHORITY_SUFFIX"
@@ -109,16 +114,18 @@ class CaExporter(
     }
 
     /**
-     * Delete any prior MediaStore entries under the same DISPLAY_NAME +
-     * RELATIVE_PATH. Without this, repeated onboarding runs accumulate
-     * `parvaz-ca (1).crt`, `parvaz-ca (2).crt`, etc. — Android disambiguates
-     * by suffix on duplicate names instead of overwriting.
+     * Delete prior Parvaz CA exports from Downloads. Without this, a
+     * reinstall can leave both the old `parvaz-ca.crt` and a fresh
+     * fingerprinted file visible, making it easy to install the wrong CA.
      */
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun deleteExisting(resolver: ContentResolver, displayName: String) {
-        val selection = "${MediaStore.Downloads.DISPLAY_NAME} = ? AND " +
+    private fun deletePreviousExports(resolver: ContentResolver) {
+        val selection = "${MediaStore.Downloads.DISPLAY_NAME} LIKE ? AND " +
             "${MediaStore.Downloads.RELATIVE_PATH} LIKE ?"
-        val args = arrayOf(displayName, "${Environment.DIRECTORY_DOWNLOADS}%")
+        val args = arrayOf(
+            "$DEFAULT_FILENAME_PREFIX%$DEFAULT_FILENAME_SUFFIX",
+            "${Environment.DIRECTORY_DOWNLOADS}%",
+        )
         runCatching {
             resolver.delete(
                 MediaStore.Downloads.EXTERNAL_CONTENT_URI,
@@ -128,7 +135,26 @@ class CaExporter(
         }
     }
 
+    private fun deletePreviousExports(downloadsDir: File) {
+        downloadsDir.listFiles()
+            ?.filter { it.isFile && it.name.isParvazCaFilename() }
+            ?.forEach { runCatching { it.delete() } }
+    }
+
     companion object {
-        const val DEFAULT_FILENAME = "parvaz-ca.crt"
+        const val DEFAULT_FILENAME_PREFIX = "parvaz-ca"
+        const val DEFAULT_FILENAME_SUFFIX = ".crt"
+        private const val FINGERPRINT_CHARS = 12
+
+        fun defaultFilename(pem: ByteArray): String {
+            val der = runCatching { CaFingerprint.pemToDer(pem) }.getOrNull()
+                ?: return "$DEFAULT_FILENAME_PREFIX$DEFAULT_FILENAME_SUFFIX"
+            val sha = CaFingerprint.sha256(der)
+                .joinToString(separator = "") { String.format(Locale.US, "%02x", it.toInt() and 0xff) }
+            return "$DEFAULT_FILENAME_PREFIX-${sha.take(FINGERPRINT_CHARS)}$DEFAULT_FILENAME_SUFFIX"
+        }
+
+        fun String.isParvazCaFilename(): Boolean =
+            startsWith(DEFAULT_FILENAME_PREFIX) && endsWith(DEFAULT_FILENAME_SUFFIX)
     }
 }
