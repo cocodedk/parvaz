@@ -51,3 +51,11 @@ config.json
 /opencode-*.diff
 /opencode-*.log
 .codex
+
+# ── Claude Code runtime (keep settings.json tracked) ────────────
+# settings.json is the shared project config (tracked).
+# settings.local.json holds per-developer overrides (e.g. extra allowed
+# tools); the lock file is the scheduler's session-local state.
+/.claude/settings.local.json
+/.claude/scheduled_tasks.lock
+/.claude/scheduled_tasks.json
