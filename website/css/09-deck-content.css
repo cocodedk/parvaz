@@ -1,0 +1,129 @@
+/* =====================================================================
+   AIRLINE DECK · slide content — route diagram, boarding-sequence
+   checklist, who flies / who's grounded
+   ===================================================================== */
+
+body.airline-deck .slide--route { grid-template-rows: auto 1fr; }
+body.airline-deck .route {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 12px; align-items: stretch;
+  align-self: center;
+}
+body.airline-deck .route__hop {
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  padding: 18px 14px;
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.16em;
+  text-align: center; text-transform: uppercase;
+  box-shadow: 2px 3px 0 rgba(18,42,68,0.18);
+  position: relative;
+}
+body.airline-deck .route__hop strong {
+  display: block;
+  font-family: var(--display); font-size: 22px;
+  letter-spacing: 0.04em; color: var(--ink); margin-bottom: 6px;
+}
+body.airline-deck .route__hop .tag { margin-top: 10px; color: var(--cyan); font-weight: 700; }
+body.airline-deck .route__hop--accent { background: var(--ink); color: var(--paper); }
+body.airline-deck .route__hop--accent strong { color: var(--amber); }
+body.airline-deck .route__hop--accent .tag { color: var(--paper); opacity: 0.65; }
+body.airline-deck .route__hop::after {
+  content: '►'; position: absolute; right: -14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink); font-size: 18px;
+  background: var(--paper); padding: 0 2px; z-index: 2;
+}
+body.airline-deck .route__hop:last-child::after { display: none; }
+body.airline-deck .route__notes {
+  margin-top: 28px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.04em; color: var(--ink-2);
+}
+body.airline-deck .route__notes b {
+  display: block;
+  font-size: 10px; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--cyan);
+  margin-bottom: 4px;
+}
+
+body.airline-deck .slide--board { grid-template-rows: auto 1fr; }
+body.airline-deck .board {
+  display: grid; grid-template-columns: 1.3fr 1fr;
+  gap: 32px; align-items: start;
+}
+body.airline-deck .checklist { display: flex; flex-direction: column; gap: 12px; }
+body.airline-deck .check {
+  display: grid; grid-template-columns: 44px 1fr auto;
+  gap: 14px; align-items: center;
+  padding: 12px 18px;
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  box-shadow: 2px 3px 0 rgba(18,42,68,0.12);
+  font-family: var(--mono); font-size: 12px;
+}
+body.airline-deck .check__no {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  background: var(--ink); color: var(--amber);
+  font-weight: 800; font-size: 13px; letter-spacing: 0.1em;
+  border-radius: 50%;
+}
+body.airline-deck .check__title {
+  font-family: var(--display); font-size: 16px;
+  color: var(--ink); line-height: 1.1; margin: 0 0 3px;
+}
+body.airline-deck .check__sub {
+  font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--ink-3); margin: 0;
+}
+body.airline-deck .check__stamp {
+  font-family: var(--mono); font-weight: 800;
+  font-size: 9px; letter-spacing: 0.24em;
+  padding: 4px 10px;
+  border: 1.5px solid var(--cyan); color: var(--cyan);
+  text-transform: uppercase;
+}
+body.airline-deck .check__stamp--manual { border-color: var(--stamp); color: var(--stamp); }
+
+body.airline-deck .slide--who { grid-template-rows: auto 1fr; }
+body.airline-deck .who {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+  align-self: center;
+}
+body.airline-deck .who__col {
+  padding: 22px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper-2);
+  box-shadow: 3px 4px 0 rgba(18,42,68,0.18);
+}
+body.airline-deck .who__col--ok    { border-color: var(--safe); }
+body.airline-deck .who__col--no    { border-color: var(--stamp); }
+body.airline-deck .who__head {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1.5px dashed var(--ink-3);
+  padding-bottom: 12px;
+}
+body.airline-deck .who__head strong { font-family: var(--display); font-size: 22px; color: var(--ink); }
+body.airline-deck .who__tag {
+  font-family: var(--mono); font-size: 9px; font-weight: 800;
+  letter-spacing: 0.32em; padding: 4px 10px; text-transform: uppercase;
+}
+body.airline-deck .who__tag--ok { background: var(--safe); color: var(--paper); }
+body.airline-deck .who__tag--no { background: var(--stamp); color: var(--paper); }
+body.airline-deck .who__list {
+  list-style: none; padding: 0; margin: 0;
+  font-family: var(--mono); font-size: 12px;
+  color: var(--ink-2); line-height: 1.6;
+}
+body.airline-deck .who__list li { padding: 6px 0; border-bottom: 1px dashed var(--ink-3); }
+body.airline-deck .who__list li:last-child { border-bottom: none; }
+body.airline-deck .who__col--ok .who__list li::before { content: '✓ '; color: var(--safe); font-weight: 800; margin-right: 6px; }
+body.airline-deck .who__col--no .who__list li::before { content: '✗ '; color: var(--stamp); font-weight: 800; margin-right: 6px; }
+body.airline-deck .who__foot {
+  margin-top: 14px; font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.16em;
+  color: var(--ink-3); text-transform: uppercase;
+}

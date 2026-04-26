@@ -1,0 +1,162 @@
+/* =====================================================================
+   AIRLINE DECK · slide shell + hero (slide 1) + boarding-pass tabs
+   + Solari overrides scoped inside the deck
+   ===================================================================== */
+
+body.airline-deck .deck-track {
+  height: 100vh;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+body.airline-deck .slide {
+  height: 100vh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: calc(var(--header-h) + 24px) clamp(28px, 5vw, 64px) calc(var(--controls-h) + 24px);
+  display: grid;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  background: var(--paper);
+  margin: 0;
+  align-items: stretch;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+}
+body.airline-deck .slide__content {
+  width: 100%; max-width: 1280px; margin: 0 auto;
+  display: contents;
+}
+body.airline-deck .slide__head {
+  display: flex; align-items: baseline; gap: 18px;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 10px; margin-bottom: 22px;
+}
+body.airline-deck .slide__num {
+  font-family: var(--mono);
+  font-size: 12px; font-weight: 800;
+  letter-spacing: 0.32em;
+  color: var(--cyan);
+  background: var(--paper-2);
+  padding: 4px 10px; border: 1px solid var(--cyan);
+}
+body.airline-deck .slide__title {
+  font-family: var(--display);
+  font-size: clamp(28px, 4vw, 44px);
+  color: var(--ink); margin: 0; line-height: 1;
+}
+body.airline-deck .slide__kicker {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.3em;
+  color: var(--ink-3); text-transform: uppercase;
+}
+body.airline-deck .slide__body {
+  font-family: var(--mono);
+  font-size: 13px; line-height: 1.7;
+  color: var(--ink-2);
+}
+body.airline-deck .slide__body p { margin: 0 0 14px; }
+body.airline-deck .slide__body strong { color: var(--ink); }
+body.airline-deck .slide__body code {
+  background: var(--paper-3); padding: 1px 6px;
+  font-size: 0.92em; border: 1px dashed var(--ink-3);
+}
+body.airline-deck .slide__body a { color: var(--stamp); }
+
+body.airline-deck .slide--title {
+  grid-template-columns: 1.05fr 1fr;
+  gap: 48px; align-items: center;
+  background:
+    radial-gradient(circle at 12% 22%, rgba(28,74,120,0.05), transparent 40%),
+    radial-gradient(circle at 88% 78%, rgba(177,57,31,0.05), transparent 40%),
+    var(--paper);
+}
+body.airline-deck .hero__welcome {
+  font-family: var(--display);
+  font-size: clamp(20px, 2.6vw, 40px);
+  line-height: 1.15; letter-spacing: -0.005em;
+  color: var(--ink); margin: 0 0 18px;
+  white-space: nowrap;
+}
+body.airline-deck .hero__welcome .ornament {
+  color: var(--stamp); font-weight: 800;
+  margin: 0 14px; vertical-align: 0.05em;
+}
+body.airline-deck .hero__welcome em { font-style: normal; color: var(--cyan); }
+
+body.airline-deck .hero__brand {
+  font-family: var(--display);
+  font-size: clamp(40px, 6vw, 72px);
+  line-height: 0.9; color: var(--ink-2);
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  margin: 18px 0 16px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--ink-3);
+}
+body.airline-deck .hero__brand img {
+  width: 56px; height: 56px;
+  border-radius: 14px; align-self: center;
+}
+body.airline-deck .hero__brand .fa-name {
+  font-family: var(--fa);
+  font-size: 0.6em; color: var(--ink-3); font-weight: 800;
+}
+body.airline-deck .hero__brand .flight-no {
+  margin-left: auto;
+  font-family: var(--mono); font-weight: 800;
+  font-size: 12px; letter-spacing: 0.32em;
+  color: var(--cyan); text-transform: uppercase;
+}
+body.airline-deck .hero__tagline {
+  font-family: var(--display); font-size: 24px;
+  color: var(--ink-2);
+  border-left: 4px solid var(--stamp);
+  padding-left: 14px; line-height: 1.2; margin: 0 0 14px;
+}
+body.airline-deck .hero__subtitle {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-3); margin: 0 0 22px;
+}
+
+body.airline-deck .bp-tabs { display: flex; gap: 14px; flex-wrap: wrap; }
+body.airline-deck .bp-tab {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 12px 22px 12px 32px;
+  background: var(--paper-3);
+  border: 1.5px solid var(--ink); color: var(--ink);
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  position: relative;
+  box-shadow: 2px 3px 0 rgba(18,42,68,0.18);
+  transition: transform .18s, box-shadow .18s;
+}
+body.airline-deck .bp-tab::before {
+  content: ''; position: absolute; left: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 9px; height: 9px; border-radius: 50%;
+  border: 1.5px solid var(--ink); background: var(--paper);
+}
+body.airline-deck .bp-tab:hover { transform: translate(1px, 1px); box-shadow: 1px 2px 0 rgba(18,42,68,0.18); background: var(--paper-3); }
+body.airline-deck .bp-tab--primary { background: var(--ink); color: var(--paper); }
+body.airline-deck .bp-tab--primary::before { background: var(--paper-3); border-color: var(--paper); }
+body.airline-deck .bp-tab--primary:hover { background: var(--stamp); }
+body.airline-deck .bp-tab .stub {
+  margin-left: 6px; padding-left: 14px;
+  border-left: 1px dashed currentColor;
+  font-size: 10px; opacity: 0.7; letter-spacing: 0.18em;
+}
+
+body.airline-deck .solari-board { margin: 0; }
+body.airline-deck .solari-board__head { padding: 10px 16px; font-size: 9px; }
+body.airline-deck .solari-board__rows {
+  grid-template-columns: 84px 1fr 64px 110px;
+  font-size: 11px;
+}
+body.airline-deck .solari-board__col-head { padding: 6px 14px; font-size: 8px; }
+body.airline-deck .solari-board__cell { padding: 10px 14px; font-size: 11px; }

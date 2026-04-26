@@ -1,0 +1,132 @@
+/* =====================================================================
+   Panels — schematic, specs, code listing, footer, lang switch
+   ===================================================================== */
+
+.schematic {
+  border: 1px solid var(--ink);
+  background: var(--paper-2);
+  margin: 24px 0;
+  position: relative;
+}
+.schematic-head {
+  border-bottom: 1px solid var(--ink);
+  padding: 10px 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  background: var(--paper);
+}
+.schematic-head strong { color: var(--ink); font-weight: 700; letter-spacing: 0.26em; }
+.schematic-body {
+  padding: 30px 36px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ink);
+  white-space: pre;
+  position: relative;
+}
+.schematic-body .hl { background: rgba(181,88,26,0.22); padding: 1px 5px; color: var(--ink); font-weight: 700; }
+.schematic-body .secret { background: var(--ink); color: var(--paper-2); padding: 1px 5px; letter-spacing: 0.02em; }
+.schematic-body .note { color: var(--ink-3); }
+.schematic-body .dir { color: var(--stamp); font-weight: 700; }
+.schematic-foot {
+  border-top: 1px dashed var(--rule);
+  padding: 9px 20px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  background: var(--paper);
+}
+
+.specs { border-top: 1px solid var(--ink); }
+.spec {
+  display: grid;
+  grid-template-columns: 50px 160px 1fr;
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+}
+.spec-num { font-family: var(--display); color: var(--stamp); font-size: 20px; font-weight: 400; }
+.spec-key { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink); font-weight: 700; }
+.spec-val { font-size: 13.5px; color: var(--ink-2); line-height: 1.65; }
+.spec-val code { background: var(--paper-3); font-size: 0.9em; }
+
+.listing {
+  border: 1px solid var(--ink);
+  background: #161310;
+  color: #E4D9BE;
+  margin: 22px 0;
+  position: relative;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.8;
+}
+.listing-head {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 9px 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-weight: 700;
+}
+.listing-body { padding: 18px 24px; overflow-x: auto; white-space: pre; }
+.listing-body .c { color: #7E7260; font-style: italic; }
+.listing-body .k { color: #E0A050; }
+.listing-body .s { color: #A2B87B; }
+
+footer {
+  margin-top: 80px;
+  border-top: 4px double var(--ink);
+  padding: 22px 40px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  align-items: center;
+}
+footer .sig {
+  font-family: var(--display);
+  font-size: 20px;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+  text-transform: none;
+  text-align: center;
+  font-weight: 400;
+}
+footer a { color: var(--ink); border-bottom: 1px dotted var(--ink-3); }
+footer a:hover { color: var(--stamp); background: transparent; border-color: var(--stamp); }
+footer .right { text-align: right; }
+
+.lang-switch {
+  position: fixed; top: 30px; right: 30px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  color: var(--ink);
+  padding: 9px 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  font-weight: 700;
+  z-index: 100;
+  box-shadow: 3px 3px 0 var(--stamp);
+  transition: transform 0.1s, background 0.1s, color 0.1s;
+}
+.lang-switch:hover { transform: translate(-2px,-2px); background: var(--ink); color: var(--paper); box-shadow: 5px 5px 0 var(--stamp); }

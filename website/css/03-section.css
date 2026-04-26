@@ -1,0 +1,95 @@
+/* =====================================================================
+   Inline stamps + section heads + NOTAM caution block
+   ===================================================================== */
+
+.stamp {
+  font-family: var(--stamp-face);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  padding: 5px 12px;
+  display: inline-block;
+  transform: rotate(-2deg);
+  opacity: 0.9;
+}
+.stamp.safe { color: var(--safe); border-color: var(--safe); transform: rotate(1deg); }
+.stamp.seal { color: var(--seal); border-color: var(--seal); transform: rotate(-0.8deg); }
+
+section { margin: 64px 0; position: relative; scroll-margin-top: 20px; }
+.sec-head {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 18px;
+  align-items: end;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 12px;
+  margin-bottom: 28px;
+}
+.sec-num {
+  font-family: var(--display);
+  font-size: 32px;
+  color: var(--stamp);
+  line-height: 1;
+  font-weight: 400;
+}
+.sec-title {
+  font-family: var(--display);
+  font-size: clamp(26px, 3.4vw, 42px);
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  font-weight: 400;
+}
+.sec-stamp {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 5px 10px;
+  border: 1px dashed var(--ink-3);
+  white-space: nowrap;
+}
+
+.sec-body { font-size: 14px; line-height: 1.8; color: var(--ink-2); max-width: 68ch; }
+.sec-body strong { color: var(--ink); font-weight: 700; }
+.sec-body em { color: var(--stamp); font-style: italic; font-weight: 700; }
+.sec-body p + p { margin-top: 14px; }
+
+.notam {
+  border: 2px solid var(--stamp);
+  background: rgba(168,54,28,0.04);
+  margin: 28px 0 16px;
+  position: relative;
+}
+.notam::before {
+  content: '';
+  position: absolute; inset: -6px;
+  border: 1px solid var(--stamp);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.notam-head {
+  background: var(--stamp);
+  color: var(--paper);
+  padding: 11px 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  font-weight: 800;
+  text-transform: uppercase;
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.notam-head::before {
+  content: '◢ ◣ ◢ ◣ ◢ ◣ ◢ ◣ ◢ ◣ ◢ ◣';
+  display: block; font-size: 8px; letter-spacing: 0.3em; opacity: 0.55; margin-bottom: 6px; width: 100%;
+}
+.notam-body {
+  padding: 18px 22px;
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.8;
+}
+.notam-body strong { color: var(--stamp-2); font-weight: 700; }
