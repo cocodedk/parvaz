@@ -1,0 +1,149 @@
+/* =====================================================================
+   Airline / airways theme — airmail band, Solari board, boarding pass
+   ===================================================================== */
+
+.airmail-band {
+  height: 14px;
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--stamp) 0 12px,
+    var(--paper) 12px 14px,
+    #1c4a78 14px 26px,
+    var(--paper) 26px 28px
+  );
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.solari-board {
+  background: #0e0a07;
+  color: #f0c674;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  margin: 32px 0 48px;
+  box-shadow:
+    inset 0 0 60px rgba(0,0,0,0.55),
+    0 4px 0 rgba(26,20,16,0.18);
+  font-family: var(--mono);
+  position: relative;
+  overflow: hidden;
+}
+.solari-board::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(240,198,116,0.06), transparent 60%);
+  pointer-events: none;
+}
+.solari-board__head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 22px;
+  border-bottom: 1px solid rgba(240,198,116,0.18);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(240,198,116,0.55);
+}
+.solari-board__head strong { color: #f0c674; letter-spacing: 0.32em; }
+.solari-board__head .blink {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; background: #6fbe6c;
+  box-shadow: 0 0 6px #6fbe6c;
+  animation: solari-blink 1.6s ease-in-out infinite;
+  margin-right: 8px; vertical-align: middle;
+}
+@keyframes solari-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; box-shadow: 0 0 2px #6fbe6c; }
+}
+.solari-board__rows {
+  display: grid;
+  grid-template-columns: 96px 1fr 80px 130px;
+}
+.solari-board__col-head {
+  padding: 8px 22px;
+  font-size: 9px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: rgba(240,198,116,0.45);
+  background: rgba(0,0,0,0.25);
+  border-bottom: 1px solid rgba(240,198,116,0.12);
+}
+.solari-board__cell {
+  padding: 13px 22px;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(240,198,116,0.08);
+  position: relative;
+  direction: ltr;
+}
+.solari-board__cell:nth-last-child(-n+4) { border-bottom: none; }
+.solari-board__cell::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%;
+  height: 1px; background: rgba(0,0,0,0.4); pointer-events: none;
+}
+.solari-board__cell--dest      { color: #fff3d4; letter-spacing: 0.18em; }
+.solari-board__cell--status-go      { color: #6fbe6c; }
+.solari-board__cell--status-board   { color: #f0c674; font-weight: 700; }
+.solari-board__cell--status-final   { color: #d97a4a; }
+.solari-board__cell--status-cleared { color: #88d3a4; }
+
+.boarding-pass {
+  display: grid;
+  grid-template-columns: 1fr 230px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  background: var(--paper-2);
+  position: relative;
+  margin: 28px 0;
+  box-shadow: 0 3px 0 rgba(26,20,16,0.12);
+}
+.boarding-pass__main {
+  padding: 22px 28px;
+  border-right: 1.5px dashed var(--ink-3);
+  position: relative;
+}
+.boarding-pass__main::before,
+.boarding-pass__main::after {
+  content: ''; position: absolute; right: -14px;
+  width: 24px; height: 24px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  z-index: 2;
+}
+.boarding-pass__main::before { top: -14px; }
+.boarding-pass__main::after  { bottom: -14px; }
+.boarding-pass__stub {
+  padding: 24px 22px;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 8px, rgba(26,20,16,0.04) 8px 9px),
+    var(--paper-3);
+  display: flex; flex-direction: column; gap: 14px;
+  font-family: var(--mono);
+}
+.boarding-pass__stub .row { display: flex; flex-direction: column; }
+.boarding-pass__stub .label {
+  font-size: 9px; letter-spacing: 0.36em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.boarding-pass__stub .value {
+  font-size: 16px; letter-spacing: 0.08em;
+  color: var(--ink); font-weight: 700;
+  margin-top: 2px;
+}
+.boarding-pass__stub .value--big {
+  font-size: 22px; letter-spacing: 0.06em; color: var(--stamp);
+}
+.boarding-pass__barcode {
+  margin-top: auto;
+  height: 36px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0 1px, transparent 1px 3px,
+    var(--ink) 3px 5px, transparent 5px 6px,
+    var(--ink) 6px 9px, transparent 9px 11px,
+    var(--ink) 11px 12px, transparent 12px 14px
+  );
+  border: 1px solid var(--ink-3);
+}

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Smoke-test the slide-deck navigation on EN + FA pages.
+# Smoke-test the airline-deck navigation on EN + FA pages.
 # Drives headless Chrome with a virtual-time budget large enough for
 # defer'd script.js to run and mutate the DOM, then greps the dumped
-# DOM for the markers we expect (slides, JS-generated dots, theme
-# elements). Exits non-zero on any miss.
+# DOM for the markers we expect (slides, JS-generated dots, deck
+# chrome, security alert). Exits non-zero on any miss.
 #
 # Usage:  bash website/test-deck.sh   (from anywhere; resolves dir)
 
@@ -28,7 +28,6 @@ dump() {
 
 PASS=0; FAIL=0
 assert() {
-    # $1 = page-label, $2 = test name, $3 = grep-pattern, $4 = dom (file)
     local label="$1" name="$2" needle="$3" dom_file="$4"
     if grep -q -- "$needle" "$dom_file"; then
         echo "  [$label] ✓ $name"
@@ -46,18 +45,30 @@ run_suite() {
     [[ -s "$f" ]] || { echo "  [$label] ✗ page returned empty DOM" >&2; FAIL=$((FAIL+1)); return; }
 
     # Static markup expectations
-    assert "$label" "11 slides on the page"     'data-slide="11"'   "$f"
-    assert "$label" "deck-nav present"          'class="deck-nav"'  "$f"
-    assert "$label" "side arrows present"       'id="deck-next"'    "$f"
-    assert "$label" "solari board renders"      'solari-board'      "$f"
-    assert "$label" "boarding pass renders"     'boarding-pass'     "$f"
-    assert "$label" "airline-welcome renders"   'airline-welcome'   "$f"
-    assert "$label" "lang-switch in nav"        'deck-nav__lang'    "$f"
-    assert "$label" "script.js linked"          'script.js'         "$f"
+    assert "$label" "13 slides on the page"     'data-slide="13"'   "$f"
+    assert "$label" "helper deploy listing"     'relay.deploy.001'  "$f"
+    assert "$label" "URL extraction diagram"    'AKfycbyLONGRANDOMTOKEN' "$f"
+    assert "$label" "airline-deck body class"   'class="airline-deck"' "$f"
+    assert "$label" "fixed deck-header"         'class="deck-header"'  "$f"
+    assert "$label" "boarding-pass header"      'class="bp-header"'    "$f"
+    assert "$label" "airmail band"              'airmail-band'         "$f"
+    assert "$label" "MITM trust alert"          'class="deck-alert"'   "$f"
+    assert "$label" "alert siren animation"     'deck-alert__siren'    "$f"
+    assert "$label" "alert stop sign"           'deck-alert__stop'     "$f"
+    assert "$label" "deck-controls present"     'class="deck-controls"' "$f"
+    assert "$label" "next arrow present"        'id="deck-next"'       "$f"
+    assert "$label" "prev arrow present"        'id="deck-prev"'       "$f"
+    assert "$label" "solari board renders"      'solari-board'         "$f"
+    assert "$label" "boarding-pass tabs"        'class="bp-tab'        "$f"
+    assert "$label" "honest disclosure slide"   'slide--honesty'       "$f"
+    assert "$label" "route diagram slide"       'slide--route'         "$f"
+    assert "$label" "lang switch in controls"   'deck-controls__lang'  "$f"
+    assert "$label" "script.js linked"          'script.js'            "$f"
 
-    # Script-generated DOM (runs only if JS executed and IO + dot-gen ran)
-    assert "$label" "JS generated 11 dots"      'aria-label="Slide 11"' "$f"
-    assert "$label" "current count populated"   'id="deck-current"' "$f"
+    # Script-generated DOM (proves JS executed and dot-gen + IO ran)
+    assert "$label" "JS generated 13 dots"      'aria-label="Slide 13"' "$f"
+    assert "$label" "current count populated"   'id="deck-current"'    "$f"
+    assert "$label" "current mirror populated"  'id="deck-current-mirror"' "$f"
 }
 
 echo "=== EN ==="
@@ -80,9 +91,10 @@ parity() {
 }
 parity "slide count"          'data-slide='
 parity "solari cells"         'class="solari-board__cell"'
-parity "boarding-pass parts"  'class="boarding-pass'
-parity "deck-nav children"    'class="deck-nav__'
-parity "section heads"        'class="sec-head"'
+parity "boarding-pass tabs"   'class="bp-tab'
+parity "deck-controls cells"  'class="deck-controls__'
+parity "slide heads"          'class="slide__head"'
+parity "trust alert blocks"   'class="deck-alert"'
 
 echo
 echo "passed: $PASS · failed: $FAIL"

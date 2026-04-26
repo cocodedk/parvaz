@@ -34,6 +34,32 @@ and tighter onboarding for non-technical users.
 milestone list and [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full
 data path.
 
+## 🚨 Trust warning — read this first
+
+**The relay operator can read every cookie, password, and message you
+send through the tunnel — in plaintext.**
+
+Parvaz works by terminating TLS locally with a MITM certificate, then
+re-encapsulating the request inside an Apps Script JSON envelope
+(`{ k, m, u, h, b }` — key, method, URL, **headers including
+`Cookie` / `Authorization`**, **body including form fields with
+passwords**). The Apps Script runtime owned by your relay operator
+calls `UrlFetchApp.fetch(target)` with that data. Both they and Google
+can log everything end-to-end, including `Set-Cookie` in responses.
+
+This is a **fundamental property** of MITM-via-relay architecture, not
+a bug, not something a future release can fix while keeping the
+domain-fronting design.
+
+> **Do NOT sign in to email, banking, social, or any service through
+> Parvaz unless you trust the relay operator 100 % — not 99.99 %.**
+> Use this tunnel only for read-only browsing, public information, or
+> with throwaway accounts you do not care about losing.
+
+If the operator is **you** (you deployed your own `Code.gs`) the only
+attack surface is Google's own logging. If the operator is **someone
+else**, every credential you submit is theirs.
+
 ## Honest scope
 
 | | |
@@ -111,20 +137,108 @@ https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
 
 F-Droid / sideload only. Google Play Store is not a viable channel.
 
-## What you need on the server side
+## Helper guide — deploy the relay on Apps Script
 
-A **Google Apps Script** deployment (free tier — 20k requests/day per
-deployment). One-time `Code.gs` deploy on your own Google account:
+You (the helper) need **a free Google account**. The end user never
+opens script.google.com. Total time: ~5 minutes, once. Free-tier
+quota: ~20k requests/day per deployment.
 
-1. Open https://script.google.com → New project.
-2. Paste [`reference/apps_script/Code.gs`](./reference/apps_script/Code.gs) (or the identical file from upstream).
-3. Change `AUTH_KEY` to a strong random string.
-4. Deploy → New deployment → Web app → Execute as Me → Anyone.
-5. Copy the deployment URL — extract the `AKfycby...` segment.
+### 1. Create the Apps Script project
 
-Share the combined `parvaz://<deployment-id>/<access-key>` URL with
-users via a **secure messenger (Signal or Telegram — not WhatsApp)** or
-a QR code.
+1. Open <https://script.google.com> → click **New project**.
+2. Delete the default `Code.gs` contents.
+3. Open
+   [`reference/apps_script/Code.gs`](./reference/apps_script/Code.gs)
+   in the Parvaz repo, copy the entire file, paste into the editor.
+
+### 2. Set a strong AUTH\_KEY
+
+Generate a long random key — do not reuse a password:
+
+```sh
+openssl rand -base64 32
+# example output: 7dF9KmY3pQ8xV2nR5tL1aB4cE6gH9jM=
+```
+
+In `Code.gs`, replace the placeholder:
+
+```js
+var AUTH_KEY = "7dF9KmY3pQ8xV2nR5tL1aB4cE6gH9jM=";  // your value
+```
+
+Save: **File → Save** (`Ctrl/Cmd+S`).
+
+### 3. Deploy as a Web App
+
+1. **Deploy → New deployment → ⚙ Web app**.
+2. **Execute as:** Me (your-email@gmail.com).
+3. **Who has access:** Anyone.
+4. Click **Deploy**. Google asks for OAuth consent the first time → **Allow**.
+
+### 4. Find the URL that goes into the Parvaz app
+
+Apps Script gives you a **Web app URL** that looks like:
+
+```
+https://script.google.com/macros/s/AKfycbyLONGRANDOMTOKEN/exec
+                                    └────────┬────────┘
+                                       deployment-id
+                                  (the only piece you need)
+```
+
+You can re-open it any time: **Deploy → Manage deployments →** copy
+the Web app URL.
+
+**Sanity test:** open that URL in a browser. You should see
+`{"e":"unauthorized"}` — that proves the deployment is live and
+correctly rejecting unauthenticated calls.
+
+### 5. Build the parvaz:// link
+
+Combine the **deployment-id** from step 4 with the **AUTH\_KEY** from
+step 2:
+
+```
+parvaz://<deployment-id>/<AUTH_KEY>#<display-name>
+```
+
+Concrete example (based on the values above):
+
+```
+parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY3pQ8xV2nR5tL1aB4cE6gH9jM=#my-relay
+```
+
+The `#display-name` fragment is just a label the user will see in the
+Parvaz UI — it never leaves the device.
+
+### 6. Share the link via a SECURE messenger ONLY
+
+This URL contains the AUTH\_KEY in plaintext. Anyone who sees it can
+use your relay (and burn your quota or read traffic if you also added
+a logger).
+
+| Channel | OK? | Why |
+|---|:-:|---|
+| Signal | ✅ | end-to-end · default |
+| Telegram **Secret Chat** | ✅ | end-to-end if you start a Secret Chat |
+| Telegram regular chat | ⚠ | server-readable; better than WhatsApp, worse than Signal |
+| WhatsApp | ❌ | Meta-readable cloud backup |
+| SMS | ❌ | carrier-readable |
+| Email | ❌ | server-readable, indexable |
+| QR code shown in person | ✅ | nothing transits the network |
+
+### 7. Limits and rotation
+
+- **One relay per Google account** (Apps Script TOS — do not centralize).
+- **~20k UrlFetch / day** free-tier quota.
+- **30 s** per fetch · **6 min** per script execution.
+- To rotate the key: change `AUTH_KEY` in `Code.gs` → **Deploy → Manage
+  deployments → Edit (pencil)** → Version: New → Deploy. The
+  deployment-id stays the same; only the AUTH\_KEY (and therefore the
+  parvaz:// URL you share) changes.
+
+References: [Apps Script · Web Apps](https://developers.google.com/apps-script/guides/web) ·
+[`reference/apps_script/Code.gs`](./reference/apps_script/Code.gs).
 
 ## Build from Source
 

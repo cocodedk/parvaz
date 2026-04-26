@@ -1,0 +1,102 @@
+/* =====================================================================
+   PARVAZ · Base — root vars, reset, body/links/code,
+   document chrome (strip, cropmarks, sheet, title meta), RTL base
+   ===================================================================== */
+
+:root {
+  --paper:    #F1E8D4;
+  --paper-2:  #EADDBF;
+  --paper-3:  #DDCDA5;
+  --paper-4:  #C9B584;
+  --ink:      #1A1410;
+  --ink-2:    #4A3F34;
+  --ink-3:    #7E7260;
+  --rule:     rgba(26,20,16,0.18);
+  --grid:     rgba(26,20,16,0.05);
+  --stamp:    #A8361C;
+  --stamp-2:  #7C1F12;
+  --burnt:    #B5581A;
+  --seal:     #6B4A1A;
+  --safe:     #3A5634;
+
+  --mono:     'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --display:  'Redaction', 'Times New Roman', serif;
+  --stamp-face: 'Redaction 35', 'Redaction', serif;
+  --fa:       'Vazirmatn', 'Tahoma', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--paper);
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.05 0 0 0 0.2 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.7'/></svg>"),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 220px 220px, 28px 28px, 28px 28px;
+  background-attachment: fixed, fixed, fixed;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+[dir="rtl"] body { font-family: var(--fa); }
+
+a { color: var(--stamp); text-decoration: none; border-bottom: 1px dotted currentColor; transition: background 0.08s; }
+a:hover { background: var(--paper-3); }
+
+code { font-family: var(--mono); background: var(--paper-3); padding: 1px 6px; font-size: 0.9em; border-radius: 1px; }
+
+.doc-strip {
+  border-top: 4px double var(--ink);
+  border-bottom: 1px solid var(--ink-2);
+  padding: 12px 36px;
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-2);
+  background: rgba(26,20,16,0.03);
+}
+.doc-strip strong { color: var(--ink); letter-spacing: 0.24em; }
+
+.crop { position: fixed; width: 22px; height: 22px; border: 1px solid var(--ink-2); z-index: 50; pointer-events: none; }
+.crop.tl { top: 14px; left: 14px; border-right: 0; border-bottom: 0; }
+.crop.tr { top: 14px; right: 14px; border-left: 0; border-bottom: 0; }
+.crop.bl { bottom: 14px; left: 14px; border-right: 0; border-top: 0; }
+.crop.br { bottom: 14px; right: 14px; border-left: 0; border-top: 0; }
+
+.sheet { max-width: 1020px; margin: 0 auto; padding: 56px 40px 20px; width: 100%; flex: 1; }
+
+.title-block {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 32px;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 44px 0 40px;
+  margin-bottom: 52px;
+  position: relative;
+}
+.title-block::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 0; right: 0; height: 5px;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.title-meta {
+  border-right: 1px dashed var(--rule);
+  padding-right: 24px;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  line-height: 1.7;
+}
+.title-meta dt { color: var(--ink-2); font-weight: 700; margin-top: 10px; }
+.title-meta dt:first-child { margin-top: 0; }
+.title-meta dd { color: var(--ink); letter-spacing: 0.08em; text-transform: none; font-size: 11px; margin-top: 2px; }

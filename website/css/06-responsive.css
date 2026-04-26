@@ -1,0 +1,76 @@
+/* =====================================================================
+   Responsive (≤780px) + RTL — for the static parchment layout only
+   (the airline-deck has its own scoped responsive in 10-deck-end.css)
+   ===================================================================== */
+
+@media (max-width: 780px) {
+  .sheet { padding: 36px 20px 12px; }
+  .doc-strip { padding: 10px 18px; font-size: 9px; letter-spacing: 0.14em; }
+  .title-block { grid-template-columns: 1fr; gap: 16px; padding: 28px 0 28px; margin-bottom: 36px; }
+  .title-meta { border-right: 0; border-bottom: 1px dashed var(--rule); padding: 0 0 18px 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; }
+  .brand { font-size: clamp(56px, 16vw, 110px); gap: 14px; margin-bottom: 18px; }
+  .sec-head { grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 10px 14px; }
+  .sec-stamp { grid-column: 1 / -1; justify-self: start; }
+  .spec { grid-template-columns: auto 1fr; row-gap: 4px; column-gap: 14px; padding: 14px 0; }
+  .spec-val { grid-column: 1 / -1; }
+  .schematic-body { padding: 22px 18px; font-size: 11px; }
+  .listing-body { padding: 14px 18px; font-size: 11.5px; }
+  footer { grid-template-columns: 1fr; text-align: center; gap: 8px; padding: 20px 22px; }
+  footer .right { text-align: center; }
+  .lang-switch { top: auto; bottom: 22px; right: 22px; }
+  .crop { display: none; }
+
+  .boarding-pass { grid-template-columns: 1fr; }
+  .boarding-pass__main {
+    border-right: none; border-bottom: 1.5px dashed var(--ink-3);
+  }
+  .boarding-pass__main::before  { top: auto; bottom: -14px; right: -14px; }
+  .boarding-pass__main::after   { top: auto; bottom: -14px; right: auto; left: -14px; }
+  [dir="rtl"] .boarding-pass { grid-template-columns: 1fr; }
+  [dir="rtl"] .boarding-pass__main {
+    order: 1; border-left: none; border-bottom: 1.5px dashed var(--ink-3);
+  }
+  [dir="rtl"] .boarding-pass__stub { order: 2; }
+  .solari-board__rows { grid-template-columns: 70px 1fr 56px 100px; }
+  .solari-board__cell { padding: 10px 14px; font-size: 11px; }
+  .solari-board__col-head { font-size: 8px; padding: 6px 14px; }
+}
+
+[dir="rtl"] .doc-strip, [dir="rtl"] .stamp, [dir="rtl"] .btn,
+[dir="rtl"] .lang-switch, [dir="rtl"] .sec-stamp, [dir="rtl"] .spec-key,
+[dir="rtl"] .tagline, [dir="rtl"] .notam-head, [dir="rtl"] footer {
+  font-family: var(--fa);
+  letter-spacing: 0;
+}
+[dir="rtl"] .tagline { letter-spacing: 0.08em; }
+[dir="rtl"] .sec-num, [dir="rtl"] .spec-num { font-family: var(--display); letter-spacing: 0; }
+[dir="rtl"] .sec-title { font-family: var(--fa); font-weight: 800; letter-spacing: 0; }
+[dir="rtl"] .brand { flex-direction: row-reverse; }
+[dir="rtl"] .brand .fa-name { font-family: var(--fa); font-weight: 800; color: var(--ink); }
+[dir="rtl"] .brand .en-name { font-family: var(--display); color: var(--ink-3); font-size: 0.48em; font-weight: 400; }
+[dir="rtl"] .brand .en-name::after { display: none; }
+[dir="rtl"] .title-meta { text-transform: none; }
+[dir="rtl"] .title-meta dt { letter-spacing: 0; font-size: 11px; }
+[dir="rtl"] .title-meta dd { letter-spacing: 0; font-size: 12px; }
+[dir="rtl"] .lang-switch { right: auto; left: 30px; font-family: var(--mono); letter-spacing: 0.26em; }
+[dir="rtl"] .listing, [dir="rtl"] .schematic-body, [dir="rtl"] .listing-body, [dir="rtl"] .listing-head, [dir="rtl"] .schematic-head, [dir="rtl"] .schematic-foot {
+  direction: ltr; text-align: left;
+  font-family: var(--mono);
+  letter-spacing: 0.2em;
+}
+[dir="rtl"] .schematic-body, [dir="rtl"] .listing-body { letter-spacing: 0; }
+[dir="rtl"] .sig { font-family: var(--display); }
+
+[dir="rtl"] .boarding-pass { grid-template-columns: 230px 1fr; }
+[dir="rtl"] .boarding-pass__main {
+  border-right: none; border-left: 1.5px dashed var(--ink-3);
+  order: 2;
+}
+[dir="rtl"] .boarding-pass__main::before,
+[dir="rtl"] .boarding-pass__main::after { right: auto; left: -14px; }
+[dir="rtl"] .boarding-pass__stub { order: 1; direction: rtl; text-align: right; }
+[dir="rtl"] .solari-board__head, [dir="rtl"] .solari-board__col-head { direction: ltr; }
+
+@media (max-width: 780px) {
+  [dir="rtl"] .lang-switch { left: 22px; right: auto; }
+}
