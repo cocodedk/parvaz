@@ -206,9 +206,53 @@ parvaz://<span class="hl">&lt;deployment-id&gt;</span>/<span class="hl">&lt;acce
 <span class="c"># 3. user: install parvaz.apk and tap the parvaz:// link (or scan QR)</span>
 curl -LO https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
 adb install Parvaz.apk
-<span class="c"># install the MITM certificate when prompted, then tap Connect</span>
+<span class="c"># tap "Open Settings" — Parvaz drops parvaz-ca.crt into Downloads.</span>
+<span class="c"># walk through Android Settings → Install certificate (see §5.5).</span>
+<span class="c"># return to Parvaz; it auto-verifies and advances to Connect.</span>
 
 <span class="c"># 4. fly (in Chrome / Firefox).</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§5.5</span>
+      <h2 class="sec-title">Certificate install · in Settings</h2>
+      <span class="sec-stamp">Manual · once · the gnarly part</span>
+    </div>
+    <div class="sec-body">
+      <p>Android 11 and later won't let an app install a CA certificate on its own. When you tap <strong>Open Settings</strong> in Parvaz, the app drops <code>parvaz-ca.crt</code> into your <strong>Downloads</strong> folder, then opens Android Settings as close as it can get. From there you walk the rest manually — once. Pre-condition: you must have a screen lock (PIN, pattern, or password). Android refuses CA install on devices without one.</p>
+    </div>
+    <div class="listing">
+      <div class="listing-head">
+        <span>proc · cert.001 · samsung</span>
+        <span>One UI 6 / Android 14</span>
+      </div>
+      <div class="listing-body"><span class="c"># SAMSUNG (Galaxy S23 / A52s / similar — One UI 6.x):</span>
+Settings → <span class="hl">Security and privacy</span>
+        → <span class="hl">More security settings</span>
+        → <span class="hl">Install from device storage</span> → <span class="hl">CA certificate</span>
+        → pick <span class="secret">parvaz-ca.crt</span> from Downloads
+        → tap <span class="hl">Install anyway</span> on the warning</div>
+    </div>
+    <div class="listing">
+      <div class="listing-head">
+        <span>proc · cert.001 · pixel / aosp</span>
+        <span>Android 14 / 15</span>
+      </div>
+      <div class="listing-body"><span class="c"># PIXEL / stock Android (Android 14, 15 — labels identical):</span>
+Settings → <span class="hl">Security &amp; privacy</span>
+        → <span class="hl">More security &amp; privacy</span>
+        → <span class="hl">Encryption &amp; credentials</span>
+        → <span class="hl">Install a certificate</span> → <span class="hl">CA certificate</span>
+        → pick <span class="secret">parvaz-ca.crt</span> from Downloads
+        → tap <span class="hl">Install anyway</span> on the warning</div>
+    </div>
+    <div class="sec-body">
+      <p><strong>Can't find the path?</strong> In Settings, tap the magnifying-glass search icon and type <code>CA certificate</code>. The first result will breadcrumb the exact menu chain on your device's skin.</p>
+      <p><strong>About the warning.</strong> Android shows a dialog titled <em>"Your data won't be private"</em> with a long paragraph and two buttons — <em>Don't install</em> and <em>Install anyway</em>. The dialog is correct in principle: a malicious CA could intercept your traffic. In Parvaz's case the CA was generated on <em>your</em> device, on first launch, and its private key never leaves <code>filesDir</code>. Tap <strong>Install anyway</strong>.</p>
+      <p><strong>What happens after.</strong> Walk back to Parvaz (gesture back, or app switcher). The app's <code>onResume</code> handler walks the user CA store, matches by SHA-256, and advances to VPN permission within a second. If verification fails, the screen offers a Retry — usually it's a stale Settings cache; one retry is enough.</p>
+      <p><strong>Apps that still don't work.</strong> Browsers (Chrome, Firefox) trust user CAs and will tunnel. Instagram / Telegram / WhatsApp / banking apps reject user-installed CAs by design and will <em>not</em> tunnel — same Android limitation as every MITM proxy. If you need those apps tunneled, pair Parvaz with xray + a VPS.</p>
     </div>
   </section>
 

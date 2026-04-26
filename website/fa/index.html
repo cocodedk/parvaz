@@ -204,9 +204,55 @@ parvaz://<span class="hl">&lt;شناسهٔ-استقرار&gt;</span>/<span class
 <span class="c"># ۳. کاربر: پرواز را نصب می‌کند، روی لینک می‌زند (یا QR را اسکن می‌کند)</span>
 curl -LO https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
 adb install Parvaz.apk
-<span class="c"># وقتی پرسید، گواهی MITM را نصب کنید، سپس Connect را بزنید</span>
+<span class="c"># «بازکردن تنظیمات» را بزنید — پرواز فایل parvaz-ca.crt را در Downloads می‌گذارد.</span>
+<span class="c"># مسیر تنظیمات اندروید را دنبال کنید (به §۵.۵ مراجعه کنید).</span>
+<span class="c"># به پرواز برگردید؛ خودکار تأیید می‌شود و به Connect می‌رود.</span>
 
 <span class="c"># ۴. پرواز (در Chrome / Firefox).</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§۵.۵</span>
+      <h2 class="sec-title">نصب گواهی · در تنظیمات</h2>
+      <span class="sec-stamp">دستی · یک بار · بخش پیچیده</span>
+    </div>
+    <div class="sec-body">
+      <p>اندروید ۱۱ به بعد اجازه نمی‌دهد یک برنامه گواهی CA را خودش نصب کند. وقتی در پرواز روی <strong>«بازکردن تنظیمات»</strong> می‌زنید، برنامه فایل <code>parvaz-ca.crt</code> را در پوشهٔ <strong>Downloads</strong> قرار می‌دهد و سپس تنظیمات اندروید را تا حد امکان نزدیک به نقطهٔ نصب باز می‌کند. از آن‌جا به بعد را — فقط یک بار — به‌صورت دستی پیش می‌برید. پیش‌نیاز: گوشی باید قفل صفحه (PIN، الگو یا رمز) داشته باشد. اندروید بدون قفل صفحه، نصب گواهی را نمی‌پذیرد.</p>
+    </div>
+    <div class="listing">
+      <div class="listing-head">
+        <span>proc · cert.001 · samsung</span>
+        <span>One UI 6 / Android 14</span>
+      </div>
+      <div class="listing-body"><span class="c"># سامسونگ (Galaxy S23 / A52s / مشابه — One UI 6.x):</span>
+Settings → <span class="hl">Security and privacy</span>            <span class="c">(امنیت و حریم خصوصی)</span>
+        → <span class="hl">More security settings</span>           <span class="c">(تنظیمات امنیتی بیشتر)</span>
+        → <span class="hl">Install from device storage</span>      <span class="c">(نصب از حافظهٔ دستگاه)</span>
+        → <span class="hl">CA certificate</span>                   <span class="c">(گواهی CA)</span>
+        → فایل <span class="secret">parvaz-ca.crt</span> را از Downloads انتخاب کنید
+        → روی هشدار، <span class="hl">Install anyway</span> را بزنید   <span class="c">(به‌هرحال نصب کن)</span></div>
+    </div>
+    <div class="listing">
+      <div class="listing-head">
+        <span>proc · cert.001 · pixel / aosp</span>
+        <span>Android 14 / 15</span>
+      </div>
+      <div class="listing-body"><span class="c"># Pixel / اندروید استاندارد (نسخه‌های ۱۴ و ۱۵ — برچسب‌ها یکسان):</span>
+Settings → <span class="hl">Security &amp; privacy</span>           <span class="c">(امنیت و حریم خصوصی)</span>
+        → <span class="hl">More security &amp; privacy</span>       <span class="c">(امنیت و حریم خصوصی بیشتر)</span>
+        → <span class="hl">Encryption &amp; credentials</span>      <span class="c">(رمزگذاری و گواهی‌نامه‌ها)</span>
+        → <span class="hl">Install a certificate</span>           <span class="c">(نصب یک گواهی)</span>
+        → <span class="hl">CA certificate</span>                  <span class="c">(گواهی CA)</span>
+        → فایل <span class="secret">parvaz-ca.crt</span> را از Downloads انتخاب کنید
+        → روی هشدار، <span class="hl">Install anyway</span> را بزنید   <span class="c">(به‌هرحال نصب کن)</span></div>
+    </div>
+    <div class="sec-body">
+      <p><strong>مسیر را پیدا نمی‌کنید؟</strong> در تنظیمات، روی آیکن ذره‌بین جست‌وجو بزنید و عبارت <code>CA certificate</code> را تایپ کنید. اولین نتیجه، مسیر منوی دقیق روی پوستهٔ گوشی شما را نشان می‌دهد.</p>
+      <p><strong>دربارهٔ پنجرهٔ هشدار.</strong> اندروید پنجره‌ای با عنوان <em>«Your data won't be private»</em> («اطلاعات شما خصوصی نخواهد ماند») نمایش می‌دهد، با متنی طولانی و دو دکمه: <em>Don't install</em> و <em>Install anyway</em>. این هشدار اصولاً درست است: یک CA سوءاستفاده‌گر می‌تواند ترافیک شما را شنود کند. در مورد پرواز، CA همان لحظهٔ اول روی <em>گوشی شما</em> ساخته می‌شود و کلید خصوصی آن هرگز از <code>filesDir</code> خارج نمی‌شود. <strong>Install anyway</strong> را بزنید.</p>
+      <p><strong>بعدش چه می‌شود.</strong> به پرواز برگردید (با اشارهٔ بازگشت یا تعویض اپ). کنترل‌گر <code>onResume</code> برنامه، فروشگاه CAهای کاربری را پیمایش می‌کند، با SHA-256 تطبیق می‌دهد، و در کمتر از یک ثانیه به مرحلهٔ اجازهٔ VPN می‌رود. اگر تأیید موفق نشد، صفحه دکمهٔ «تلاش دوباره» نمایش می‌دهد — معمولاً به دلیل تأخیر در به‌روزرسانی فروشگاه است و یک بار تلاش کافی است.</p>
+      <p><strong>اپ‌هایی که هنوز کار نمی‌کنند.</strong> مرورگرها (Chrome، Firefox) به CAهای کاربر اعتماد می‌کنند و تونل می‌شوند. Instagram، Telegram، WhatsApp، اپ‌های بانکی به‌صورت پیش‌فرض گواهی نصب‌شدهٔ کاربر را رد می‌کنند و <em>تونل نمی‌شوند</em> — این محدودیت عمومی اندروید برای هر پراکسی MITM است. اگر به آن اپ‌ها نیاز دارید، پرواز را با xray + VPS ترکیب کنید.</p>
     </div>
   </section>
 

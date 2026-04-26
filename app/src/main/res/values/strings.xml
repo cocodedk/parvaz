@@ -36,17 +36,22 @@
     <string name="ca_install_no_lock_body">اندروید برای نصب گواهی به قفل صفحه نیاز دارد — یک PIN یا الگو تنظیم کنید و دوباره تلاش کنید</string>
     <string name="ca_install_steps_fallback">اگر این مسیر را نمی‌بینید، در تنظیمات دنبال «CA certificate» یا «گواهی CA» بگردید</string>
 
-    <!-- CA install — Samsung OneUI step labels (Farsi). -->
-    <string name="ca_step_1_samsung">۱. بیومتریک و امنیت</string>
-    <string name="ca_step_2_samsung">۲. تنظیمات امنیتی دیگر</string>
+    <!-- CA install — Samsung OneUI 6 step labels (Farsi). Verbatim
+         OneUI 6.0.1 menu wording: Security and privacy → More security
+         settings → Install from device storage → CA certificate. -->
+    <string name="ca_step_1_samsung">۱. امنیت و حریم خصوصی</string>
+    <string name="ca_step_2_samsung">۲. تنظیمات امنیتی بیشتر</string>
     <string name="ca_step_3_samsung">۳. نصب از حافظهٔ دستگاه ← گواهی CA</string>
     <string name="ca_step_4_samsung">۴. parvaz-ca.crt را از Downloads انتخاب کنید</string>
     <string name="ca_step_5_samsung">۵. به پرواز برگردید</string>
 
-    <!-- CA install — AOSP step labels (Farsi). -->
+    <!-- CA install — AOSP / Pixel step labels (Farsi). Verified against
+         android14-release Settings strings.xml: Security & privacy →
+         More security & privacy → Encryption & credentials →
+         Install a certificate → CA certificate. -->
     <string name="ca_step_1_aosp">۱. امنیت و حریم خصوصی</string>
-    <string name="ca_step_2_aosp">۲. امنیت بیشتر ← رمزگذاری و گواهی‌نامه‌ها</string>
-    <string name="ca_step_3_aosp">۳. نصب گواهی ← گواهی CA</string>
+    <string name="ca_step_2_aosp">۲. امنیت و حریم خصوصی بیشتر ← رمزگذاری و گواهی‌نامه‌ها</string>
+    <string name="ca_step_3_aosp">۳. نصب یک گواهی ← گواهی CA</string>
     <string name="ca_step_4_aosp">۴. parvaz-ca.crt را از Downloads انتخاب کنید</string>
     <string name="ca_step_5_aosp">۵. به پرواز برگردید</string>
 
