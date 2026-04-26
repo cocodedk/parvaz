@@ -3,6 +3,7 @@ package relay
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -27,12 +28,14 @@ type CoalescerConfig struct {
 // flush is fire-and-forget so a slow Apps Script call does not block
 // new submissions from being queued for the next batch.
 type Coalescer struct {
-	relay    *Relay
-	cfg      CoalescerConfig
-	submit   chan *coalescerSubmission
-	done     chan struct{}
-	closeOnce sync.Once
-	flushers sync.WaitGroup
+	relay       *Relay
+	cfg         CoalescerConfig
+	submit      chan *coalescerSubmission
+	done        chan struct{}
+	closeOnce   sync.Once
+	flushers    sync.WaitGroup
+	batchCtx    context.Context
+	batchCancel context.CancelFunc
 }
 
 type coalescerSubmission struct {
@@ -54,11 +57,14 @@ func NewCoalescer(r *Relay, cfg CoalescerConfig) *Coalescer {
 	if cfg.Window < 0 {
 		cfg.Window = 0
 	}
+	batchCtx, batchCancel := context.WithCancel(context.Background())
 	c := &Coalescer{
-		relay:  r,
-		cfg:    cfg,
-		submit: make(chan *coalescerSubmission),
-		done:   make(chan struct{}),
+		relay:       r,
+		cfg:         cfg,
+		submit:      make(chan *coalescerSubmission),
+		done:        make(chan struct{}),
+		batchCtx:    batchCtx,
+		batchCancel: batchCancel,
 	}
 	go c.run()
 	return c
@@ -86,10 +92,14 @@ func (c *Coalescer) Do(ctx context.Context, req protocol.Request) (*protocol.Res
 	}
 }
 
-// Close stops accepting new submissions, drains any pending batch,
-// and waits for in-flight flushes to complete.
+// Close stops accepting new submissions, cancels in-flight upstream
+// POSTs (via the batch ctx), and waits for in-flight flushers to
+// return. Safe to call more than once.
 func (c *Coalescer) Close() {
-	c.closeOnce.Do(func() { close(c.done) })
+	c.closeOnce.Do(func() {
+		close(c.done)
+		c.batchCancel()
+	})
 	c.flushers.Wait()
 }
 
@@ -153,8 +163,18 @@ func (c *Coalescer) dispatch(pending []*coalescerSubmission) {
 	for i, s := range pending {
 		items[i] = s.req
 	}
-	bresp, err := c.relay.DoBatch(context.Background(), protocol.BatchRequest{Items: items})
+	bresp, err := c.relay.DoBatch(c.batchCtx, protocol.BatchRequest{Items: items})
 	if err != nil {
+		for _, s := range pending {
+			s.result <- coalescerResult{err: err}
+		}
+		return
+	}
+	// Length mismatch would otherwise panic on bresp.Items[i] below — a
+	// malformed server reply should not bring down the relay.
+	if len(bresp.Items) != len(pending) {
+		err := fmt.Errorf("relay: batch length mismatch: server returned %d items, sent %d",
+			len(bresp.Items), len(pending))
 		for _, s := range pending {
 			s.result <- coalescerResult{err: err}
 		}

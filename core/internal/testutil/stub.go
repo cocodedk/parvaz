@@ -90,47 +90,42 @@ func (s *AppsScriptStub) handle(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, map[string]any{"e": err.Error()})
 		return
 	}
-	// Probe top-level shape: presence of q:[...] selects batch mode,
-	// matching Code.gs:35 (Array.isArray(req.q)).
-	var probe struct {
-		K string            `json:"k"`
-		Q []json.RawMessage `json:"q"`
-	}
-	if err := json.Unmarshal(raw, &probe); err != nil {
-		writeJSON(w, map[string]any{"e": "parse: " + err.Error()})
-		return
-	}
-	if probe.K != s.AuthKey {
-		writeJSON(w, map[string]any{"e": "unauthorized"})
-		return
-	}
-	if probe.Q != nil {
-		s.handleBatch(w, r.URL.Path, probe.Q)
-		return
-	}
-	s.handleSingle(w, r.URL.Path, raw)
-}
-
-func (s *AppsScriptStub) handleSingle(w http.ResponseWriter, path string, raw []byte) {
+	// Single-decode of the union envelope: presence of q:[...] selects
+	// batch mode, matching Code.gs:35 (Array.isArray(req.q)). The
+	// single-mode fields stay zero for batch envelopes and vice versa.
 	var env struct {
-		M  string `json:"m"`
-		U  string `json:"u"`
-		B  string `json:"b"`
-		CT string `json:"ct"`
+		K  string            `json:"k"`
+		Q  []json.RawMessage `json:"q"`
+		M  string            `json:"m"`
+		U  string            `json:"u"`
+		B  string            `json:"b"`
+		CT string            `json:"ct"`
 	}
 	if err := json.Unmarshal(raw, &env); err != nil {
 		writeJSON(w, map[string]any{"e": "parse: " + err.Error()})
 		return
 	}
-	body, _ := base64.StdEncoding.DecodeString(env.B)
+	if env.K != s.AuthKey {
+		writeJSON(w, map[string]any{"e": "unauthorized"})
+		return
+	}
+	if env.Q != nil {
+		s.handleBatch(w, r.URL.Path, env.Q)
+		return
+	}
+	s.handleSingle(w, r.URL.Path, env.M, env.U, env.B, env.CT)
+}
+
+func (s *AppsScriptStub) handleSingle(w http.ResponseWriter, path, method, url, b64Body, ct string) {
+	body, _ := base64.StdEncoding.DecodeString(b64Body)
 	s.mu.Lock()
 	s.Log = append(s.Log, RequestLog{
-		Path: path, Method: env.M, URL: env.U,
-		Body: body, ContentType: env.CT,
+		Path: path, Method: method, URL: url,
+		Body: body, ContentType: ct,
 	})
 	s.mu.Unlock()
 
-	resp, ok := s.Routes[env.M+" "+env.U]
+	resp, ok := s.Routes[method+" "+url]
 	if !ok {
 		writeJSON(w, map[string]any{"s": 404, "h": map[string]string{}, "b": ""})
 		return
