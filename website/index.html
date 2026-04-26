@@ -100,7 +100,7 @@
       <span class="sec-stamp">Mission brief</span>
     </div>
     <div class="sec-body">
-      <p>Parvaz is a Farsi-first <strong>Android browser tunnel</strong> for Iranian users with no technical background. A helper deploys the upstream MasterHttpRelayVPN <code>Code.gs</code> on their own Google account; the user receives a <code>parvaz://</code> link over Telegram, scans a QR or taps Paste, installs a MITM certificate via Android Settings once, installs <strong>Firefox Nightly</strong> and flips one <code>about:config</code> flag, and taps Connect. Firefox Nightly traffic routes through Apps Script — TLS SNI <code>www.google.com</code>, HTTP Host <code>script.google.com</code>.</p>
+      <p>Parvaz is a Farsi-first <strong>Android browser tunnel</strong> for Iranian users with no technical background. A helper deploys the upstream MasterHttpRelayVPN <code>Code.gs</code> on their own Google account; the user receives a <code>parvaz://</code> link over a <strong>secure messenger (Signal or Telegram — not WhatsApp)</strong>, scans a QR or taps Paste, installs a MITM certificate via Android Settings once, installs <strong>Firefox Nightly</strong> and flips one <code>about:config</code> flag, and taps Connect. Firefox Nightly traffic routes through Apps Script — TLS SNI <code>www.google.com</code>, HTTP Host <code>script.google.com</code>.</p>
       <p><strong>Scope is Firefox Nightly only.</strong> Stock Chrome and stock Firefox ignore user-installed CAs on Android 7+ and will <em>not</em> tunnel HTTPS. Instagram / Telegram / WhatsApp / banking apps reject user CAs the same way. These are general Android MITM constraints, not Parvaz bugs. Architecturally aligned with the proven <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port; Parvaz's edge is NOTAM visual identity, Farsi-by-default UI, and tighter onboarding.</p>
     </div>
   </section>
@@ -114,12 +114,12 @@
     <div class="schematic">
       <div class="schematic-head">
         <span><strong>Sheet 02</strong> · Routing schematic · domain-fronted relay</span>
-        <span>Rev 2026.04.23</span>
+        <span>Rev 2026.04.26</span>
       </div>
       <pre class="schematic-body">
   ┌───────────────────────────────────┐
-  │  every app on your phone          │   <span class="note">◀─ instagram · firefox · whatsapp</span>
-  └────────────────┬──────────────────┘
+  │  Firefox Nightly · flag enabled   │   <span class="note">◀─ stock browsers + native apps</span>
+  └────────────────┬──────────────────┘      <span class="note">reject the user CA → fail TLS</span>
                    │  <span class="dir">VpnService + tun2socks</span>
                    ▼
   ┌───────────────────────────────────┐
@@ -127,7 +127,7 @@
   │   ── kotlin UI · go sidecar ──    │
   └────────────────┬──────────────────┘
                    │
-                   │  envelope:  { k · m · u · h · b }
+                   │  envelope:  { k · m · u · h · b }     <span class="note">← key · method · url · headers · body</span>
                    │
                    │  TLS  SNI   <span class="hl">www.google.com</span>             <span class="note">← what DPI sees</span>
                    │  HTTP Host  <span class="secret">script.google.com</span>          <span class="note">← real routing</span>
@@ -143,7 +143,7 @@
   └────────────────┬──────────────────┘
                    │  UrlFetchApp.fetch(target.com)
                    ▼
-            { s · h · b }                  <span class="note">← response envelope</span>
+            { s · h · b }                  <span class="note">← status · headers · body  (response envelope)</span>
 </pre>
       <div class="schematic-foot">
         <span>drawn by · parvaz.doc</span>
@@ -177,7 +177,7 @@
     </div>
     <div class="specs">
       <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">TLS SNI says <code>www.google.com</code>. HTTP Host says <code>script.google.com</code>. DPI sees the front; Google's edge routes by the real Host internally.</span></div>
-      <div class="spec"><span class="spec-num">02</span><span class="spec-key">Farsi-first onboarding</span><span class="spec-val">Paste a <code>parvaz://</code> URL or scan a QR from Telegram → install the MITM certificate once → tap Connect. UI defaults to Persian; English is the override.</span></div>
+      <div class="spec"><span class="spec-num">02</span><span class="spec-key">Farsi-first onboarding</span><span class="spec-val">Paste a <code>parvaz://</code> URL (forwarded via Signal or Telegram) or scan a QR → install the MITM certificate once → tap Connect. UI defaults to Persian; English is the override.</span></div>
       <div class="spec"><span class="spec-num">03</span><span class="spec-key">Firefox Nightly only — honest</span><span class="spec-val"><strong>Firefox Nightly</strong> with <code>security.enterprise_roots.enabled = true</code> tunnels HTTPS correctly. Stock Chrome, stock Firefox, Brave, Edge — all ignore user-installed CAs on Android 7+. Instagram, Telegram, WhatsApp, banking apps reject them too. General Android MITM limitation — pair with xray + VPS if you need those.</span></div>
       <div class="spec"><span class="spec-num">04</span><span class="spec-key">SNI-rewrite fast path</span><span class="spec-val">Google-owned hosts (google.com, youtube.com, fonts.googleapis.com, …) skip Apps Script entirely and tunnel directly via SNI rewrite. No MITM, no Apps Script quota, full speed.</span></div>
       <div class="spec"><span class="spec-num">05</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose front end, embedded Go SOCKS5 sidecar. No proprietary dependencies. Ships outside the Play Store — F-Droid and sideload only.</span></div>
@@ -201,7 +201,7 @@ open https://script.google.com   <span class="c"># New project → paste Code.gs
 Deploy → New deployment → Web app → Execute as Me → Anyone
 <span class="c"># copy the AKfycby... segment of the deployment URL</span>
 
-<span class="c"># 2. helper: share the access URL over Telegram</span>
+<span class="c"># 2. helper: share the access URL via Signal or Telegram (NOT WhatsApp)</span>
 parvaz://<span class="hl">&lt;deployment-id&gt;</span>/<span class="hl">&lt;access-key&gt;</span>#رلهٔ‌من
 
 <span class="c"># 3. user: install parvaz.apk and tap the parvaz:// link (or scan QR)</span>
@@ -292,7 +292,7 @@ security.enterprise_roots.enabled
     <div class="sec-body">
       <p><strong>That's all.</strong> Browse normally in Firefox Nightly — HTTPS pages tunnel through Parvaz. Other browsers continue to load Google-owned sites (YouTube, Google Search, Google Maps) via the SNI-rewrite fast path with no cert needed. Everything else needs Firefox Nightly.</p>
       <p><strong>Why only Nightly?</strong> Firefox uses its own root certificate store baked into the APK; only the Nightly channel exposes the <code>security.enterprise_roots.enabled</code> preference, which tells Firefox to <em>also</em> trust certificates from Android's user CA store. Stock Firefox, Beta, and Focus do not have it.</p>
-      <p><strong>Stores blocked?</strong> If both Play Store and Mozilla.org are unreachable, ask the helper who sent you the <code>parvaz://</code> link to forward the Firefox Nightly APK over Telegram. After install, verify the package id is <code>org.mozilla.fenix</code> in Settings → Apps → Firefox Nightly so you know it's the official build.</p>
+      <p><strong>Stores blocked?</strong> If both Play Store and Mozilla.org are unreachable, ask the helper who sent you the <code>parvaz://</code> link to forward the Firefox Nightly APK via the same secure messenger (Signal or Telegram — not WhatsApp). After install, verify the package id is <code>org.mozilla.fenix</code> in Settings → Apps → Firefox Nightly so you know it's the official build.</p>
       <p><strong>Apps that still don't work.</strong> Instagram, Telegram, WhatsApp, banking, streaming — they all reject user-installed CAs by design. General Android limitation. If you need those tunneled, pair Parvaz with xray + a VPS.</p>
       <p><strong>References:</strong> <a href="https://support.mozilla.org/en-US/kb/about-config-editor-firefox">Mozilla — about:config editor</a> · <a href="https://wiki.mozilla.org/CA/AdditionalTrustChanges">Mozilla — enterprise root CAs</a></p>
     </div>
