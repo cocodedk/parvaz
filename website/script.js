@@ -51,12 +51,29 @@
   let currentIdx = 0;
   const goTo = (idx) => {
     const next = Math.max(0, Math.min(slides.length - 1, idx));
-    slides[next]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const target = slides[next];
+    if (!target) return;
+    // Each slide is exactly 100vh; the track is also 100vh. So slide N's
+    // top in the track's scroll-space is N * track.clientHeight. We avoid
+    // target.offsetTop because it's measured against the closest positioned
+    // ancestor, which is the body (not the track) — so on mobile, where
+    // slides are themselves scroll containers, the math is wrong.
+    if (track && typeof track.scrollTo === 'function') {
+      track.scrollTo({ top: next * track.clientHeight, behavior: 'smooth' });
+    } else {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
   const go = (delta) => goTo(currentIdx + delta);
 
-  prevBtn?.addEventListener('click', () => go(-1));
-  nextBtn?.addEventListener('click', () => go(1));
+  // Pointerdown fires before click and isn't swallowed by Chrome Android's
+  // 300ms tap-delay heuristics on fixed elements.
+  const wireNav = (btn, delta) => {
+    if (!btn) return;
+    btn.addEventListener('click', (e) => { e.preventDefault(); go(delta); });
+  };
+  wireNav(prevBtn, -1);
+  wireNav(nextBtn, 1);
 
   const setActive = (idx) => {
     currentIdx = idx;
@@ -118,4 +135,29 @@
     else if (e.key === 'Home') goTo(0);
     else if (e.key === 'End')  goTo(slides.length - 1);
   });
+
+  // Self-test hook for test-deck.sh — only runs when URL has ?test=nav.
+  // Wraps scrollTo so the smooth-scroll behavior in goTo() runs instantly
+  // (otherwise we'd race the animation), clicks the next arrow, and writes
+  // the result to data-nav-test on <body>. Catches the offsetTop-vs-
+  // clientHeight regression we hit on Chrome Android.
+  if (track && /[?&]test=nav\b/.test(location.search)) {
+    // Force instant scroll for the test — both the CSS scroll-behavior
+    // (which makes scrollTop=N animate) and the explicit option in goTo's
+    // scrollTo({behavior:'smooth'}) need to be neutralized.
+    track.style.scrollBehavior = 'auto';
+    const realScrollTo = track.scrollTo.bind(track);
+    track.scrollTo = (opts) => realScrollTo({ ...opts, behavior: 'auto' });
+    setTimeout(() => {
+      const h = track.clientHeight;
+      const before = track.scrollTop;
+      nextBtn?.click();
+      const after = track.scrollTop;
+      const drift = Math.abs(after - h);
+      document.body.dataset.navTest = (drift < 4) ? 'pass' : 'fail';
+      document.body.dataset.navTestExpected = String(h);
+      document.body.dataset.navTestActual = String(after);
+      document.body.dataset.navTestBefore = String(before);
+    }, 50);
+  }
 })();

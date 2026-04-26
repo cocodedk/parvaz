@@ -135,44 +135,4 @@ body.airline-deck[dir="rtl"] .hero__tagline { border-left: none; border-right: 4
 body.airline-deck[dir="rtl"] .slide__kicker { margin-left: 0; margin-right: auto; }
 body.airline-deck[dir="rtl"] .route__hop::after { content: '◄'; right: auto; left: -14px; }
 
-@media (max-width: 780px) {
-  body.airline-deck { --header-h: 220px; --controls-h: 56px; }
-  body.airline-deck .deck-alert { font-size: 10px; padding: 7px 12px; gap: 10px; flex-wrap: wrap; }
-  body.airline-deck .deck-alert__stop { width: 24px; height: 24px; font-size: 11px; }
-  body.airline-deck .deck-alert__siren { font-size: 18px; }
-  body.airline-deck .bp-header { grid-template-columns: 1fr; }
-  body.airline-deck .bp-header__cell, body.airline-deck .bp-header__flight {
-    border-right: none; border-left: none;
-    border-bottom: 1.5px dashed var(--ink-3);
-    text-align: left; padding: 7px 16px;
-  }
-  body.airline-deck .bp-header__cell:last-child { text-align: left; border-bottom: none; }
-  body.airline-deck .bp-header__flight { padding: 7px 16px; min-width: 0; }
-  body.airline-deck .bp-header__flight .label,
-  body.airline-deck .bp-header__flight .value,
-  body.airline-deck .bp-header__flight .page {
-    display: inline-block; margin-right: 12px; margin-top: 0;
-  }
-  body.airline-deck .slide { padding: calc(var(--header-h) + 16px) 18px calc(var(--controls-h) + 16px); }
-  body.airline-deck .slide__head { flex-wrap: wrap; gap: 10px; }
-  body.airline-deck .slide--title, body.airline-deck .who, body.airline-deck .board, body.airline-deck .depart {
-    grid-template-columns: 1fr; gap: 22px;
-  }
-  body.airline-deck .hero__brand { font-size: clamp(40px, 12vw, 72px); gap: 14px; }
-  body.airline-deck .hero__brand img { width: 50px; height: 50px; border-radius: 14px; }
-  body.airline-deck .hero__welcome { font-size: clamp(16px, 4.6vw, 26px); white-space: normal; }
-  body.airline-deck .hero__tagline { font-size: 18px; }
-  body.airline-deck .route { grid-template-columns: 1fr 1fr; gap: 10px; }
-  body.airline-deck .route__hop::after { display: none; }
-  body.airline-deck .route__notes { grid-template-columns: 1fr; }
-  body.airline-deck .solari-board__rows { grid-template-columns: 60px 1fr 44px 76px; font-size: 10px; }
-  body.airline-deck .solari-board__col-head { font-size: 7px; padding: 5px 10px; }
-  body.airline-deck .solari-board__cell { padding: 8px 10px; font-size: 10px; }
-  body.airline-deck .check { grid-template-columns: 36px 1fr; }
-  body.airline-deck .check__stamp { grid-column: 1 / -1; justify-self: start; }
-  body.airline-deck .specs { grid-template-columns: 1fr; }
-  body.airline-deck .deck-dots button { width: 14px; }
-  body.airline-deck .deck-controls__lang { display: none; }
-  body.airline-deck .deck-lang-pill { top: 8px; right: 10px; padding: 4px 10px; font-size: 11px; }
-  body.airline-deck[dir="rtl"] .deck-lang-pill { left: 10px; right: auto; }
-}
+/* Mobile responsive moved to 11-deck-mobile.css to keep this file ≤200 lines. */

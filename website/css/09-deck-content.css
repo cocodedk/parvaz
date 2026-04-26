@@ -87,7 +87,7 @@ body.airline-deck .check__stamp {
 }
 body.airline-deck .check__stamp--manual { border-color: var(--stamp); color: var(--stamp); }
 
-body.airline-deck .slide--who { grid-template-rows: auto 1fr; }
+body.airline-deck .slide--who { grid-template-rows: auto auto 1fr; }
 body.airline-deck .who {
   display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
   align-self: center;
@@ -127,3 +127,28 @@ body.airline-deck .who__foot {
   font-size: 10px; letter-spacing: 0.16em;
   color: var(--ink-3); text-transform: uppercase;
 }
+
+/* Visible heads-up advisory — sits above the who-grid on slide 7. */
+body.airline-deck .heads-up {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  background: var(--paper-3);
+  border: 1.5px solid var(--stamp);
+  border-left-width: 5px;
+  font-family: var(--mono);
+  font-size: 13px; line-height: 1.5;
+  color: var(--ink);
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap;
+}
+body.airline-deck[dir="rtl"] .heads-up {
+  border-left-width: 1.5px; border-right-width: 5px;
+}
+body.airline-deck .heads-up__tag {
+  font-weight: 800; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: var(--stamp); color: var(--paper);
+  padding: 4px 10px; font-size: 11px;
+  flex-shrink: 0;
+}
+body.airline-deck .heads-up strong { color: var(--stamp-2); }
