@@ -74,9 +74,9 @@ internal fun CaInstallPrimary(phase: CaInstallPhase, onClick: () -> Unit) {
 /**
  * Secondary "نمایش فایل" / "Show file" button. `ACTION_VIEW` on the
  * exported .crt's content URI — usually opens the system Files app at
- * the file, helping users confirm `parvaz-ca.crt` is where Parvaz says
- * it is. Only rendered when an export has succeeded; the [onClick]
- * lambda is `null` until then.
+ * the file, helping users confirm the fingerprinted Parvaz CA file is
+ * where Parvaz says it is. Only rendered when an export has succeeded;
+ * the [onClick] lambda is `null` until then.
  */
 @Composable
 internal fun CaInstallShowFile(onClick: (() -> Unit)?) {

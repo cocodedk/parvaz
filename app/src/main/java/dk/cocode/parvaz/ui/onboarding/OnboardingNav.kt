@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,17 @@ fun OnboardingHost(
         else -> OnboardingStep.SPLASH
     }
     var step by rememberSaveable { mutableStateOf(startStep) }
+    // rememberSaveable persists `step` across config change AND process
+    // death — including past compositions where this host was never in
+    // the tree. A fresh deep link arriving on top of a stale saved
+    // SPLASH/CA_INSTALL value would otherwise leave the user stranded
+    // on the wrong step. Force IMPORT whenever the caller hands us a
+    // new deep-link payload.
+    LaunchedEffect(initialDeepLinkUrl, initialDeepLinkError) {
+        if (initialDeepLinkUrl != null || initialDeepLinkError != null) {
+            step = OnboardingStep.IMPORT
+        }
+    }
     // `Access` has no Saver; on recreation we re-derive from the caller's
     // alreadyImportedAccess, which MainActivity rereads from settings.
     var imported by remember { mutableStateOf(alreadyImportedAccess) }

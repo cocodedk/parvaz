@@ -13,7 +13,7 @@ onboarding.
 ║                            ANDROID PHONE                                      ║
 ║                                                                               ║
 ║  ┌─────────────────┐  ┌─────────────────┐                                     ║
-║  │  Chrome / Firefox app (browser traffic)                │                   ║
+║  │  Chrome (or any Chromium browser) — browser traffic    │                   ║
 ║  └────────┬────────┘  └────────┬────────┘                                     ║
 ║           │ TCP packets — captured transparently via VpnService               ║
 ║           └───────────────────┬┴────────────────────┘                         ║
@@ -102,9 +102,24 @@ onboarding.
 ## Why browsers only — the MITM honesty
 
 MITM works because **we control the CA the user installed** and present
-a leaf cert for whichever host the browser requests. Chrome and Firefox
-on Android honor user-installed CAs in the system store (with explicit
-opt-in on Android 7+ via our CA-install flow).
+a leaf cert for whichever host the browser requests. **Chrome on
+Android trusts user-installed CAs out of the box**, and Chrome's
+Certificate Transparency enforcement has an explicit carve-out for
+chains terminating in a user-installed CA — so the Parvaz leaf is
+accepted with no flags, no `about:config`, no root. Other Chromium
+browsers (Brave, Edge, Vivaldi) follow the same path and behave
+identically. This is the recommended browser story.
+
+**Firefox is the outlier.** Firefox Android uses NSS, not the system
+trust store, and only honors user CAs after flipping
+`security.enterprise_roots.enabled` in `about:config`. Stock Firefox /
+Beta / Focus hide `about:config`, so they cannot be configured at all.
+Firefox Nightly exposes `about:config` but [resets the flag to
+`false` on every restart](https://github.com/mozilla-mobile/fenix/issues/18990)
+— a Mozilla bug open since 2021. We do not recommend Firefox.
+
+**DuckDuckGo's browser** is Chromium-based but configured more strictly
+and rejects the Parvaz CA. Confirmed broken — do not use.
 
 **Instagram / Telegram / WhatsApp / banking apps** set
 `networkSecurityConfig` to trust **system CAs only** — they reject our
@@ -112,9 +127,9 @@ leaf. Their TLS handshake fails with cert validation errors. This is a
 deliberate Google policy decision (Android 7, API 24+ default) and there
 is no workaround short of rooting the device.
 
-So Parvaz's honest scope is: **browser traffic, plus Google-owned
-domains via SNI-rewrite** (which needs no MITM). Exactly what
-MasterHttpRelayVPN-RUST ships.
+So Parvaz's honest scope is: **Chromium browser traffic, plus
+Google-owned domains via SNI-rewrite** (which needs no MITM). Exactly
+what MasterHttpRelayVPN-RUST ships.
 
 ## Who writes what
 

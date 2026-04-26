@@ -45,8 +45,8 @@ class CaExporterInstrumentedTest {
             val resolver = context.contentResolver
             resolver.delete(
                 MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-                "${MediaStore.Downloads.DISPLAY_NAME} = ?",
-                arrayOf(testFilename),
+                "${MediaStore.Downloads.DISPLAY_NAME} LIKE ?",
+                arrayOf("parvaz-ca%.crt"),
             )
         }
     }
@@ -118,5 +118,27 @@ class CaExporterInstrumentedTest {
         // recycled the URI; the row count assertion above is the
         // authoritative idempotency check.
         @Suppress("UNUSED_VARIABLE") val unused = first
+    }
+
+    @Test
+    fun export_removesOlderParvazCaFilesFromDownloads() = runBlocking {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return@runBlocking
+
+        exporter.export("old".toByteArray(), "parvaz-ca-old.crt")
+        exporter.export("new".toByteArray(), "parvaz-ca-new.crt")
+
+        val cursor = context.contentResolver.query(
+            MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+            arrayOf(MediaStore.Downloads.DISPLAY_NAME),
+            "${MediaStore.Downloads.DISPLAY_NAME} LIKE ?",
+            arrayOf("parvaz-ca%.crt"),
+            null,
+        ) ?: error("query returned null")
+        cursor.use {
+            assertEquals("only the latest Parvaz CA export remains", 1, it.count)
+            assertTrue(it.moveToFirst())
+            val name = it.getString(it.getColumnIndexOrThrow(MediaStore.Downloads.DISPLAY_NAME))
+            assertEquals("parvaz-ca-new.crt", name)
+        }
     }
 }

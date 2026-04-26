@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>پرواز — پرواز از روی فیلتر. تونل مرورگر اندروید از روی Apps Script</title>
-<meta name="description" content="پرواز یک تونل مرورگر اندروید با اولویت زبان فارسی برای کاربران ایرانی است که ترافیک Firefox Nightly را از طریق یک رلهٔ Google Apps Script که خودتان مستقر کرده‌اید، با پنهان‌سازی TLS SNI عبور می‌دهد. Chrome و Firefox استاندارد در اندروید ۷+ گواهی‌های کاربر را نادیده می‌گیرند؛ Firefox Nightly با تنظیم security.enterprise_roots.enabled تنها مرورگر پشتیبانی‌شده است."/>
+<meta name="description" content="پرواز یک تونل مرورگر اندروید با اولویت زبان فارسی برای کاربران ایرانی است که ترافیک Chrome (و سایر مرورگرهای Chromium) را از طریق یک رلهٔ Google Apps Script که خودتان مستقر کرده‌اید، با پنهان‌سازی TLS SNI عبور می‌دهد. Chrome در اندروید گواهی نصب‌شدهٔ کاربر را به‌صورت پیش‌فرض می‌پذیرد — بدون پرچم، بدون about:config، بدون روت."/>
 <meta name="robots" content="index, follow"/>
 <meta name="keywords" content="پرواز, تونل مرورگر, اندروید, ایران, اپس اسکریپت, دامین فرانتینگ, masterhttprelayvpn, دور زدن فیلتر, vpnservice, کاتلین, go, فارسی, متن‌باز"/>
 <link rel="canonical" href="https://cocodedk.github.io/parvaz/fa/"/>
@@ -15,20 +15,20 @@
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="پرواز"/>
 <meta property="og:title" content="پرواز — پرواز از روی فیلتر"/>
-<meta property="og:description" content="تونل مرورگر اندروید با اولویت فارسی — ترافیک Firefox Nightly از طریق رلهٔ Google Apps Script شخصی شما با پنهان‌سازی SNI. یک APK، یک گواهی، یک تنظیم."/>
+<meta property="og:description" content="تونل مرورگر اندروید با اولویت فارسی — ترافیک Chrome از طریق رلهٔ Google Apps Script شخصی شما با پنهان‌سازی SNI. یک APK، یک گواهی، بدون تنظیم اضافه."/>
 <meta property="og:url" content="https://cocodedk.github.io/parvaz/fa/"/>
 <meta property="og:image" content="https://cocodedk.github.io/parvaz/og.png"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
-<meta property="og:image:alt" content="پرواز — سند بریفینگ پرواز رفع طبقه‌بندی‌شده با نشان پرواز، چیپ‌های فنی و تمبرهای لاستیکی نشان‌گر محدودهٔ Firefox Nightly و مجوز MIT."/>
+<meta property="og:image:alt" content="پرواز — سند بریفینگ پرواز رفع طبقه‌بندی‌شده با نشان پرواز، چیپ‌های فنی و تمبرهای لاستیکی نشان‌گر محدودهٔ مرورگرهای Chromium و مجوز MIT."/>
 <meta property="og:locale" content="fa_IR"/>
 <meta property="og:locale:alternate" content="en_US"/>
 
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="پرواز — پرواز از روی فیلتر"/>
-<meta name="twitter:description" content="تونل مرورگر اندروید با اولویت فارسی — Firefox Nightly از طریق رلهٔ Google Apps Script شخصی. domain fronting، بدون تله‌متری."/>
+<meta name="twitter:description" content="تونل مرورگر اندروید با اولویت فارسی — Chrome از طریق رلهٔ Google Apps Script شخصی. domain fronting، بدون تله‌متری."/>
 <meta name="twitter:image" content="https://cocodedk.github.io/parvaz/og.png"/>
-<meta name="twitter:image:alt" content="پرواز — بریفینگ پرواز · فقط Firefox Nightly · MIT 2026."/>
+<meta name="twitter:image:alt" content="پرواز — بریفینگ پرواز · مرورگرهای Chromium · MIT 2026."/>
 
 <link rel="icon" type="image/svg+xml" href="../parvaz-mark.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -41,7 +41,7 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "پرواز",
-  "description": "تونل مرورگر اندروید ساخته‌شده برای کاربران ایرانی بدون دانش فنی — ترافیک Firefox Nightly را از طریق یک رلهٔ Google Apps Script که خودتان یا دوستی آشنا به‌فن مستقر می‌کند، با پنهان‌سازی TLS SNI و MITM محلی روی دستگاه عبور می‌دهد. رابط Kotlin + Compose به صورت پیش‌فرض فارسی، هستهٔ Go برای SOCKS5. Chrome و Firefox استاندارد در اندروید ۷+ گواهی نصب‌شدهٔ کاربر را نادیده می‌گیرند — تنها Firefox Nightly با فعال‌سازی security.enterprise_roots.enabled در about:config آن را می‌پذیرد. اپلیکیشن‌های غیرمرورگری (بانک، پیام‌رسان، استریمینگ) نیز گواهی کاربر را رد می‌کنند و تونل نمی‌شوند.",
+  "description": "تونل مرورگر اندروید ساخته‌شده برای کاربران ایرانی بدون دانش فنی — ترافیک Chrome (و سایر مرورگرهای Chromium: Brave، Edge، Vivaldi) را از طریق یک رلهٔ Google Apps Script که خودتان یا دوستی آشنا به‌فن مستقر می‌کند، با پنهان‌سازی TLS SNI و MITM محلی روی دستگاه عبور می‌دهد. رابط Kotlin + Compose به صورت پیش‌فرض فارسی، هستهٔ Go برای SOCKS5. Chrome در اندروید گواهی نصب‌شدهٔ کاربر را به‌صورت پیش‌فرض می‌پذیرد — بدون پرچم، بدون about:config، بدون روت. اپلیکیشن‌های غیرمرورگری (بانک، پیام‌رسان، استریمینگ) به‌صورت پیش‌فرض گواهی کاربر را رد می‌کنند و تونل نمی‌شوند.",
   "url": "https://cocodedk.github.io/parvaz/fa/",
   "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
   "applicationCategory": "UtilitiesApplication",
@@ -132,7 +132,7 @@
           <div class="solari-board__cell">B12</div>
           <div class="solari-board__cell solari-board__cell--status-go">on time</div>
           <div class="solari-board__cell">PVZ 003</div>
-          <div class="solari-board__cell solari-board__cell--dest">flip · enterprise_roots</div>
+          <div class="solari-board__cell solari-board__cell--dest">open · chrome (no setup)</div>
           <div class="solari-board__cell">C7</div>
           <div class="solari-board__cell solari-board__cell--status-cleared">cleared</div>
           <div class="solari-board__cell">PVZ 004</div>
@@ -153,8 +153,8 @@
         <span class="slide__kicker">بریفینگ مأموریت</span>
       </div>
       <div class="slide__body">
-        <p>پرواز یک <strong>تونل مرورگر اندروید</strong> با اولویت زبان فارسی برای کاربران ایرانی بدون دانش فنی است. یک دوست آشنا به‌فن، فایل <code>Code.gs</code> از پروژهٔ MasterHttpRelayVPN را روی حساب گوگل خودش مستقر می‌کند؛ کاربر یک لینک <code>parvaz://</code> از طریق <strong>پیام‌رسان امن (سیگنال یا تلگرام — نه واتس‌اپ)</strong> دریافت می‌کند، آن را چسبانده یا QR را اسکن می‌کند، یک‌بار گواهی MITM را در تنظیمات اندروید نصب می‌کند، Firefox Nightly را نصب کرده و یک پرچم <code>about:config</code> را روشن می‌کند، سپس روی «اتصال» می‌زند.</p>
-        <p>ترافیک Firefox Nightly از روی Apps Script عبور می‌کند — TLS SNI <code>www.google.com</code>، HTTP Host <code>script.google.com</code>. از نظر معماری با پورت اثبات‌شدهٔ <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> هم‌راستاست؛ مزیت پرواز هویت بصری NOTAM، رابط فارسی پیش‌فرض، و راه‌اندازی فشرده‌تر برای مسافران غیرفنی است.</p>
+        <p>پرواز یک <strong>تونل مرورگر اندروید</strong> با اولویت زبان فارسی برای کاربران ایرانی بدون دانش فنی است. یک دوست آشنا به‌فن، فایل <code>Code.gs</code> از پروژهٔ MasterHttpRelayVPN را روی حساب گوگل خودش مستقر می‌کند؛ کاربر یک لینک <code>parvaz://</code> از طریق <strong>پیام‌رسان امن (سیگنال یا تلگرام — نه واتس‌اپ)</strong> دریافت می‌کند، آن را چسبانده یا QR را اسکن می‌کند، یک‌بار گواهی MITM را در تنظیمات اندروید نصب می‌کند، روی «اتصال» می‌زند و سپس در <strong>Chrome</strong> (یا هر مرورگر Chromium دیگر) به‌طور عادی مرور می‌کند.</p>
+        <p>ترافیک Chrome از روی Apps Script عبور می‌کند — TLS SNI <code>www.google.com</code>، HTTP Host <code>script.google.com</code>. Chrome در اندروید گواهی پرواز را به‌صورت پیش‌فرض می‌پذیرد؛ بدون پرچم، بدون <code>about:config</code>، بدون روت. از نظر معماری با پورت اثبات‌شدهٔ <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> هم‌راستاست؛ مزیت پرواز هویت بصری NOTAM، رابط فارسی پیش‌فرض، و راه‌اندازی فشرده‌تر برای مسافران غیرفنی است.</p>
       </div>
     </div>
   </section>
@@ -169,7 +169,7 @@
       </div>
       <div>
         <div class="route">
-          <div class="route__hop"><strong>Firefox Nightly</strong>پرچم فعال<div class="tag">مرورگر</div></div>
+          <div class="route__hop"><strong>Chrome</strong>بدون پرچم<div class="tag">مرورگر</div></div>
           <div class="route__hop route__hop--accent"><strong>پرواز</strong>VPN + tun2socks + sidecar<div class="tag">این APK</div></div>
           <div class="route__hop"><strong>لبهٔ گوگل</strong>SNI www.google.com<div class="tag">آنچه DPI می‌بیند</div></div>
           <div class="route__hop"><strong>script.google.com</strong>HTTP Host (مسیر واقعی)<div class="tag">داخلی</div></div>
@@ -215,7 +215,7 @@
       <div class="specs">
         <div class="spec"><span class="spec-num">۰۱</span><span class="spec-key">Domain fronting</span><span class="spec-val">SNI <code>www.google.com</code> · Host <code>script.google.com</code>. DPI جلوی صحنه را می‌بیند؛ گوگل بر اساس Host مسیریابی می‌کند.</span></div>
         <div class="spec"><span class="spec-num">۰۲</span><span class="spec-key">راه‌اندازی فارسی</span><span class="spec-val">چسباندن لینک <code>parvaz://</code> یا اسکن QR → نصب یک‌بارهٔ گواهی MITM → اتصال. زبان پیش‌فرض فارسی.</span></div>
-        <div class="spec"><span class="spec-num">۰۳</span><span class="spec-key">فقط Firefox Nightly</span><span class="spec-val"><strong>Firefox Nightly</strong> + <code>security.enterprise_roots.enabled</code>. مرورگرهای استاندارد و اپلیکیشن‌های بومی در اندروید ۷+ گواهی کاربر را رد می‌کنند.</span></div>
+        <div class="spec"><span class="spec-num">۰۳</span><span class="spec-key">Chrome بدون تنظیم اضافه</span><span class="spec-val"><strong>Chrome</strong> (و سایر مرورگرهای Chromium: Brave، Edge، Vivaldi) گواهی نصب‌شدهٔ پرواز را در اندروید بدون نیاز به پرچم می‌پذیرند. اپلیکیشن‌های بومی همچنان به‌صورت پیش‌فرض گواهی کاربر را رد می‌کنند.</span></div>
         <div class="spec"><span class="spec-num">۰۴</span><span class="spec-key">مسیر سریع SNI-rewrite</span><span class="spec-val">میزبان‌های متعلق به گوگل بدون عبور از Apps Script · تونل مستقیم · بدون مصرف سهمیه.</span></div>
         <div class="spec"><span class="spec-num">۰۵</span><span class="spec-key">APK متن‌باز</span><span class="spec-val">رابط Kotlin + Compose · هستهٔ Go SOCKS5 · MIT · فقط F-Droid و sideload.</span></div>
         <div class="spec"><span class="spec-num">۰۶</span><span class="spec-key">بدون تله‌متری</span><span class="spec-val">بدون تحلیل کاربر · بدون گزارش خطا · کلید دسترسی در <code>EncryptedSharedPreferences</code>.</span></div>
@@ -256,7 +256,7 @@
             <li><code>INTERNET</code> + <code>FOREGROUND_SERVICE</code> — صحبت با Apps Script، زنده ماندن.</li>
             <li><code>POST_NOTIFICATIONS</code> (اندروید ۱۳+) — نمایش وضعیت اتصال.</li>
             <li><strong>قفل صفحه</strong> روی دستگاه — اندروید بدون آن گواهی نصب نمی‌کند.</li>
-            <li>Firefox Nightly + <code>security.enterprise_roots.enabled = true</code>.</li>
+            <li>یک مرورگر Chromium — Chrome (یا Brave / Edge / Vivaldi). نیازی به پرچم مرورگر نیست.</li>
           </ul>
           <div class="who__foot">اختیاری · CAMERA — فقط هنگام اسکن QR.</div>
         </div>
@@ -290,11 +290,12 @@
             <span class="who__tag who__tag--ok">تونل می‌شود</span>
           </div>
           <ul class="who__list">
-            <li>Firefox Nightly + <code>security.enterprise_roots.enabled</code>.</li>
-            <li>میزبان‌های متعلق به گوگل (google.com، youtube.com، fonts.googleapis.com) از طریق SNI-rewrite مستقیم.</li>
-            <li>وب‌اپ‌های داخل Firefox Nightly — Gmail، GitHub، ویکی‌پدیا، سایت‌های خبری، جستجو.</li>
+            <li><strong>Chrome</strong> در اندروید — بدون پرچم، بدون <code>about:config</code>، بدون روت.</li>
+            <li>سایر مرورگرهای Chromium — Brave، Edge، Vivaldi — همان مسیر، همان اعتماد.</li>
+            <li>میزبان‌های متعلق به گوگل (google.com، youtube.com، fonts.googleapis.com) از طریق SNI-rewrite مستقیم، در هر مرورگری.</li>
+            <li>وب‌اپ‌های داخل Chrome — Gmail، GitHub، ویکی‌پدیا، سایت‌های خبری، جستجو.</li>
           </ul>
-          <div class="who__foot">سهمیهٔ Apps Script برای مسیر سریع گوگل مصرف نمی‌شود.</div>
+          <div class="who__foot">سهمیهٔ Apps Script برای مسیر سریع گوگل مصرف نمی‌شود. پهنای‌باند ~۵ کیلوبایت/ثانیه · WebSocket فعلاً کار نمی‌کند.</div>
         </div>
         <div class="who__col who__col--no">
           <div class="who__head">
@@ -302,9 +303,10 @@
             <span class="who__tag who__tag--no">تونل نمی‌شود</span>
           </div>
           <ul class="who__list">
-            <li>Chrome استاندارد · Firefox استاندارد · Brave · Edge · Samsung Internet.</li>
-            <li>اپلیکیشن‌های بومی — اینستاگرام، تلگرام، واتس‌اپ، بانک، استریمینگ.</li>
-            <li>هر چیزی که گواهی را پین می‌کند یا گواهی کاربر را رد می‌کند (پیش‌فرض اندروید ۷+).</li>
+            <li><strong>Firefox Stable / Beta / Focus</strong> — <code>about:config</code> ندارند، پرچم اعتماد قابل تنظیم نیست.</li>
+            <li><strong>Firefox Nightly</strong> — پرچم وجود دارد ولی پس از هر بار اجرای دوباره به <code>false</code> برمی‌گردد (<a href="https://github.com/mozilla-mobile/fenix/issues/18990">fenix#18990</a>، باز از سال ۲۰۲۱).</li>
+            <li><strong>مرورگر DuckDuckGo</strong> — مبتنی بر Chromium اما گواهی کاربر را رد می‌کند. تأیید شده که کار نمی‌کند.</li>
+            <li>اپلیکیشن‌های بومی — اینستاگرام، تلگرام، واتس‌اپ، بانک، استریمینگ. به‌صورت پیش‌فرض گواهی کاربر را در اندروید ۷+ رد می‌کنند.</li>
           </ul>
           <div class="who__foot">محدودیت کلی MITM در اندروید · برای اپ‌های بومی با xray + VPS جفت کنید.</div>
         </div>
@@ -318,7 +320,7 @@
       <div class="slide__head">
         <span class="slide__num">§۷</span>
         <h2 class="slide__title">توالی سوارشدن</h2>
-        <span class="slide__kicker">~۴ دقیقه · یک‌بار</span>
+        <span class="slide__kicker">~۳ دقیقه · یک‌بار</span>
       </div>
       <div class="board">
         <div class="checklist">
@@ -349,8 +351,8 @@
           <div class="check">
             <div class="check__no">۴</div>
             <div>
-              <h3 class="check__title">Firefox Nightly + روشن کردن پرچم</h3>
-              <p class="check__sub">about:config · enterprise_roots · §۹</p>
+              <h3 class="check__title">اتصال · باز کردن Chrome</h3>
+              <p class="check__sub">بدون پرچم مرورگر · §۹</p>
             </div>
             <span class="check__stamp check__stamp--manual">دستی</span>
           </div>
@@ -359,7 +361,7 @@
           <div class="row"><span class="label">مسافر</span><span class="value">شما</span></div>
           <div class="row"><span class="label">پرواز</span><span class="value value--big">PVZ ۰۰۱</span></div>
           <div class="row"><span class="label">گیت</span><span class="value">A · MITM</span></div>
-          <div class="row"><span class="label">سوارشدن</span><span class="value">~ ۴ دقیقه</span></div>
+          <div class="row"><span class="label">سوارشدن</span><span class="value">~ ۳ دقیقه</span></div>
           <div class="boarding-pass__barcode" aria-hidden="true"></div>
         </aside>
       </div>
@@ -404,36 +406,31 @@ Settings → <span class="hl">Security &amp; privacy</span>
     </div>
   </section>
 
-  <!-- 10 · §۹ FIREFOX NIGHTLY -->
+  <!-- 10 · §۹ OPEN CHROME -->
   <section class="slide" data-slide="10">
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§۹</span>
-        <h2 class="slide__title">نصب Firefox Nightly · روشن کردن یک پرچم</h2>
-        <span class="slide__kicker">گام ۲ از ۲ · یک‌بار · ~۱ دقیقه</span>
+        <h2 class="slide__title">اتصال · باز کردن Chrome</h2>
+        <span class="slide__kicker">گام ۲ از ۲ · یک‌بار · ~۱۰ ثانیه</span>
       </div>
       <div class="slide__body">
-        <p>Chrome استاندارد و Firefox استاندارد گواهی نصب‌شده را <strong>نادیده می‌گیرند</strong>. تنها مرورگر بدون نیاز به روت که گواهی کاربر را می‌پذیرد <strong>Firefox Nightly</strong> است، پس از روشن کردن یک پرچم.</p>
+        <p>روی دکمهٔ تمبر لاستیکی در صفحهٔ اصلی پرواز بزنید. وقتی به <strong>در پرواز</strong> تغییر کرد، <strong>Chrome</strong> را باز کنید و عادی مرور کنید — صفحات HTTPS بدون نیاز به تنظیم بیشتر از روی پرواز عبور می‌کنند. Brave، Edge و Vivaldi هم به همین شکل کار می‌کنند؛ گواهی پرواز که نصب کردید تنها چیزی است که نیاز دارند.</p>
       </div>
       <div class="listing">
-        <div class="listing-head"><span>proc · browser.001 · firefox-nightly</span><span>one-time · ~1 min</span></div>
-        <div class="listing-body"><span class="c"># 1. Install Firefox Nightly (package id: org.mozilla.fenix)</span>
-Play Store    → <a href="https://play.google.com/store/apps/details?id=org.mozilla.fenix" class="hl">play.google.com/store/apps/details?id=org.mozilla.fenix</a>
-All channels  → <a href="https://www.mozilla.org/en-US/firefox/channel/android/" class="hl">mozilla.org/firefox/channel/android</a>
-F-Droid repo  → <a href="https://github.com/mozilla-mobile/fenix#nightly-builds" class="hl">github.com/mozilla-mobile/fenix#nightly-builds</a>
+        <div class="listing-head"><span>proc · browser.001 · chromium</span><span>یک‌بار · ~۱۰ ث</span></div>
+        <div class="listing-body"><span class="c"># ۱. در پرواز، روی تمبر لاستیکی بزنید.</span>
+<span class="c">    → «پرواز» (طرح) به «در پرواز» (پر · زیتونی) تغییر می‌کند</span>
 
-<span class="c"># 2. Open Firefox Nightly. In the URL bar, paste:</span>
-about:config
-<span class="c">    → tap to accept the warning</span>
+<span class="c"># ۲. Chrome را باز کنید (یا Brave / Edge / Vivaldi).</span>
+<span class="c">    → عادی مرور کنید · بدون پرچم، بدون about:config، بدون روت</span>
 
-<span class="c"># 3. In the search box at the top, type:</span>
-security.enterprise_roots.enabled
-<span class="c">    → tap the row to toggle the value to true</span>
-
-<span class="c"># 4. Fully close Firefox Nightly (swipe out of recents) and reopen.</span></div>
+<span class="c"># ۳. (اختیاری) آزمایش مسیر:</span>
+open <a href="https://wikipedia.org" class="hl">wikipedia.org</a>            <span class="c"># سایت غیرگوگل → از MITM عبور می‌کند</span>
+open <a href="https://www.google.com" class="hl">google.com</a>             <span class="c"># سایت گوگل → مسیر سریع SNI-rewrite</span></div>
       </div>
       <div class="slide__body">
-        <p><strong>فروشگاه‌ها مسدود شده‌اند؟</strong> از دوست آشنا بخواهید APK‌ Firefox Nightly را از طریق سیگنال یا تلگرام بفرستد. شناسهٔ بستهٔ <code>org.mozilla.fenix</code> را در Settings → Apps راستی‌آزمایی کنید. <strong>منابع:</strong> <a href="https://support.mozilla.org/en-US/kb/about-config-editor-firefox">Mozilla — about:config editor</a> · <a href="https://wiki.mozilla.org/CA/AdditionalTrustChanges">Mozilla — enterprise root CAs</a>.</p>
+        <p><strong>چرا Chrome کار می‌کند:</strong> Chrome در اندروید گواهی نصب‌شدهٔ کاربر را از حافظهٔ سیستم می‌پذیرد، و سیاست Certificate Transparency در Chrome استثنای صریحی برای زنجیره‌هایی دارد که به یک گواهی نصب‌شدهٔ کاربر می‌رسند — بنابراین گواهی برگ پرواز بدون نیاز به تنظیم پذیرفته می‌شود. مرورگرهایی که کار نمی‌کنند، و همچنین محدودیت پهنای‌باند و WebSocket، در §۶ آمده‌اند.</p>
       </div>
     </div>
   </section>

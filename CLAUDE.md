@@ -16,13 +16,14 @@ Parvaz's differentiators are the NOTAM visual identity, Farsi-by-default
 UI, and tighter onboarding for non-technical users.
 
 **Honest scope (per MITM reality on Android 7+):**
-- ✅ **Chrome, Firefox** — browser traffic tunnels correctly.
-- ✅ **Google-owned hosts** — google.com, youtube.com, etc. route via
-  SNI-rewrite without MITM; fastest path, no quota.
-- ❌ **Instagram / Telegram / WhatsApp / banking / streaming native apps**
-  — these reject user-CAs and break. This is a general Android-MITM
-  constraint, not a Parvaz bug. Users who need those apps pair Parvaz
-  with xray+VLESS pointing at their own VPS.
+- ✅ **Chromium browsers (Chrome, Brave, Edge, Vivaldi)** — trust the
+  on-device CA out of the box; CT carve-out for user-CA chains. Recommended.
+- ✅ **Google-owned hosts in any browser** — SNI-rewrite, no MITM, no quota.
+- ⚠️ **Firefox Nightly only** — Stable/Beta hide `about:config`; Nightly
+  resets `security.enterprise_roots.enabled` every restart ([fenix#18990](https://github.com/mozilla-mobile/fenix/issues/18990)).
+- ❌ **DuckDuckGo browser** — Chromium-based but rejects the user CA.
+- ❌ **Native apps (banking / messaging / streaming)** — reject user CAs by
+  Android default. Pair with xray+VLESS for those.
 
 Monorepo. One APK. One `Code.gs`.
 

@@ -27,7 +27,7 @@
     <string name="ca_install_retry_cta">Try again</string>
     <string name="ca_install_failed">Install didn\'t complete — try again</string>
     <string name="ca_install_failed_not_installed">Certificate not yet installed — follow the steps again</string>
-    <string name="ca_install_filename">parvaz-ca.crt</string>
+    <string name="ca_install_filename">parvaz-ca-code.crt</string>
     <string name="ca_install_no_lock_title">No screen lock set</string>
     <string name="ca_install_no_lock_body">Android requires a screen lock before installing certificates — set a PIN or pattern and retry</string>
     <string name="ca_install_steps_fallback">If you don\'t see this path, search Settings for "CA certificate"</string>
@@ -37,7 +37,7 @@
     <string name="ca_step_1_samsung">1. Security and privacy</string>
     <string name="ca_step_2_samsung">2. More security settings</string>
     <string name="ca_step_3_samsung">3. Install from device storage → CA certificate</string>
-    <string name="ca_step_4_samsung">4. Pick parvaz-ca.crt from Downloads</string>
+    <string name="ca_step_4_samsung">4. Pick the newest parvaz-ca-code.crt from Downloads</string>
     <string name="ca_step_5_samsung">5. Return to Parvaz</string>
 
     <!-- CA install — AOSP / Pixel step labels (English). Verbatim
@@ -45,7 +45,7 @@
     <string name="ca_step_1_aosp">1. Security &amp; privacy</string>
     <string name="ca_step_2_aosp">2. More security &amp; privacy → Encryption &amp; credentials</string>
     <string name="ca_step_3_aosp">3. Install a certificate → CA certificate</string>
-    <string name="ca_step_4_aosp">4. Pick parvaz-ca.crt from Downloads</string>
+    <string name="ca_step_4_aosp">4. Pick the newest parvaz-ca-code.crt from Downloads</string>
     <string name="ca_step_5_aosp">5. Return to Parvaz</string>
 
     <string name="vpn_explain_title">VPN permission</string>

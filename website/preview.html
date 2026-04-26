@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Parvaz — deck prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Redaction&family=Redaction+35&family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+<style>
+  /* ───── Deck shell — preview-only ────────────────────────────────
+     • boarding-pass header is fixed across every slide
+     • center cell shows PVZ 001 + page counter (03 / 05)
+     • each slide snaps to viewport, content begins below header
+     • nav: prev/next ticket arrows + dot strip + airline keyboard nav
+  -------------------------------------------------------------- */
+
+  :root {
+    /* Override the project NOTAM palette for this deck:
+       deep aviation navy ink on cool cream, vermillion + brass.
+       Distinct from parchment, still light, airline-coded.        */
+    --paper:    #e8dfc6;
+    --paper-2:  #efe7d0;
+    --paper-3:  #f5eedc;
+    --ink:      #122a44;
+    --ink-2:    #2e3e5a;
+    --ink-3:    #6e7c95;
+    --stamp:    #b1391f;       /* vermillion */
+    --burnt:    #c87a2c;
+    --olive:    #3a5634;
+
+    --cyan:      #1c4a78;
+    --cyan-soft: #4f7faf;
+    --amber:     #c9a25a;      /* brass */
+    --gold:      #d4b470;
+
+    --header-h:   96px;
+    --controls-h: 64px;
+  }
+  html, body { height: 100%; background: var(--paper); color: var(--ink); }
+  body { margin: 0; overflow: hidden; }    /* deck owns the scroll */
+
+  /* ───── FIXED HEADER ───────────────────────────────────────────── */
+  .deck-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    background: var(--paper);
+    box-shadow: 0 1px 0 var(--ink), 0 6px 18px rgba(26,20,16,0.06);
+  }
+  .airmail-band {
+    height: 10px;
+    background-image: repeating-linear-gradient(45deg,
+      var(--stamp) 0 12px, var(--paper) 12px 14px,
+      var(--cyan) 14px 26px, var(--paper) 26px 28px);
+    border-bottom: 1px solid var(--ink);
+  }
+  .bp-header {
+    display: grid; grid-template-columns: 1fr auto 1fr;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .bp-header__cell {
+    padding: 12px 24px;
+    font-family: var(--mono);
+    border-right: 1.5px dashed var(--ink-3);
+  }
+  .bp-header__cell:last-child {
+    border-right: none;
+    text-align: right;
+  }
+  .bp-header__label {
+    font-size: 8px; letter-spacing: 0.4em;
+    color: var(--ink-3); text-transform: uppercase;
+  }
+  .bp-header__value {
+    font-family: var(--display);
+    font-size: 22px; line-height: 1; color: var(--ink);
+    margin-top: 4px;
+  }
+  .bp-header__sub {
+    font-size: 10px; letter-spacing: 0.16em;
+    color: var(--cyan); text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .bp-header__flight {
+    background: var(--ink); color: var(--paper);
+    padding: 12px 26px; text-align: center;
+    border-right: 1.5px dashed var(--ink-3);
+    border-left: 1.5px dashed var(--ink-3);
+    min-width: 160px;
+  }
+  .bp-header__flight .label {
+    font-size: 8px; letter-spacing: 0.4em;
+    color: rgba(241,232,212,0.6); text-transform: uppercase;
+  }
+  .bp-header__flight .value {
+    font-family: var(--mono);
+    font-size: 22px; font-weight: 800;
+    letter-spacing: 0.18em; color: var(--amber);
+    margin-top: 2px;
+  }
+  .bp-header__flight .page {
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.32em;
+    color: rgba(241,232,212,0.7);
+  }
+  .bp-header__flight .page b { color: var(--paper); font-weight: 700; }
+
+  /* ───── DECK TRACK ─────────────────────────────────────────────── */
+  .deck-track {
+    height: 100vh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+  .slide {
+    height: 100vh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    padding: calc(var(--header-h) + 28px) clamp(28px, 5vw, 64px) calc(var(--controls-h) + 28px);
+    display: grid;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* shared section header inside slide */
+  .slide__head {
+    display: flex; align-items: baseline; gap: 18px;
+    border-bottom: 1.5px solid var(--ink);
+    padding-bottom: 10px; margin-bottom: 22px;
+  }
+  .slide__num {
+    font-family: var(--mono);
+    font-size: 12px; font-weight: 800;
+    letter-spacing: 0.32em;
+    color: var(--cyan);
+    background: var(--paper-2);
+    padding: 4px 10px; border: 1px solid var(--cyan);
+  }
+  .slide__title {
+    font-family: var(--display);
+    font-size: clamp(28px, 4vw, 44px);
+    color: var(--ink); margin: 0; line-height: 1;
+  }
+  .slide__kicker {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.3em;
+    color: var(--ink-3); text-transform: uppercase;
+  }
+
+  /* ───── SLIDE 1 — TITLE ────────────────────────────────────────── */
+  .slide--title {
+    grid-template-columns: 1.05fr 1fr;
+    gap: 48px; align-items: center;
+    background:
+      radial-gradient(circle at 12% 22%, rgba(28,74,120,0.05), transparent 40%),
+      radial-gradient(circle at 88% 78%, rgba(168,54,28,0.05), transparent 40%),
+      var(--paper);
+  }
+  .hero__welcome {
+    font-family: var(--display);
+    font-size: clamp(48px, 7.4vw, 96px);
+    line-height: 0.92;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    margin: 0 0 18px;
+    text-transform: none;
+    display: block;
+  }
+  .hero__welcome .ornament {
+    color: var(--stamp);
+    font-weight: 800;
+    margin: 0 14px;
+    vertical-align: 0.05em;
+  }
+  .hero__welcome em {
+    font-style: normal;
+    color: var(--cyan);
+  }
+  .hero__brand {
+    font-family: var(--display);
+    font-size: clamp(40px, 6vw, 72px);
+    line-height: 0.9; color: var(--ink-2);
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    margin: 18px 0 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--ink-3);
+  }
+  .hero__brand img {
+    width: 56px; height: 56px;
+    border-radius: 14px; align-self: center;
+  }
+  .hero__brand .fa {
+    font-family: var(--fa);
+    font-size: 0.6em; color: var(--ink-3); font-weight: 800;
+  }
+  .hero__brand .flight-no {
+    margin-left: auto;
+    font-family: var(--mono); font-weight: 800;
+    font-size: 12px; letter-spacing: 0.32em;
+    color: var(--cyan); text-transform: uppercase;
+  }
+  .hero__tagline {
+    font-family: var(--display); font-size: 24px;
+    color: var(--ink-2);
+    border-left: 4px solid var(--stamp);
+    padding-left: 14px; line-height: 1.2; margin: 0 0 14px;
+  }
+  .hero__subtitle {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 22px;
+  }
+  .bp-tabs { display: flex; gap: 14px; flex-wrap: wrap; }
+  .bp-tab {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 12px 22px 12px 32px;
+    background: var(--paper-3);
+    border: 1.5px solid var(--ink); color: var(--ink);
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    position: relative;
+    box-shadow: 2px 3px 0 rgba(26,20,16,0.18);
+    transition: transform .18s, box-shadow .18s;
+  }
+  .bp-tab::before {
+    content: ''; position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 9px; height: 9px; border-radius: 50%;
+    border: 1.5px solid var(--ink); background: var(--paper);
+  }
+  .bp-tab:hover { transform: translate(1px, 1px); box-shadow: 1px 2px 0 rgba(26,20,16,0.18); }
+  .bp-tab--primary { background: var(--ink); color: var(--paper); }
+  .bp-tab--primary::before { background: var(--paper-3); border-color: var(--paper); }
+  .bp-tab--primary:hover { background: var(--stamp); }
+  .bp-tab .stub {
+    margin-left: 6px; padding-left: 14px;
+    border-left: 1px dashed currentColor;
+    font-size: 10px; opacity: 0.7; letter-spacing: 0.18em;
+  }
+
+  /* Solari board (re-used across slides) */
+  .solari {
+    background: #0e0a07; color: #f0c674;
+    border: 2px solid var(--ink); border-radius: 4px;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.55), 0 6px 0 rgba(26,20,16,0.18);
+    font-family: var(--mono);
+    overflow: hidden; position: relative;
+    transform: rotate(-0.4deg);
+  }
+  .solari__head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(240,198,116,0.18);
+    font-size: 9px; letter-spacing: 0.4em;
+    color: rgba(240,198,116,0.55); text-transform: uppercase;
+  }
+  .solari__head strong { color: #f0c674; letter-spacing: 0.32em; }
+  .blink {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%; background: #6fbe6c;
+    box-shadow: 0 0 6px #6fbe6c;
+    margin-right: 8px; vertical-align: middle;
+    animation: blink 1.6s ease-in-out infinite;
+  }
+  @keyframes blink { 50% { opacity: 0.25; box-shadow: 0 0 2px #6fbe6c; } }
+  .solari__rows {
+    display: grid;
+    grid-template-columns: 76px 1fr 56px 96px;
+    font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .solari__col {
+    padding: 6px 14px; font-size: 8px; letter-spacing: 0.36em;
+    color: rgba(240,198,116,0.45);
+    background: rgba(0,0,0,0.25);
+    border-bottom: 1px solid rgba(240,198,116,0.14);
+  }
+  .solari__cell {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(240,198,116,0.08);
+    position: relative;
+  }
+  .solari__cell:nth-last-child(-n+4) { border-bottom: none; }
+  .solari__cell::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 50%;
+    height: 1px; background: rgba(0,0,0,0.4);
+  }
+  .solari__cell--dest    { color: #fff3d4; letter-spacing: 0.16em; }
+  .solari__cell--board   { color: #f0c674; font-weight: 700; }
+  .solari__cell--ontime  { color: #6fbe6c; }
+  .solari__cell--cleared { color: #88d3a4; }
+  .solari__cell--final   { color: #d97a4a; }
+
+  /* ───── SLIDE 2 — FLIGHT PATH ──────────────────────────────────── */
+  .slide--route { grid-template-rows: auto 1fr; }
+  .route {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px; align-items: stretch;
+    align-self: center;
+  }
+  .route__hop {
+    background: var(--paper-2);
+    border: 1.5px solid var(--ink);
+    padding: 18px 14px;
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.16em;
+    text-align: center; text-transform: uppercase;
+    box-shadow: 2px 3px 0 rgba(26,20,16,0.18);
+    position: relative;
+  }
+  .route__hop strong {
+    display: block;
+    font-family: var(--display); font-size: 22px;
+    letter-spacing: 0.04em; color: var(--ink); margin-bottom: 6px;
+  }
+  .route__hop .tag {
+    margin-top: 10px;
+    color: var(--cyan); font-weight: 700;
+  }
+  .route__hop--accent { background: var(--ink); color: var(--paper); }
+  .route__hop--accent strong { color: var(--amber); }
+  .route__hop--accent .tag { color: var(--paper); opacity: 0.65; }
+  .route__hop::after {
+    content: '►';
+    position: absolute; right: -14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink); font-size: 18px;
+    background: var(--paper); padding: 0 2px;
+    z-index: 2;
+  }
+  .route__hop:last-child::after { display: none; }
+  .route__notes {
+    margin-top: 28px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.04em; color: var(--ink-2);
+  }
+  .route__notes b {
+    display: block;
+    font-size: 10px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--cyan);
+    margin-bottom: 4px;
+  }
+
+  /* ───── SLIDE 3 — BOARDING SEQUENCE ────────────────────────────── */
+  .slide--board { grid-template-rows: auto 1fr; }
+  .board {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 32px; align-items: start;
+  }
+  .checklist { display: flex; flex-direction: column; gap: 14px; }
+  .check {
+    display: grid; grid-template-columns: 48px 1fr auto;
+    gap: 14px; align-items: center;
+    padding: 14px 18px;
+    background: var(--paper-2);
+    border: 1.5px solid var(--ink);
+    box-shadow: 2px 3px 0 rgba(26,20,16,0.12);
+    font-family: var(--mono); font-size: 12px;
+  }
+  .check__no {
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    background: var(--ink); color: var(--amber);
+    font-weight: 800; font-size: 13px; letter-spacing: 0.1em;
+    border-radius: 50%;
+  }
+  .check__title {
+    font-family: var(--display); font-size: 18px;
+    color: var(--ink); line-height: 1.1;
+    margin: 0 0 3px;
+  }
+  .check__sub {
+    font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .check__stamp {
+    font-family: var(--mono); font-weight: 800;
+    font-size: 10px; letter-spacing: 0.24em;
+    padding: 4px 10px;
+    border: 1.5px solid var(--cyan); color: var(--cyan);
+    text-transform: uppercase;
+  }
+  .check__stamp--manual {
+    border-color: var(--stamp); color: var(--stamp);
+  }
+
+  /* ───── SLIDE 4 — WHO FLIES / WHO DOESN'T ──────────────────────── */
+  .slide--who { grid-template-rows: auto 1fr; }
+  .who {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+    align-self: center;
+  }
+  .who__col {
+    padding: 22px;
+    border: 1.5px solid var(--ink);
+    background: var(--paper-2);
+    box-shadow: 3px 4px 0 rgba(26,20,16,0.18);
+  }
+  .who__col--ok    { border-color: #3A5634; }
+  .who__col--no    { border-color: var(--stamp); }
+  .who__head {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1.5px dashed var(--ink-3);
+    padding-bottom: 12px;
+  }
+  .who__head strong {
+    font-family: var(--display); font-size: 24px; color: var(--ink);
+  }
+  .who__tag {
+    font-family: var(--mono); font-size: 10px; font-weight: 800;
+    letter-spacing: 0.32em; padding: 4px 10px;
+    text-transform: uppercase;
+  }
+  .who__tag--ok { background: #3A5634; color: var(--paper); }
+  .who__tag--no { background: var(--stamp); color: var(--paper); }
+  .who__list {
+    list-style: none; padding: 0; margin: 0;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--ink-2); line-height: 1.6;
+  }
+  .who__list li {
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--ink-3);
+  }
+  .who__list li:last-child { border-bottom: none; }
+  .who__list li::before {
+    display: inline-block; width: 22px;
+    font-weight: 800; color: var(--cyan);
+  }
+  .who__col--ok .who__list li::before { content: '✓ '; color: #3A5634; }
+  .who__col--no .who__list li::before { content: '✗ '; color: var(--stamp); }
+  .who__foot {
+    margin-top: 14px; font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.16em;
+    color: var(--ink-3); text-transform: uppercase;
+  }
+
+  /* ───── SLIDE 5 — DEPARTURE / CTA ──────────────────────────────── */
+  .slide--depart {
+    grid-template-rows: auto 1fr;
+    background:
+      radial-gradient(circle at 50% 100%, rgba(28,74,120,0.06), transparent 50%),
+      var(--paper);
+  }
+  .depart {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px; align-items: center;
+  }
+  .depart__pass {
+    background: var(--paper-2);
+    border: 2px solid var(--ink);
+    padding: 28px;
+    box-shadow: 4px 5px 0 rgba(26,20,16,0.2);
+    position: relative;
+  }
+  .depart__pass::before, .depart__pass::after {
+    content: ''; position: absolute; top: 50%;
+    width: 22px; height: 22px;
+    background: var(--paper); border: 1.5px solid var(--ink);
+    border-radius: 50%; transform: translateY(-50%);
+  }
+  .depart__pass::before { left: -12px; }
+  .depart__pass::after  { right: -12px; }
+  .depart__row {
+    display: flex; justify-content: space-between;
+    border-bottom: 1.5px dashed var(--ink-3);
+    padding: 10px 0;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    color: var(--ink-2); text-transform: uppercase;
+  }
+  .depart__row b { color: var(--ink); font-weight: 800; letter-spacing: 0.04em; font-family: var(--display); font-size: 16px; }
+  .depart__cta { display: flex; flex-direction: column; gap: 18px; }
+  .depart__cta h2 {
+    font-family: var(--display); font-size: 48px;
+    color: var(--ink); margin: 0; line-height: 0.95;
+  }
+  .depart__cta p {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--ink-2); line-height: 1.6; margin: 0;
+  }
+
+  /* ───── BOTTOM CONTROLS ────────────────────────────────────────── */
+  .deck-controls {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    height: var(--controls-h);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(16px, 3vw, 32px);
+    background: var(--paper);
+    border-top: 1.5px solid var(--ink);
+    box-shadow: 0 -6px 18px rgba(26,20,16,0.06);
+  }
+  .deck-controls__group { display: flex; align-items: center; gap: 12px; }
+  .deck-arrow {
+    width: 44px; height: 36px;
+    background: var(--paper-2);
+    border: 1.5px solid var(--ink);
+    color: var(--ink); cursor: pointer;
+    font-family: var(--mono); font-size: 18px; font-weight: 800;
+    box-shadow: 2px 2px 0 rgba(26,20,16,0.2);
+    transition: transform .18s, box-shadow .18s;
+  }
+  .deck-arrow:hover { transform: translate(1px,1px); box-shadow: 1px 1px 0 rgba(26,20,16,0.2); }
+  .deck-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+  .deck-counter {
+    font-family: var(--mono); font-weight: 700;
+    font-size: 11px; letter-spacing: 0.32em;
+    color: var(--ink-2); text-transform: uppercase;
+  }
+  .deck-counter b { color: var(--cyan); }
+
+  .deck-dots { display: flex; gap: 8px; align-items: center; }
+  .deck-dots button {
+    width: 26px; height: 8px;
+    background: transparent; border: 1.5px solid var(--ink);
+    cursor: pointer; padding: 0;
+    transition: background .2s;
+  }
+  .deck-dots button.is-active { background: var(--ink); }
+  .deck-dots button:hover { background: var(--cyan-soft); }
+
+  /* ───── MOBILE (≤ 780px) ───────────────────────────────────────── */
+  @media (max-width: 780px) {
+    :root { --header-h: 138px; --controls-h: 56px; }
+    .bp-header { grid-template-columns: 1fr; }
+    .bp-header__cell, .bp-header__flight {
+      border-right: none; border-left: none;
+      border-bottom: 1.5px dashed var(--ink-3);
+      text-align: left; padding: 8px 16px;
+    }
+    .bp-header__cell:last-child { text-align: left; }
+    .bp-header__flight { padding: 8px 16px; min-width: 0; }
+    .bp-header__flight .label, .bp-header__flight .value, .bp-header__flight .page {
+      display: inline-block; margin-right: 12px; margin-top: 0;
+    }
+    .slide { padding: calc(var(--header-h) + 18px) 18px calc(var(--controls-h) + 18px); }
+    .slide__head { flex-wrap: wrap; gap: 10px; }
+    .slide--title, .who, .board, .depart { grid-template-columns: 1fr; gap: 22px; }
+    .hero__brand { font-size: clamp(48px, 14vw, 88px); gap: 14px; }
+    .hero__brand img { width: 60px; height: 60px; border-radius: 14px; }
+    .hero__tagline { font-size: 18px; }
+    .route { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .route__hop::after { display: none; }
+    .route__notes { grid-template-columns: 1fr; }
+    .solari__rows { grid-template-columns: 60px 1fr 44px 76px; font-size: 10px; }
+    .solari__col { font-size: 7px; padding: 5px 10px; }
+    .solari__cell { padding: 8px 10px; }
+    .check { grid-template-columns: 36px 1fr; }
+    .check__stamp { grid-column: 1 / -1; justify-self: start; }
+    .depart__cta h2 { font-size: 34px; }
+    .deck-dots button { width: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ───── FIXED HEADER ───────────────────────────────────────────── -->
+<header class="deck-header" aria-label="Boarding pass">
+  <div class="airmail-band"></div>
+  <div class="bp-header">
+    <div class="bp-header__cell">
+      <div class="bp-header__label">From</div>
+      <div class="bp-header__value">Cocode · DK</div>
+      <div class="bp-header__sub">helper · apps script relay</div>
+    </div>
+    <div class="bp-header__flight">
+      <div class="label">Flight</div>
+      <div class="value">PVZ 001</div>
+      <div class="page">PAGE <b id="deck-current">01</b> / <b id="deck-total">5</b></div>
+    </div>
+    <div class="bp-header__cell">
+      <div class="bp-header__label">To</div>
+      <div class="bp-header__value">Your phone</div>
+      <div class="bp-header__sub">android · firefox nightly</div>
+    </div>
+  </div>
+</header>
+
+<!-- ───── DECK TRACK ─────────────────────────────────────────────── -->
+<main class="deck-track" id="deck-track">
+
+  <!-- SLIDE 1 — TITLE -->
+  <section class="slide slide--title" data-slide="1" data-name="title">
+    <div>
+      <h1 class="hero__welcome">
+        <span class="ornament">—</span>Welcome aboard<br/>
+        <em>cocode.dk Airways</em><span class="ornament">—</span>
+      </h1>
+      <div class="hero__brand">
+        <img src="parvaz-mark.svg" alt=""/>
+        <span>Parvaz</span>
+        <span class="fa">پرواز</span>
+        <span class="flight-no">flight · pvz 001</span>
+      </div>
+      <p class="hero__tagline">A flight over the filter.<br/>One APK, one cert, one config flag.</p>
+      <p class="hero__subtitle">android browser tunnel · google apps script · domain fronting · farsi-first</p>
+      <div class="bp-tabs">
+        <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">
+          Begin descent · APK<span class="stub">v0 · arm64</span>
+        </a>
+        <a href="https://github.com/cocodedk/parvaz" class="bp-tab">
+          Flight plan · Source<span class="stub">MIT</span>
+        </a>
+      </div>
+    </div>
+    <div class="solari" aria-label="Onboarding flight board">
+      <div class="solari__head">
+        <span><span class="blink"></span><strong>cocode.dk · departures</strong></span>
+        <span>local · LIVE</span>
+      </div>
+      <div class="solari__rows">
+        <div class="solari__col">FLT</div>
+        <div class="solari__col">STAGE</div>
+        <div class="solari__col">GATE</div>
+        <div class="solari__col">STATUS</div>
+
+        <div class="solari__cell">PVZ 001</div>
+        <div class="solari__cell solari__cell--dest">paste · the parvaz:// link</div>
+        <div class="solari__cell">A1</div>
+        <div class="solari__cell solari__cell--board">boarding</div>
+
+        <div class="solari__cell">PVZ 002</div>
+        <div class="solari__cell solari__cell--dest">install · the user CA</div>
+        <div class="solari__cell">B12</div>
+        <div class="solari__cell solari__cell--ontime">on time</div>
+
+        <div class="solari__cell">PVZ 003</div>
+        <div class="solari__cell solari__cell--dest">flip · enterprise_roots</div>
+        <div class="solari__cell">C7</div>
+        <div class="solari__cell solari__cell--cleared">cleared</div>
+
+        <div class="solari__cell">PVZ 004</div>
+        <div class="solari__cell solari__cell--dest">https · all routes open</div>
+        <div class="solari__cell">D24</div>
+        <div class="solari__cell solari__cell--final">final call</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2 — FLIGHT PATH -->
+  <section class="slide slide--route" data-slide="2" data-name="flight-path">
+    <div class="slide__head">
+      <span class="slide__num">§ 02</span>
+      <h2 class="slide__title">The flight path</h2>
+      <span class="slide__kicker">5 hops · TLS-fronted · 1 envelope</span>
+    </div>
+    <div>
+      <div class="route">
+        <div class="route__hop">
+          <strong>Browser</strong>
+          firefox nightly
+          <div class="tag">on your phone</div>
+        </div>
+        <div class="route__hop">
+          <strong>Parvaz</strong>
+          local mitm + socks5
+          <div class="tag">127.0.0.1</div>
+        </div>
+        <div class="route__hop route__hop--accent">
+          <strong>Apps Script</strong>
+          your google account
+          <div class="tag">Code.gs · relay</div>
+        </div>
+        <div class="route__hop">
+          <strong>Google edge</strong>
+          sni = www.google.com
+          <div class="tag">DPI sees google</div>
+        </div>
+        <div class="route__hop">
+          <strong>Origin</strong>
+          target site
+          <div class="tag">https · 200 ok</div>
+        </div>
+      </div>
+      <div class="route__notes">
+        <div><b>Envelope</b>{ k · m · u · h · b } — auth · method · url · headers · body</div>
+        <div><b>Fronting</b>TLS SNI says <code>www.google.com</code>; HTTP Host says <code>script.google.com</code></div>
+        <div><b>Quota</b>20k urlfetch / day on a free Apps Script account</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 — BOARDING SEQUENCE -->
+  <section class="slide slide--board" data-slide="3" data-name="boarding">
+    <div class="slide__head">
+      <span class="slide__num">§ 03</span>
+      <h2 class="slide__title">Boarding sequence</h2>
+      <span class="slide__kicker">~3 minutes · one-time setup</span>
+    </div>
+    <div class="board">
+      <div class="checklist">
+        <div class="check">
+          <div class="check__no">1</div>
+          <div>
+            <p class="check__title">Install the APK</p>
+            <p class="check__sub">arm64 · android 7+ · sideload from releases</p>
+          </div>
+          <span class="check__stamp">auto</span>
+        </div>
+        <div class="check">
+          <div class="check__no">2</div>
+          <div>
+            <p class="check__title">Paste the parvaz:// link</p>
+            <p class="check__sub">from your helper · over signal or telegram</p>
+          </div>
+          <span class="check__stamp">auto</span>
+        </div>
+        <div class="check">
+          <div class="check__no">3</div>
+          <div>
+            <p class="check__title">Install the user CA</p>
+            <p class="check__sub">android settings · screen-lock required</p>
+          </div>
+          <span class="check__stamp check__stamp--manual">manual</span>
+        </div>
+        <div class="check">
+          <div class="check__no">4</div>
+          <div>
+            <p class="check__title">Trust the CA in Firefox Nightly</p>
+            <p class="check__sub">about:config · security.enterprise_roots.enabled = true</p>
+          </div>
+          <span class="check__stamp check__stamp--manual">manual</span>
+        </div>
+        <div class="check">
+          <div class="check__no">5</div>
+          <div>
+            <p class="check__title">Tap پرواز</p>
+            <p class="check__sub">vpn permission prompt · then green stamp</p>
+          </div>
+          <span class="check__stamp">auto</span>
+        </div>
+      </div>
+      <div class="solari" aria-hidden="true">
+        <div class="solari__head">
+          <span><span class="blink"></span><strong>now boarding</strong></span>
+          <span>gate · A1</span>
+        </div>
+        <div class="solari__rows">
+          <div class="solari__col">STEP</div>
+          <div class="solari__col">ACTION</div>
+          <div class="solari__col">EST</div>
+          <div class="solari__col">STATUS</div>
+
+          <div class="solari__cell">01</div>
+          <div class="solari__cell solari__cell--dest">apk install</div>
+          <div class="solari__cell">30s</div>
+          <div class="solari__cell solari__cell--cleared">done</div>
+
+          <div class="solari__cell">02</div>
+          <div class="solari__cell solari__cell--dest">paste link</div>
+          <div class="solari__cell">10s</div>
+          <div class="solari__cell solari__cell--cleared">done</div>
+
+          <div class="solari__cell">03</div>
+          <div class="solari__cell solari__cell--dest">install ca</div>
+          <div class="solari__cell">60s</div>
+          <div class="solari__cell solari__cell--ontime">manual</div>
+
+          <div class="solari__cell">04</div>
+          <div class="solari__cell solari__cell--dest">trust ca</div>
+          <div class="solari__cell">45s</div>
+          <div class="solari__cell solari__cell--ontime">manual</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 — WHO FLIES / WHO DOESN'T -->
+  <section class="slide slide--who" data-slide="4" data-name="who-flies">
+    <div class="slide__head">
+      <span class="slide__num">§ 04</span>
+      <h2 class="slide__title">Who flies, who's grounded</h2>
+      <span class="slide__kicker">honest about limits</span>
+    </div>
+    <div class="who">
+      <div class="who__col who__col--ok">
+        <div class="who__head">
+          <strong>Cleared for departure</strong>
+          <span class="who__tag who__tag--ok">cleared</span>
+        </div>
+        <ul class="who__list">
+          <li>Firefox Nightly (with enterprise_roots flag)</li>
+          <li>Reading sites · news · wiki · stack overflow</li>
+          <li>Google-owned hosts (sni-rewrite path · no quota)</li>
+          <li>YouTube web (playback up to ~720p)</li>
+          <li>HTTPS auth flows that stay in the browser</li>
+        </ul>
+        <p class="who__foot">browser-only · no root needed · &lt; 20k req/day</p>
+      </div>
+      <div class="who__col who__col--no">
+        <div class="who__head">
+          <strong>Not flying today</strong>
+          <span class="who__tag who__tag--no">grounded</span>
+        </div>
+        <ul class="who__list">
+          <li>Stock Chrome / stock Firefox (ignore user CAs)</li>
+          <li>Instagram · Telegram · WhatsApp native apps</li>
+          <li>Banking · streaming · airline native apps</li>
+          <li>Anything pinned to a specific cert</li>
+          <li>Heavy uploads · video calls · WebRTC</li>
+        </ul>
+        <p class="who__foot">android-mitm reality · pair with vless on a vps</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5 — DEPARTURE -->
+  <section class="slide slide--depart" data-slide="5" data-name="departure">
+    <div class="slide__head">
+      <span class="slide__num">§ 05</span>
+      <h2 class="slide__title">Departure</h2>
+      <span class="slide__kicker">final call · all gates open</span>
+    </div>
+    <div class="depart">
+      <div class="depart__pass">
+        <div class="depart__row"><span>Passenger</span><b>You</b></div>
+        <div class="depart__row"><span>Carrier</span><b>cocode.dk Airways</b></div>
+        <div class="depart__row"><span>Flight</span><b>PVZ 001 · daily</b></div>
+        <div class="depart__row"><span>Class</span><b>MIT · open</b></div>
+        <div class="depart__row"><span>Boarding</span><b>now · gate A1</b></div>
+        <div class="depart__row"><span>Tail no.</span><b>v0 · arm64</b></div>
+      </div>
+      <div class="depart__cta">
+        <h2>Ready when you are.</h2>
+        <p>Grab the APK, paste the link, follow the boarding sequence. The whole flight from sideload to first HTTPS page takes under three minutes — most of it spent waiting on Android's CA install screen.</p>
+        <div class="bp-tabs">
+          <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">
+            Begin descent · APK<span class="stub">v0 · arm64</span>
+          </a>
+          <a href="https://github.com/cocodedk/parvaz" class="bp-tab">
+            Flight plan · Source<span class="stub">MIT</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ───── BOTTOM CONTROLS ────────────────────────────────────────── -->
+<nav class="deck-controls" aria-label="Slide controls">
+  <div class="deck-controls__group">
+    <button class="deck-arrow" id="deck-prev" aria-label="Previous slide">‹</button>
+    <button class="deck-arrow" id="deck-next" aria-label="Next slide">›</button>
+    <span class="deck-counter">
+      <b id="deck-current-foot">01</b> / <b id="deck-total-foot">5</b>
+    </span>
+  </div>
+  <div class="deck-dots" id="deck-dots" role="tablist" aria-label="Slides"></div>
+  <div class="deck-controls__group">
+    <span class="deck-counter">cocode.dk · airways</span>
+  </div>
+</nav>
+
+<script>
+(() => {
+  const track   = document.getElementById('deck-track');
+  const slides  = Array.from(track.querySelectorAll('.slide'));
+  const dotsEl  = document.getElementById('deck-dots');
+  const cur     = document.getElementById('deck-current');
+  const tot     = document.getElementById('deck-total');
+  const curFoot = document.getElementById('deck-current-foot');
+  const totFoot = document.getElementById('deck-total-foot');
+  const prevBtn = document.getElementById('deck-prev');
+  const nextBtn = document.getElementById('deck-next');
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const total = slides.length;
+  tot.textContent = pad(total);
+  totFoot.textContent = pad(total);
+
+  slides.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-label', `Slide ${i + 1} — ${s.dataset.name || ''}`);
+    b.addEventListener('click', () => s.scrollIntoView({ behavior: 'smooth' }));
+    dotsEl.appendChild(b);
+  });
+  const dots = Array.from(dotsEl.querySelectorAll('button'));
+
+  let idx = 0;
+  const go = (delta) => {
+    const next = Math.max(0, Math.min(total - 1, idx + delta));
+    slides[next]?.scrollIntoView({ behavior: 'smooth' });
+  };
+  prevBtn.addEventListener('click', () => go(-1));
+  nextBtn.addEventListener('click', () => go(1));
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.intersectionRatio < 0.5) return;
+      idx = slides.indexOf(entry.target);
+      if (idx === -1) return;
+      const s = pad(idx + 1);
+      cur.textContent = s; curFoot.textContent = s;
+      dots.forEach((d, i) => d.classList.toggle('is-active', i === idx));
+      prevBtn.disabled = idx === 0;
+      nextBtn.disabled = idx === total - 1;
+    });
+  }, { root: track, threshold: [0.5] });
+  slides.forEach((s) => io.observe(s));
+
+  document.addEventListener('keydown', (e) => {
+    const tag = e.target?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    const next = ['ArrowDown', 'PageDown', ' ', 'ArrowRight'].includes(e.key);
+    const prev = ['ArrowUp',   'PageUp',           'ArrowLeft' ].includes(e.key);
+    if (next)      { e.preventDefault(); go(1); }
+    else if (prev) { e.preventDefault(); go(-1); }
+    else if (e.key === 'Home') slides[0]?.scrollIntoView({ behavior: 'smooth' });
+    else if (e.key === 'End')  slides[total - 1]?.scrollIntoView({ behavior: 'smooth' });
+  });
+})();
+</script>
+</body>
+</html>

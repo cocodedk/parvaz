@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Parvaz — A flight over the filter. Android browser tunnel via Apps Script.</title>
-<meta name="description" content="Parvaz is a Farsi-first Android browser tunnel for Iranian users that routes Firefox Nightly traffic through a user-deployed Google Apps Script relay using TLS SNI concealment. Stock Chrome and stock Firefox ignore user CAs on Android 7+; Firefox Nightly with security.enterprise_roots.enabled is the supported browser."/>
+<meta name="description" content="Parvaz is a Farsi-first Android browser tunnel for Iranian users that routes Chrome (or any Chromium browser) traffic through a user-deployed Google Apps Script relay using TLS SNI concealment. Chrome trusts the on-device Parvaz CA out of the box — no flags, no about:config, no root."/>
 <meta name="robots" content="index, follow"/>
 <meta name="keywords" content="parvaz, android, browser tunnel, iran, apps script, domain fronting, masterhttprelayvpn, circumvention, vpnservice, kotlin, go, farsi, open source"/>
 <link rel="canonical" href="https://cocodedk.github.io/parvaz/"/>
@@ -16,21 +16,21 @@
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Parvaz"/>
 <meta property="og:title" content="Parvaz — A flight over the filter"/>
-<meta property="og:description" content="Farsi-first Android browser tunnel for Iranian users. Routes Firefox Nightly through a user-deployed Google Apps Script relay with TLS SNI concealment."/>
+<meta property="og:description" content="Farsi-first Android browser tunnel for Iranian users. Routes Chrome (and other Chromium browsers) through a user-deployed Google Apps Script relay with TLS SNI concealment."/>
 <meta property="og:url" content="https://cocodedk.github.io/parvaz/"/>
 <meta property="og:image" content="https://cocodedk.github.io/parvaz/og.png"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
-<meta property="og:image:alt" content="Parvaz — declassified flight briefing document with the Parvaz wordmark, technical chips, and rubber-stamp annotations marking Firefox Nightly scope and MIT licence."/>
+<meta property="og:image:alt" content="Parvaz — declassified flight briefing document with the Parvaz wordmark, technical chips, and rubber-stamp annotations marking Chromium-browser scope and MIT licence."/>
 <meta property="og:locale" content="en_US"/>
 <meta property="og:locale:alternate" content="fa_IR"/>
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="Parvaz — A flight over the filter"/>
-<meta name="twitter:description" content="Farsi-first Android browser tunnel — Firefox Nightly through your own Google Apps Script relay. One APK, one cert, one config flag."/>
+<meta name="twitter:description" content="Farsi-first Android browser tunnel — Chrome through your own Google Apps Script relay. One APK, one cert, no flags."/>
 <meta name="twitter:image" content="https://cocodedk.github.io/parvaz/og.png"/>
-<meta name="twitter:image:alt" content="Parvaz — flight briefing · Firefox Nightly only · MIT 2026."/>
+<meta name="twitter:image:alt" content="Parvaz — flight briefing · Chromium browsers · MIT 2026."/>
 
 <link rel="icon" type="image/svg+xml" href="parvaz-mark.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -43,7 +43,7 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Parvaz",
-  "description": "Farsi-first Android browser tunnel for Iranian users — routes Firefox Nightly traffic through a user-deployed Google Apps Script relay using TLS SNI concealment and a local on-device MITM to terminate TLS for re-encapsulation. Kotlin + Compose front end, embedded Go SOCKS5 sidecar. Stock Chrome and stock Firefox ignore user-installed CAs on Android 7+; only Firefox Nightly with the about:config flag security.enterprise_roots.enabled honors them. Non-browser apps reject user CAs by design and will not tunnel.",
+  "description": "Farsi-first Android browser tunnel for Iranian users — routes Chrome (and other Chromium browsers: Brave, Edge, Vivaldi) traffic through a user-deployed Google Apps Script relay using TLS SNI concealment and a local on-device MITM to terminate TLS for re-encapsulation. Kotlin + Compose front end, embedded Go SOCKS5 sidecar. Chrome trusts the user-installed Parvaz CA out of the box on Android — no flags, no about:config, no root. Non-browser apps (banking, messaging, streaming) reject user CAs by Android default and will not tunnel.",
   "url": "https://cocodedk.github.io/parvaz/",
   "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
   "applicationCategory": "UtilitiesApplication",
@@ -133,7 +133,7 @@
           <div class="solari-board__cell">B12</div>
           <div class="solari-board__cell solari-board__cell--status-go">on time</div>
           <div class="solari-board__cell">PVZ 003</div>
-          <div class="solari-board__cell solari-board__cell--dest">flip · enterprise_roots</div>
+          <div class="solari-board__cell solari-board__cell--dest">open · chrome (no setup)</div>
           <div class="solari-board__cell">C7</div>
           <div class="solari-board__cell solari-board__cell--status-cleared">cleared</div>
           <div class="solari-board__cell">PVZ 004</div>
@@ -154,8 +154,8 @@
         <span class="slide__kicker">Mission brief</span>
       </div>
       <div class="slide__body">
-        <p>Parvaz is a Farsi-first <strong>Android browser tunnel</strong> for Iranian users with no technical background. A helper deploys the upstream MasterHttpRelayVPN <code>Code.gs</code> on their own Google account; the user receives a <code>parvaz://</code> link over a <strong>secure messenger (Signal or Telegram — not WhatsApp)</strong>, scans a QR or taps Paste, installs a MITM certificate via Android Settings once, installs <strong>Firefox Nightly</strong> and flips one <code>about:config</code> flag, and taps Connect.</p>
-        <p>Firefox Nightly traffic routes through Apps Script — TLS SNI <code>www.google.com</code>, HTTP Host <code>script.google.com</code>. Architecturally aligned with the proven <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port; Parvaz's edge is the NOTAM visual identity, Farsi-by-default UI, and tighter onboarding for non-technical passengers.</p>
+        <p>Parvaz is a Farsi-first <strong>Android browser tunnel</strong> for Iranian users with no technical background. A helper deploys the upstream MasterHttpRelayVPN <code>Code.gs</code> on their own Google account; the user receives a <code>parvaz://</code> link over a <strong>secure messenger (Signal or Telegram — not WhatsApp)</strong>, scans a QR or taps Paste, installs a MITM certificate via Android Settings once, taps Connect, and browses normally in <strong>Chrome</strong> (or any Chromium browser).</p>
+        <p>Chrome traffic routes through Apps Script — TLS SNI <code>www.google.com</code>, HTTP Host <code>script.google.com</code>. Chrome trusts the on-device Parvaz CA out of the box; no flags, no <code>about:config</code>, no root. Architecturally aligned with the proven <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port; Parvaz's edge is the NOTAM visual identity, Farsi-by-default UI, and tighter onboarding for non-technical passengers.</p>
       </div>
     </div>
   </section>
@@ -170,7 +170,7 @@
       </div>
       <div>
         <div class="route">
-          <div class="route__hop"><strong>Firefox Nightly</strong>flag enabled<div class="tag">browser</div></div>
+          <div class="route__hop"><strong>Chrome</strong>no flags<div class="tag">browser</div></div>
           <div class="route__hop route__hop--accent"><strong>PARVAZ</strong>VPN + tun2socks + sidecar<div class="tag">this APK</div></div>
           <div class="route__hop"><strong>Google edge</strong>SNI www.google.com<div class="tag">DPI sees</div></div>
           <div class="route__hop"><strong>script.google.com</strong>HTTP Host (real route)<div class="tag">internal</div></div>
@@ -216,7 +216,7 @@
       <div class="specs">
         <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">SNI <code>www.google.com</code> · Host <code>script.google.com</code>. DPI sees the front; Google's edge routes by Host.</span></div>
         <div class="spec"><span class="spec-num">02</span><span class="spec-key">Farsi-first onboarding</span><span class="spec-val">Paste a <code>parvaz://</code> URL or scan QR → install MITM cert once → tap Connect. Persian default.</span></div>
-        <div class="spec"><span class="spec-num">03</span><span class="spec-key">Firefox Nightly only</span><span class="spec-val"><strong>Firefox Nightly</strong> + <code>security.enterprise_roots.enabled</code>. Stock browsers and native apps reject user CAs on Android 7+.</span></div>
+        <div class="spec"><span class="spec-num">03</span><span class="spec-key">Chrome out of the box</span><span class="spec-val"><strong>Chrome</strong> (and other Chromium: Brave, Edge, Vivaldi) trust the user-installed Parvaz CA on Android with no flags. Native apps still reject user CAs by Android default.</span></div>
         <div class="spec"><span class="spec-num">04</span><span class="spec-key">SNI-rewrite fast path</span><span class="spec-val">Google-owned hosts skip Apps Script entirely · direct tunnel · no quota.</span></div>
         <div class="spec"><span class="spec-num">05</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose UI · embedded Go SOCKS5 sidecar · MIT · F-Droid &amp; sideload only.</span></div>
         <div class="spec"><span class="spec-num">06</span><span class="spec-key">Zero telemetry</span><span class="spec-val">No analytics · no crash reporting · access key in <code>EncryptedSharedPreferences</code>.</span></div>
@@ -257,7 +257,7 @@
             <li><code>INTERNET</code> + <code>FOREGROUND_SERVICE</code> — talk to Apps Script, stay alive.</li>
             <li><code>POST_NOTIFICATIONS</code> (Android 13+) — show the connected pill.</li>
             <li>Device <strong>screen-lock</strong> — Android refuses CA install otherwise.</li>
-            <li>Firefox Nightly + <code>security.enterprise_roots.enabled = true</code>.</li>
+            <li>A Chromium browser — Chrome (or Brave / Edge / Vivaldi). No browser flags needed.</li>
           </ul>
           <div class="who__foot">Optional · CAMERA — only if you scan a QR.</div>
         </div>
@@ -291,11 +291,12 @@
             <span class="who__tag who__tag--ok">Tunnels</span>
           </div>
           <ul class="who__list">
-            <li>Firefox Nightly + <code>security.enterprise_roots.enabled</code>.</li>
-            <li>Google-owned hosts (google.com, youtube.com, fonts.googleapis.com) via direct SNI rewrite.</li>
-            <li>Web apps inside Firefox Nightly — Gmail, GitHub, Wikipedia, news sites, search.</li>
+            <li><strong>Chrome</strong> on Android — no flags, no <code>about:config</code>, no root.</li>
+            <li>Other Chromium browsers — Brave, Edge, Vivaldi — same path, same trust.</li>
+            <li>Google-owned hosts (google.com, youtube.com, fonts.googleapis.com) via direct SNI rewrite, in any browser.</li>
+            <li>Web apps inside Chrome — Gmail, GitHub, Wikipedia, news sites, search.</li>
           </ul>
-          <div class="who__foot">No Apps Script quota for Google fast-path.</div>
+          <div class="who__foot">No Apps Script quota for Google fast-path. Throughput ~5 KB/s · WebSockets do not work yet.</div>
         </div>
         <div class="who__col who__col--no">
           <div class="who__head">
@@ -303,9 +304,10 @@
             <span class="who__tag who__tag--no">Won't tunnel</span>
           </div>
           <ul class="who__list">
-            <li>Stock Chrome · stock Firefox · Brave · Edge · Samsung Internet.</li>
-            <li>Native apps — Instagram, Telegram, WhatsApp, banking, streaming.</li>
-            <li>Anything that pins certs or refuses user CAs (Android 7+ default).</li>
+            <li><strong>Firefox Stable / Beta / Focus</strong> — no <code>about:config</code>, can't set the trust flag.</li>
+            <li><strong>Firefox Nightly</strong> — flag exists but resets to <code>false</code> on every restart (<a href="https://github.com/mozilla-mobile/fenix/issues/18990">fenix#18990</a>, open since 2021).</li>
+            <li><strong>DuckDuckGo browser</strong> — Chromium-based but rejects the user CA. Confirmed broken.</li>
+            <li>Native apps — Instagram, Telegram, WhatsApp, banking, streaming. Reject user CAs by Android 7+ default.</li>
           </ul>
           <div class="who__foot">General Android MITM constraint · pair with xray + VPS for native apps.</div>
         </div>
@@ -319,7 +321,7 @@
       <div class="slide__head">
         <span class="slide__num">§7</span>
         <h2 class="slide__title">Boarding sequence</h2>
-        <span class="slide__kicker">~4 minutes · once</span>
+        <span class="slide__kicker">~3 minutes · once</span>
       </div>
       <div class="board">
         <div class="checklist">
@@ -350,8 +352,8 @@
           <div class="check">
             <div class="check__no">4</div>
             <div>
-              <h3 class="check__title">Firefox Nightly + flip the flag</h3>
-              <p class="check__sub">about:config · enterprise_roots · see §9</p>
+              <h3 class="check__title">Tap Connect · open Chrome</h3>
+              <p class="check__sub">no browser flags · see §9</p>
             </div>
             <span class="check__stamp check__stamp--manual">Manual</span>
           </div>
@@ -360,7 +362,7 @@
           <div class="row"><span class="label">Passenger</span><span class="value">YOU</span></div>
           <div class="row"><span class="label">Flight</span><span class="value value--big">PVZ 001</span></div>
           <div class="row"><span class="label">Gate</span><span class="value">A · MITM</span></div>
-          <div class="row"><span class="label">Boarding</span><span class="value">~ 4 min</span></div>
+          <div class="row"><span class="label">Boarding</span><span class="value">~ 3 min</span></div>
           <div class="boarding-pass__barcode" aria-hidden="true"></div>
         </aside>
       </div>
@@ -405,36 +407,31 @@ Settings → <span class="hl">Security &amp; privacy</span>
     </div>
   </section>
 
-  <!-- 10 · §9 FIREFOX NIGHTLY -->
+  <!-- 10 · §9 OPEN CHROME -->
   <section class="slide" data-slide="10">
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§9</span>
-        <h2 class="slide__title">Install Firefox Nightly · flip one flag</h2>
-        <span class="slide__kicker">Step 2 of 2 · once · ~1 minute</span>
+        <h2 class="slide__title">Tap Connect · open Chrome</h2>
+        <span class="slide__kicker">Step 2 of 2 · once · ~10 seconds</span>
       </div>
       <div class="slide__body">
-        <p>Stock Chrome and stock Firefox <strong>ignore</strong> the certificate you just installed. The only no-root browser that honors user CAs is <strong>Firefox Nightly</strong>, after one flag flip.</p>
+        <p>Tap the rubber-stamp button on Parvaz's main screen. When it flips to <strong>در پرواز</strong> (in flight), open <strong>Chrome</strong> and browse normally — HTTPS pages route through Parvaz with no further configuration. Brave, Edge, and Vivaldi work the same way; the Parvaz CA you just installed is the only piece they need.</p>
       </div>
       <div class="listing">
-        <div class="listing-head"><span>proc · browser.001 · firefox-nightly</span><span>one-time · ~1 min</span></div>
-        <div class="listing-body"><span class="c"># 1. Install Firefox Nightly (package id: org.mozilla.fenix)</span>
-Play Store    → <a href="https://play.google.com/store/apps/details?id=org.mozilla.fenix" class="hl">play.google.com/store/apps/details?id=org.mozilla.fenix</a>
-All channels  → <a href="https://www.mozilla.org/en-US/firefox/channel/android/" class="hl">mozilla.org/firefox/channel/android</a>
-F-Droid repo  → <a href="https://github.com/mozilla-mobile/fenix#nightly-builds" class="hl">github.com/mozilla-mobile/fenix#nightly-builds</a>
+        <div class="listing-head"><span>proc · browser.001 · chromium</span><span>one-time · ~10 sec</span></div>
+        <div class="listing-body"><span class="c"># 1. In Parvaz, tap the rubber stamp.</span>
+<span class="c">    → "پرواز" (outline) flips to "در پرواز" (filled · olive)</span>
 
-<span class="c"># 2. Open Firefox Nightly. In the URL bar, paste:</span>
-about:config
-<span class="c">    → tap to accept the warning</span>
+<span class="c"># 2. Open Chrome (or Brave / Edge / Vivaldi).</span>
+<span class="c">    → just browse · no flags, no about:config, no root</span>
 
-<span class="c"># 3. In the search box at the top, type:</span>
-security.enterprise_roots.enabled
-<span class="c">    → tap the row to toggle the value to true</span>
-
-<span class="c"># 4. Fully close Firefox Nightly (swipe out of recents) and reopen.</span></div>
+<span class="c"># 3. (Optional) sanity-check the route:</span>
+open <a href="https://wikipedia.org" class="hl">wikipedia.org</a>            <span class="c"># non-Google site → goes through MITM</span>
+open <a href="https://www.google.com" class="hl">google.com</a>             <span class="c"># Google site → SNI-rewrite fast path</span></div>
       </div>
       <div class="slide__body">
-        <p><strong>Stores blocked?</strong> Ask your helper to forward the Firefox Nightly APK via Signal or Telegram. Verify the package id <code>org.mozilla.fenix</code> in Settings → Apps. <strong>References:</strong> <a href="https://support.mozilla.org/en-US/kb/about-config-editor-firefox">Mozilla — about:config editor</a> · <a href="https://wiki.mozilla.org/CA/AdditionalTrustChanges">Mozilla — enterprise root CAs</a>.</p>
+        <p><strong>Why Chrome works:</strong> Chrome on Android trusts user-installed CAs from the system store, and Chrome's Certificate Transparency enforcement has an explicit carve-out for chains rooted in a user CA — so the Parvaz leaf is accepted with no setup. Browsers that won't work, plus the throughput and WebSocket limits, are covered in §6.</p>
       </div>
     </div>
   </section>

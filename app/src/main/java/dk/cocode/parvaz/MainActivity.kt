@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.lifecycle.lifecycleScope
+import dk.cocode.parvaz.onboarding.isOnboardingStillReady
 import dk.cocode.parvaz.settings.Access
 import dk.cocode.parvaz.settings.AccessImport
 import dk.cocode.parvaz.settings.AccessParseException
@@ -28,9 +30,14 @@ import dk.cocode.parvaz.ui.main.MainScreen
 import dk.cocode.parvaz.ui.main.MainSettingsSheet
 import dk.cocode.parvaz.ui.main.MainViewModel
 import dk.cocode.parvaz.ui.onboarding.OnboardingHost
+import dk.cocode.parvaz.ui.onboarding.ReadinessScreen
 import dk.cocode.parvaz.ui.theme.Paper
 import dk.cocode.parvaz.ui.theme.ParvazTheme
+import kotlinx.coroutines.launch
 import java.util.Locale
+
+private const val KEY_PENDING_URL = "pending_parvaz_url"
+private const val KEY_PENDING_URL_ERROR = "pending_parvaz_url_error"
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
@@ -40,6 +47,7 @@ class MainActivity : ComponentActivity() {
 
     private var activeAccess by mutableStateOf<Access?>(null)
     private var onboardingComplete by mutableStateOf(false)
+    private var onboardingReadinessChecked by mutableStateOf(true)
     private var showSettingsSheet by mutableStateOf(false)
 
     /**
@@ -63,10 +71,22 @@ class MainActivity : ComponentActivity() {
         // post-splash app theme) in one frame, with no flash.
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        // recreate() (e.g. language toggle) destroys the activity; the
+        // intent's data was already consumed by the original onCreate so
+        // handleDeepLink will no-op on rebuild. Restore the parsed deep
+        // link from saved state instead — otherwise the user gets bounced
+        // out of the IMPORT step and into MainScreen on every recreate.
+        savedInstanceState?.let {
+            pendingParvazUrl = it.getString(KEY_PENDING_URL)
+            pendingParvazUrlError = it.getString(KEY_PENDING_URL_ERROR)
+        }
         handleDeepLink(intent)
         val settings = ParvazSettings(this)
         activeAccess = settings.load()
-        onboardingComplete = settings.isOnboardingComplete
+        val storedOnboardingComplete = settings.isOnboardingComplete
+        onboardingReadinessChecked = !storedOnboardingComplete
+        onboardingComplete = false
+        if (storedOnboardingComplete) revalidateOnboarding(settings)
         enableEdgeToEdge()
         setContent {
             ParvazTheme {
@@ -83,6 +103,7 @@ class MainActivity : ComponentActivity() {
                     val access = activeAccess
                     val hasDeepLink = pendingParvazUrl != null || pendingParvazUrlError != null
                     val showMain = access != null && onboardingComplete && !hasDeepLink
+                    val checkingReadiness = access != null && !onboardingReadinessChecked && !hasDeepLink
                     if (showMain) {
                         val persianDigits = LocalConfiguration.current.locales.get(0)?.language == "fa"
                         MainScreen(
@@ -111,6 +132,8 @@ class MainActivity : ComponentActivity() {
                                 onDismiss = { showSettingsSheet = false },
                             )
                         }
+                    } else if (checkingReadiness) {
+                        ReadinessScreen(modifier = Modifier.padding(padding))
                     } else {
                         OnboardingHost(
                             initialDeepLinkUrl = pendingParvazUrl,
@@ -140,7 +163,11 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
     }
 
-    private fun handleDeepLink(intent: Intent?) {
+    // internal (not private) so MainActivityDeepLinkRecreateTest can drive
+    // the deep-link path without launching the activity with an intent —
+    // launching with a parvaz:// intent under ActivityScenario hits a
+    // splash-screen / Compose-test deadlock (PRE_ON_CREATE timeout).
+    internal fun handleDeepLink(intent: Intent?) {
         val uri = intent?.data?.toString() ?: return
         try {
             AccessImport.tryExtractFromUri(uri)?.let {
@@ -154,5 +181,20 @@ class MainActivity : ComponentActivity() {
         // Consume the URI so a later recreate() (e.g. language toggle)
         // doesn't replay it and kick the user back into IMPORT.
         intent.data = null
+    }
+
+    private fun revalidateOnboarding(settings: ParvazSettings) {
+        lifecycleScope.launch {
+            val ready = isOnboardingStillReady(this@MainActivity, activeAccess)
+            if (!ready) settings.isOnboardingComplete = false
+            onboardingComplete = ready
+            onboardingReadinessChecked = true
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        pendingParvazUrl?.let { outState.putString(KEY_PENDING_URL, it) }
+        pendingParvazUrlError?.let { outState.putString(KEY_PENDING_URL_ERROR, it) }
     }
 }
