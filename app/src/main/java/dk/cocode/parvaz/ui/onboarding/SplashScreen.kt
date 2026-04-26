@@ -104,8 +104,9 @@ object TestTags {
 
     // CaInstallScreen (M12.3)
     const val CaInstallPrimary = "ca_install_primary"
+    const val CaInstallShowFile = "ca_install_show_file"
     const val CaInstallSpinner = "ca_install_spinner"
-    const val CaInstallContinue = "ca_install_continue"
+    const val CaInstallSteps = "ca_install_steps"
 
     // VpnPermissionScreen (M12.4)
     const val VpnPermissionPrimary = "vpn_permission_primary"

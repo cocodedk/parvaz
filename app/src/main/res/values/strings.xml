@@ -22,17 +22,33 @@
 
     <!-- CA install -->
     <string name="ca_install_title">نصب گواهی</string>
-    <string name="ca_install_body">برای شروع، گواهی پرواز باید روی تلفن نصب شود — این گواهی فقط روی این تلفن کار می‌کند</string>
-    <string name="ca_install_cta">نصب گواهی</string>
+    <string name="ca_install_body">پرواز فایل گواهی را در پوشهٔ Downloads ذخیره می‌کند. سپس مرحله‌به‌مرحله شما را راهنمایی می‌کند که آن را در تنظیمات اندروید نصب کنید</string>
+    <string name="ca_install_cta">بازکردن تنظیمات</string>
+    <string name="ca_install_show_file_cta">نمایش فایل</string>
     <string name="ca_install_done_label">نصب شد</string>
     <string name="ca_install_generating">آماده‌سازی گواهی…</string>
     <string name="ca_install_verifying">در حال بررسی…</string>
     <string name="ca_install_retry_cta">تلاش دوباره</string>
-    <string name="ca_install_continue_cta">ادامه</string>
     <string name="ca_install_failed">نصب انجام نشد — دوباره تلاش کنید</string>
-    <string name="ca_install_unverified_body">نصب کامل به‌نظر می‌رسد اما پرواز نتوانست آن را به‌طور خودکار تأیید کند (برخی گوشی‌ها مثل سامسونگ اجازهٔ این بررسی را نمی‌دهند). اگر گواهی را نصب کرده‌اید، ادامه دهید؛ در غیر این صورت دوباره نصب کنید</string>
+    <string name="ca_install_failed_not_installed">گواهی هنوز نصب نشده — مرحله‌ها را دوباره دنبال کنید</string>
+    <string name="ca_install_filename">parvaz-ca.crt</string>
     <string name="ca_install_no_lock_title">قفل صفحه تنظیم نیست</string>
     <string name="ca_install_no_lock_body">اندروید برای نصب گواهی به قفل صفحه نیاز دارد — یک PIN یا الگو تنظیم کنید و دوباره تلاش کنید</string>
+    <string name="ca_install_steps_fallback">اگر این مسیر را نمی‌بینید، در تنظیمات دنبال «CA certificate» یا «گواهی CA» بگردید</string>
+
+    <!-- CA install — Samsung OneUI step labels (Farsi). -->
+    <string name="ca_step_1_samsung">۱. بیومتریک و امنیت</string>
+    <string name="ca_step_2_samsung">۲. تنظیمات امنیتی دیگر</string>
+    <string name="ca_step_3_samsung">۳. نصب از حافظهٔ دستگاه ← گواهی CA</string>
+    <string name="ca_step_4_samsung">۴. parvaz-ca.crt را از Downloads انتخاب کنید</string>
+    <string name="ca_step_5_samsung">۵. به پرواز برگردید</string>
+
+    <!-- CA install — AOSP step labels (Farsi). -->
+    <string name="ca_step_1_aosp">۱. امنیت و حریم خصوصی</string>
+    <string name="ca_step_2_aosp">۲. امنیت بیشتر ← رمزگذاری و گواهی‌نامه‌ها</string>
+    <string name="ca_step_3_aosp">۳. نصب گواهی ← گواهی CA</string>
+    <string name="ca_step_4_aosp">۴. parvaz-ca.crt را از Downloads انتخاب کنید</string>
+    <string name="ca_step_5_aosp">۵. به پرواز برگردید</string>
 
     <!-- VPN permission -->
     <string name="vpn_explain_title">اجازهٔ اتصال</string>

@@ -56,6 +56,23 @@
         </activity>
 
         <!--
+          FileProvider exposes the API 24-28 fallback path used by
+          CaExporter (filesDir external Download/ ) so the "Show file"
+          CTA can hand a content URI to ACTION_VIEW without requesting
+          WRITE_EXTERNAL_STORAGE. Authority namespaced under the
+          applicationId; mapped paths live in res/xml/file_paths.xml.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!--
           ParvazVpnService establishes the TUN interface and launches the
           Go sidecar. Android triggers the system consent dialog on first
           bind; from then on BIND_VPN_SERVICE guards the service itself.

@@ -2,27 +2,30 @@ package dk.cocode.parvaz.mitm
 
 import android.app.KeyguardManager
 import android.content.Context
-import android.content.Intent
-import android.security.KeyChain
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.security.KeyStore
 
 /**
- * CaInstaller bridges the MITM root CA into Android's user-CA store.
- *  1. [isDeviceSecure] — Android refuses CA install when no screen lock
- *     is set. Check before opening the intent so the user hits a Farsi
- *     error instead of a confused settings screen.
- *  2. [buildInstallIntent] — DER bytes + friendly name, handed to
- *     `KeyChain.createInstallIntent()`.
- *  3. [isInstalled] — walks `AndroidCAStore`, comparing SHA-256 of each
- *     alias's encoded certificate. The activity-result code is
- *     unreliable across OEMs, so this fingerprint check is the only
- *     trustworthy confirmation the user actually tapped *install*.
+ * Android-side helpers around the user CA store.
  *
- * Instrumentation-only — KeyChain + AndroidCAStore require a real
- * Android runtime. See `CaInstallerInstrumentedTest`.
+ *  • [isDeviceSecure] — Android refuses CA install when no screen lock
+ *    is set. Pre-check before opening Settings so the user hits a
+ *    Farsi error instead of a confused settings screen.
+ *  • [isInstalled] — walks `AndroidCAStore`, comparing SHA-256 of each
+ *    alias's encoded certificate. The system Settings install flow's
+ *    activity-result code is unreliable across OEMs, so this
+ *    fingerprint check is the only trustworthy confirmation that the
+ *    user actually completed the manual install.
+ *
+ * Cert export and Settings hand-off live in [CaExporter] and
+ * [SettingsLauncher] respectively. `KeyChain.createInstallIntent`
+ * is no longer used — it stopped installing CA certificates on
+ * Android 11+ and silently dropped the cert extras.
+ *
+ * Instrumentation-only — KeyguardManager + AndroidCAStore require a
+ * real Android runtime. See `CaInstallerInstrumentedTest`.
  */
 class CaInstaller(
     context: Context,
@@ -35,17 +38,6 @@ class CaInstaller(
             ?: return false
         return km.isDeviceSecure
     }
-
-    /**
-     * Build the system intent that pops Settings' "Install certificate"
-     * flow. [caDer] must be the DER bytes of an X.509 CA certificate —
-     * convert from PEM via [CaFingerprint.pemToDer] first.
-     */
-    fun buildInstallIntent(caDer: ByteArray, name: String = DEFAULT_NAME): Intent =
-        KeyChain.createInstallIntent().apply {
-            putExtra(KeyChain.EXTRA_CERTIFICATE, caDer)
-            putExtra(KeyChain.EXTRA_NAME, name)
-        }
 
     /**
      * True if a certificate matching [expectedDer]'s SHA-256 fingerprint
@@ -68,9 +60,6 @@ class CaInstaller(
     }
 
     companion object {
-        /** Shown to the user by Android's install dialog. Matches the
-         *  Go-side CommonName at core/mitm/ca.go. */
-        const val DEFAULT_NAME = "Parvaz Root CA"
         private const val ANDROID_CA_STORE = "AndroidCAStore"
     }
 }

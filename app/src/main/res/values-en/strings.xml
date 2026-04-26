@@ -18,17 +18,33 @@
     <string name="import_submit_cta">Continue</string>
 
     <string name="ca_install_title">Install certificate</string>
-    <string name="ca_install_body">To start, Parvaz must install a certificate on this phone — it\'s local, only this phone uses it</string>
-    <string name="ca_install_cta">Install</string>
+    <string name="ca_install_body">Parvaz saves the certificate file to your Downloads folder, then walks you step-by-step through installing it from Android Settings</string>
+    <string name="ca_install_cta">Open Settings</string>
+    <string name="ca_install_show_file_cta">Show file</string>
     <string name="ca_install_done_label">Installed</string>
     <string name="ca_install_generating">Preparing certificate…</string>
     <string name="ca_install_verifying">Verifying…</string>
     <string name="ca_install_retry_cta">Try again</string>
-    <string name="ca_install_continue_cta">Continue</string>
     <string name="ca_install_failed">Install didn\'t complete — try again</string>
-    <string name="ca_install_unverified_body">The certificate appears installed but Parvaz can\'t verify it automatically on this phone (Samsung and some others block this check). If you installed it, continue; otherwise reinstall</string>
+    <string name="ca_install_failed_not_installed">Certificate not yet installed — follow the steps again</string>
+    <string name="ca_install_filename">parvaz-ca.crt</string>
     <string name="ca_install_no_lock_title">No screen lock set</string>
     <string name="ca_install_no_lock_body">Android requires a screen lock before installing certificates — set a PIN or pattern and retry</string>
+    <string name="ca_install_steps_fallback">If you don\'t see this path, search Settings for "CA certificate"</string>
+
+    <!-- CA install — Samsung OneUI step labels (English). -->
+    <string name="ca_step_1_samsung">1. Biometrics and security</string>
+    <string name="ca_step_2_samsung">2. Other security settings</string>
+    <string name="ca_step_3_samsung">3. Install from device storage → CA certificate</string>
+    <string name="ca_step_4_samsung">4. Pick parvaz-ca.crt from Downloads</string>
+    <string name="ca_step_5_samsung">5. Return to Parvaz</string>
+
+    <!-- CA install — AOSP step labels (English). -->
+    <string name="ca_step_1_aosp">1. Security &amp; privacy</string>
+    <string name="ca_step_2_aosp">2. More security → Encryption &amp; credentials</string>
+    <string name="ca_step_3_aosp">3. Install a certificate → CA certificate</string>
+    <string name="ca_step_4_aosp">4. Pick parvaz-ca.crt from Downloads</string>
+    <string name="ca_step_5_aosp">5. Return to Parvaz</string>
 
     <string name="vpn_explain_title">VPN permission</string>
     <string name="vpn_explain_body">Parvaz needs Android\'s VPN permission to tunnel browser traffic. This is a per-app permission.</string>

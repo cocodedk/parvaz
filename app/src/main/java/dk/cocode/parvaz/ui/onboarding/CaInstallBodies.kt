@@ -6,6 +6,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,15 +27,15 @@ internal fun CaInstallHeader(phase: CaInstallPhase) {
         R.string.ca_install_no_lock_title else R.string.ca_install_title
     val bodyRes = when (phase) {
         CaInstallPhase.NO_SCREEN_LOCK -> R.string.ca_install_no_lock_body
-        CaInstallPhase.FAILED -> R.string.ca_install_failed
-        CaInstallPhase.UNVERIFIED -> R.string.ca_install_unverified_body
-        CaInstallPhase.GENERATING, CaInstallPhase.AWAITING_INSTALL -> R.string.ca_install_generating
+        CaInstallPhase.FAILED -> R.string.ca_install_failed_not_installed
+        CaInstallPhase.GENERATING -> R.string.ca_install_generating
+        CaInstallPhase.AWAITING_INSTALL -> R.string.ca_install_body
         CaInstallPhase.VERIFYING -> R.string.ca_install_verifying
         CaInstallPhase.INSTALLED -> R.string.ca_install_done_label
         CaInstallPhase.READY -> R.string.ca_install_body
     }
     val bodyColor = when (phase) {
-        CaInstallPhase.NO_SCREEN_LOCK, CaInstallPhase.UNVERIFIED -> Burnt
+        CaInstallPhase.NO_SCREEN_LOCK -> Burnt
         CaInstallPhase.FAILED -> Oxblood
         CaInstallPhase.INSTALLED -> Olive
         else -> InkSoft
@@ -53,15 +54,18 @@ internal fun CaInstallPrimary(phase: CaInstallPhase, onClick: () -> Unit) {
         return
     }
     if (phase == CaInstallPhase.NO_SCREEN_LOCK || phase == CaInstallPhase.INSTALLED) return
-    val (ctaRes, container) = when (phase) {
-        CaInstallPhase.READY -> R.string.ca_install_cta to Oxblood
-        CaInstallPhase.FAILED,
-        CaInstallPhase.UNVERIFIED -> R.string.ca_install_retry_cta to Oxblood
-        else -> return
+    val ctaRes = when (phase) {
+        CaInstallPhase.READY -> R.string.ca_install_cta
+        CaInstallPhase.FAILED -> R.string.ca_install_retry_cta
+        CaInstallPhase.GENERATING,
+        CaInstallPhase.AWAITING_INSTALL,
+        CaInstallPhase.VERIFYING,
+        CaInstallPhase.INSTALLED,
+        CaInstallPhase.NO_SCREEN_LOCK -> return
     }
     Button(
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = Paper),
+        colors = ButtonDefaults.buttonColors(containerColor = Oxblood, contentColor = Paper),
         shape = RoundedCornerShape(2.dp),
         modifier = Modifier.fillMaxWidth().testTag(TestTags.CaInstallPrimary),
     ) {
@@ -70,24 +74,24 @@ internal fun CaInstallPrimary(phase: CaInstallPhase, onClick: () -> Unit) {
 }
 
 /**
- * Secondary "Continue anyway" button, shown only on UNVERIFIED. Gives
- * the user an out when we can't automatically confirm CA install —
- * typical on Samsung / Android 14, where AndroidCAStore hides user CAs
- * from unprivileged app processes. If the cert isn't actually trusted,
- * failure surfaces at connect-time via the browser instead.
+ * Secondary "نمایش فایل" / "Show file" button. `ACTION_VIEW` on the
+ * exported .crt's content URI — usually opens the system Files app at
+ * the file, helping users confirm `parvaz-ca.crt` is where Parvaz says
+ * it is. Only rendered when an export has succeeded; the [onClick]
+ * lambda is `null` until then.
  */
 @Composable
-internal fun CaInstallContinue(phase: CaInstallPhase, onContinue: () -> Unit) {
-    if (phase != CaInstallPhase.UNVERIFIED) return
-    Button(
-        onClick = onContinue,
-        colors = ButtonDefaults.buttonColors(containerColor = Olive, contentColor = Paper),
+internal fun CaInstallShowFile(onClick: (() -> Unit)?) {
+    if (onClick == null) return
+    OutlinedButton(
+        onClick = onClick,
         shape = RoundedCornerShape(2.dp),
-        modifier = Modifier.fillMaxWidth().testTag(TestTags.CaInstallContinue),
+        modifier = Modifier.fillMaxWidth().testTag(TestTags.CaInstallShowFile),
     ) {
         Text(
-            stringResource(R.string.ca_install_continue_cta),
-            style = MaterialTheme.typography.headlineMedium,
+            stringResource(R.string.ca_install_show_file_cta),
+            style = MaterialTheme.typography.bodyLarge,
+            color = Ink,
         )
     }
 }
