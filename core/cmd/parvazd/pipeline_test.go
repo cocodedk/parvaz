@@ -37,10 +37,11 @@ func TestBuildPipeline_MITMHandshake(t *testing.T) {
 	}
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
-	srv, err := buildPipeline(cfg, logger)
+	srv, cleanup, err := buildPipeline(cfg, logger)
 	if err != nil {
 		t.Fatalf("buildPipeline: %v", err)
 	}
+	defer cleanup()
 
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -108,10 +109,11 @@ func TestBuildPipeline_LegacySOCKS_NoDNSHandler(t *testing.T) {
 		DataDir:     t.TempDir(),
 		// TunFD deliberately 0 — legacy SOCKS mode.
 	}
-	srv, err := buildPipeline(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	srv, cleanup, err := buildPipeline(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatalf("buildPipeline: %v", err)
 	}
+	defer cleanup()
 	if srv.Datagram != nil {
 		t.Error("Datagram wired in TunFD=0 mode — DNS handler leaking into legacy SOCKS path")
 	}
@@ -134,10 +136,11 @@ func TestBuildPipeline_AndroidSCMRights_DNSWired(t *testing.T) {
 		DataDir:     t.TempDir(),
 		TunFD:       -1, // Android SCM_RIGHTS sentinel.
 	}
-	srv, err := buildPipeline(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	srv, cleanup, err := buildPipeline(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatalf("buildPipeline: %v", err)
 	}
+	defer cleanup()
 	if srv.Datagram == nil {
 		t.Fatal("Datagram nil with TunFD=-1 — DNS gate broken for SCM_RIGHTS path")
 	}
