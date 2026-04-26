@@ -20,10 +20,15 @@ const AUTH_KEY = "CHANGE_ME_TO_A_STRONG_SECRET";
 
 // Keep browser capability headers (sec-ch-ua*, sec-fetch-*) intact.
 // Some modern apps, notably Google Meet, use them for browser gating.
+//
+// "accept-encoding" is dropped because UrlFetchApp.fetch() returns
+// auto-decoded bytes via getContent() regardless of upstream encoding
+// — passing the browser's "gzip, deflate, br, zstd" upstream wastes
+// envelope bytes for no behavior change.
 const SKIP_HEADERS = {
   host: 1, connection: 1, "content-length": 1,
   "transfer-encoding": 1, "proxy-connection": 1, "proxy-authorization": 1,
-  "priority": 1, te: 1,
+  "priority": 1, te: 1, "accept-encoding": 1,
 };
 
 function doPost(e) {
@@ -97,8 +102,6 @@ function _buildOpts(req) {
     method: (req.m || "GET").toLowerCase(),
     muteHttpExceptions: true,
     followRedirects: req.r !== false,
-    validateHttpsCertificates: true,
-    escaping: false,
   };
   if (req.h && typeof req.h === "object") {
     var headers = {};
@@ -126,14 +129,7 @@ const RESP_STRIP_HEADERS = {
 };
 
 function _respHeaders(resp) {
-  var raw;
-  try {
-    raw = (typeof resp.getAllHeaders === "function")
-      ? resp.getAllHeaders()
-      : resp.getHeaders();
-  } catch (err) {
-    raw = resp.getHeaders();
-  }
+  var raw = resp.getAllHeaders();
   var out = {};
   for (var k in raw) {
     if (raw.hasOwnProperty(k) && !RESP_STRIP_HEADERS[k.toLowerCase()]) {

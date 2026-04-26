@@ -57,7 +57,9 @@ type ServerError struct {
 func (e *ServerError) Error() string { return "apps script: " + e.Message }
 
 // skipHeaders matches reference/apps_script/Code.gs SKIP_HEADERS. Lowercase
-// keys for case-insensitive comparison.
+// keys for case-insensitive comparison. accept-encoding is stripped client-
+// side too — UrlFetchApp.fetch() auto-decodes regardless, so shipping the
+// browser's "gzip, deflate, br, zstd" upstream just inflates the envelope.
 var skipHeaders = map[string]struct{}{
 	"host":                {},
 	"connection":          {},
@@ -67,6 +69,7 @@ var skipHeaders = map[string]struct{}{
 	"proxy-authorization": {},
 	"priority":            {},
 	"te":                  {},
+	"accept-encoding":     {},
 }
 
 // envelopeSingle is the single-mode request wire format.
