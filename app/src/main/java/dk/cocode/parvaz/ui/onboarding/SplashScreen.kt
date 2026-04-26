@@ -111,6 +111,9 @@ object TestTags {
     // VpnPermissionScreen (M12.4)
     const val VpnPermissionPrimary = "vpn_permission_primary"
     const val VpnPermissionSpinner = "vpn_permission_spinner"
+
+    // OnboardingHost language toggle
+    const val LanguageToggle = "language_toggle"
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFFF1E8D4)

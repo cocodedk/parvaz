@@ -105,6 +105,10 @@ class MainActivity : ComponentActivity() {
                             initialDeepLinkUrl = pendingParvazUrl,
                             initialDeepLinkError = pendingParvazUrlError,
                             alreadyImportedAccess = access,
+                            onLanguageChange = { newLang ->
+                                ParvazSettings(this@MainActivity).language = newLang
+                                recreate()
+                            },
                             onFinished = { finished ->
                                 ParvazSettings(this@MainActivity).isOnboardingComplete = true
                                 onboardingComplete = true

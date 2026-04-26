@@ -1,12 +1,17 @@
 package dk.cocode.parvaz.ui.onboarding
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import dk.cocode.parvaz.settings.Access
 
 /**
@@ -21,7 +26,7 @@ enum class OnboardingStep { SPLASH, IMPORT, CA_INSTALL, VPN_EXPLAIN, DONE }
  * main screen (M13).
  *
  * [initialDeepLinkUrl] / [initialDeepLinkError] pre-fill the Import
- * screen when the user arrived via a \`parvaz://\` deep link — the Splash
+ * screen when the user arrived via a `parvaz://` deep link — the Splash
  * step is still shown so the flow feels consistent.
  *
  * [alreadyImportedAccess], when non-null, means the user has an Access
@@ -29,12 +34,18 @@ enum class OnboardingStep { SPLASH, IMPORT, CA_INSTALL, VPN_EXPLAIN, DONE }
  * straight to CA_INSTALL (the next uncompleted step) so the user isn't
  * asked to re-import every launch. A fresh deep link overrides this and
  * routes through IMPORT normally.
+ *
+ * [onLanguageChange] is invoked when the user taps the per-screen
+ * language toggle. The host renders the toggle as a corner-pinned
+ * overlay so users on English-locale devices can flip out of the
+ * Farsi-default flow before reaching the main screen.
  */
 @Composable
 fun OnboardingHost(
     initialDeepLinkUrl: String? = null,
     initialDeepLinkError: String? = null,
     alreadyImportedAccess: Access? = null,
+    onLanguageChange: (String) -> Unit,
     onFinished: (Access) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -48,41 +59,51 @@ fun OnboardingHost(
     // alreadyImportedAccess, which MainActivity rereads from settings.
     var imported by remember { mutableStateOf(alreadyImportedAccess) }
 
-    when (step) {
-        OnboardingStep.SPLASH ->
-            SplashScreen(
-                onStart = { step = OnboardingStep.IMPORT },
-                modifier = modifier,
-            )
+    Box(modifier = modifier.fillMaxSize()) {
+        when (step) {
+            OnboardingStep.SPLASH ->
+                SplashScreen(
+                    onStart = { step = OnboardingStep.IMPORT },
+                    modifier = Modifier.fillMaxSize(),
+                )
 
-        OnboardingStep.IMPORT ->
-            ImportAccessScreen(
-                initialUrl = initialDeepLinkUrl,
-                initialError = initialDeepLinkError,
-                onImported = { access ->
-                    imported = access
-                    step = OnboardingStep.CA_INSTALL
-                },
-                modifier = modifier,
-            )
+            OnboardingStep.IMPORT ->
+                ImportAccessScreen(
+                    initialUrl = initialDeepLinkUrl,
+                    initialError = initialDeepLinkError,
+                    onImported = { access ->
+                        imported = access
+                        step = OnboardingStep.CA_INSTALL
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                )
 
-        OnboardingStep.CA_INSTALL ->
-            CaInstallScreen(
-                onInstalled = { step = OnboardingStep.VPN_EXPLAIN },
-                modifier = modifier,
-            )
+            OnboardingStep.CA_INSTALL ->
+                CaInstallScreen(
+                    onInstalled = { step = OnboardingStep.VPN_EXPLAIN },
+                    modifier = Modifier.fillMaxSize(),
+                )
 
-        OnboardingStep.VPN_EXPLAIN ->
-            VpnPermissionScreen(
-                onGranted = { step = OnboardingStep.DONE },
-                modifier = modifier,
-            )
+            OnboardingStep.VPN_EXPLAIN ->
+                VpnPermissionScreen(
+                    onGranted = { step = OnboardingStep.DONE },
+                    modifier = Modifier.fillMaxSize(),
+                )
 
-        OnboardingStep.DONE -> {
-            val access = imported
-            if (access != null) onFinished(access)
-            // else: onboarding DONE with no access is a bug; main screen
-            // will handle missing-access via its own fallback.
+            OnboardingStep.DONE -> {
+                val access = imported
+                if (access != null) onFinished(access)
+                // else: onboarding DONE with no access is a bug; main screen
+                // will handle missing-access via its own fallback.
+            }
+        }
+        if (step != OnboardingStep.DONE) {
+            LanguageToggle(
+                onLanguageChange = onLanguageChange,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            )
         }
     }
 }
