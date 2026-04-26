@@ -1,13 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
-   See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older than API 31
-   See https://developer.android.com/about/versions/12/backup-restore
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup rules for Android < 12 (API < 31).
+  See https://developer.android.com/guide/topics/data/autobackup
+
+  Hardening: keep MITM private material and the relay access key on
+  device only. Auto Backup ships to the user's Google Drive; if their
+  account is compromised, an attacker who also has network position
+  could decrypt or modify the user's Firefox Nightly traffic. Side
+  effect: uninstall + reinstall now requires re-installing the CA and
+  re-pasting the parvaz:// link. Acceptable trade for the guarantee.
 -->
+<!-- Mirror any change here in data_extraction_rules.xml — the two files
+     cover pre-API-31 vs API-31+ pathways and must stay in sync. -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <!-- CA private key + leaf cert + any future Go-sidecar state.
+         Path matches ParvazDataDir.SUBDIR. No trailing slash —
+         the matcher prefix-matches relative paths. -->
+    <exclude domain="file" path="parvaz-data"/>
+    <!-- EncryptedSharedPreferences file holding the relay AUTH_KEY.
+         Matches ParvazSettings.SECURE_FILE + ".xml". The MasterKey
+         that decrypts it lives in AndroidKeyStore (hardware-backed
+         where TEE/StrongBox exists) and is never backed up by
+         platform default — this exclude is defense-in-depth on the
+         ciphertext, not the key material itself. -->
+    <exclude domain="sharedpref" path="parvaz_secure.xml"/>
 </full-backup-content>
