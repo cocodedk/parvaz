@@ -39,8 +39,8 @@ config.json
 /scripts/e2e/build/
 # clasp per-account binding — contains scriptId for the deployer's
 # own Google account; must never land in git.
-/reference/apps_script/.clasp.json
-/reference/apps_script/.clasprc.json
+/apps_script/.clasp.json
+/apps_script/.clasprc.json
 
 # ── Review artifacts (codex / opencode CLI workspace dumps) ─────
 # Per-commit diff + log files written by /codex-review and

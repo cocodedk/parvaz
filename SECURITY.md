@@ -21,7 +21,7 @@ In scope:
 - **Access URL format** — `parvaz://` scheme, QR encoding, clipboard handoff
 
 Out of scope:
-- The upstream Apps Script server (`reference/apps_script/Code.gs`) — report upstream
+- The upstream Apps Script server (`apps_script/Code.gs`) — report upstream
 - User-deployed Google Apps Script deployments — these are out of our control
 - Google Play Services / Android OS — report to Google
 - MasterHttpRelayVPN-RUST — report to that project

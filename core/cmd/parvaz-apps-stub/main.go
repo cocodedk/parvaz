@@ -1,5 +1,5 @@
 // parvaz-apps-stub is a standalone TLS server that mimics the Apps
-// Script envelope contract (reference/apps_script/Code.gs) so the e2e
+// Script envelope contract (apps_script/Code.gs) so the e2e
 // harness can exercise the full traffic pipeline without a deployed
 // Google Apps Script. The same handler code powers every relay unit
 // test (core/internal/testutil), so protocol drift is impossible.

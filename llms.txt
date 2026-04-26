@@ -53,7 +53,7 @@ ARCHITECTURE.md.
 - `PLAN.md` — TDD milestone list
 - `ARCHITECTURE.md` — full data path diagram and core/app boundary
 - `core/go.mod` — Go module `github.com/cocodedk/parvaz/core`
-- `reference/apps_script/Code.gs` — the server Parvaz talks to (deploy to your own Google account)
+- `apps_script/Code.gs` — the server Parvaz talks to (deploy to your own Google account)
 - `version.txt` — semantic version
 
 ## Wire Protocol

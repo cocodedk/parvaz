@@ -48,7 +48,7 @@ on its own.
   MITM path issues one `relay.Do` per `http.Request`. No coalescing.
 - `core/fronter/client.go` — `http.Transport{}` with no
   `MaxIdleConnsPerHost`, no `MaxConnsPerHost`, no h2.
-- `reference/apps_script/Code.gs` — `_doBatch` reachable via top-level
+- `apps_script/Code.gs` — `_doBatch` reachable via top-level
   `q: [...]` field; uses `UrlFetchApp.fetchAll`; correctly preserves
   per-item index + per-item errors.
 

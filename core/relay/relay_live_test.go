@@ -18,7 +18,7 @@ import (
 // Live end-to-end smoke tests that hit a real deployed Apps Script.
 // Skipped unless both env vars are set, so `go test ./...` without
 // credentials is still clean. Running locally after deploying
-// reference/apps_script/Code.gs (see scripts/e2e/DEPLOY_CODE_GS.md):
+// apps_script/Code.gs (see scripts/e2e/DEPLOY_CODE_GS.md):
 //
 //	export PARVAZ_LIVE_DEPLOYMENT_ID=AKfycbxxxx...
 //	export PARVAZ_LIVE_AUTH_KEY=yourRandomSecretHere

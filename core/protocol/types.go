@@ -1,7 +1,7 @@
 // Package protocol implements the Apps Script relay JSON envelope.
 //
 // This package is pure: no network, no goroutines, no I/O beyond what
-// encoding/json does. The wire format mirrors reference/apps_script/Code.gs:
+// encoding/json does. The wire format mirrors apps_script/Code.gs:
 //
 //	request  (single): { k, m, u, h, b?, ct?, r }
 //	request  (batch):  { k, q: [ { m, u, h, b?, ct?, r }, ... ] }
@@ -56,7 +56,7 @@ type ServerError struct {
 
 func (e *ServerError) Error() string { return "apps script: " + e.Message }
 
-// skipHeaders matches reference/apps_script/Code.gs SKIP_HEADERS. Lowercase
+// skipHeaders matches apps_script/Code.gs SKIP_HEADERS. Lowercase
 // keys for case-insensitive comparison. accept-encoding is stripped client-
 // side too — UrlFetchApp.fetch() auto-decodes regardless, so shipping the
 // browser's "gzip, deflate, br, zstd" upstream just inflates the envelope.

@@ -143,7 +143,7 @@ quota: ~20k requests/day per deployment.
 1. Open <https://script.google.com> → click **New project**.
 2. Delete the default `Code.gs` contents.
 3. Open
-   [`reference/apps_script/Code.gs`](./reference/apps_script/Code.gs)
+   [`apps_script/Code.gs`](./apps_script/Code.gs)
    in the Parvaz repo, copy the entire file, paste into the editor.
 
 ### 2. Set a strong AUTH\_KEY
@@ -233,7 +233,7 @@ a logger).
   parvaz:// URL you share) changes.
 
 References: [Apps Script · Web Apps](https://developers.google.com/apps-script/guides/web) ·
-[`reference/apps_script/Code.gs`](./reference/apps_script/Code.gs).
+[`apps_script/Code.gs`](./apps_script/Code.gs).
 
 ## Build from Source
 

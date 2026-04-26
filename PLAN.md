@@ -184,7 +184,7 @@ installed, VPN permission denied. Copy lives in `res/values/strings.xml`.
 
 ## Milestone 17 — Deploy Code.gs + live E2E
 
-- Deploy `reference/apps_script/Code.gs` to a test Google account.
+- Deploy `apps_script/Code.gs` to a test Google account.
 - Smoke: install APK on device, paste `parvaz://...`, install CA, Connect, load google.com + a non-Google site in Chrome.
 - Optional gated test: `PARVAZ_E2E=1 go test -C core ./relay/...`.
 

@@ -1,5 +1,5 @@
 // Package testutil provides an in-process HTTPS stub that mimics the
-// reference/apps_script/Code.gs contract. Tests use it to exercise the
+// apps_script/Code.gs contract. Tests use it to exercise the
 // relay layer without hitting real Google.
 package testutil
 

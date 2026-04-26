@@ -4,7 +4,7 @@ This is the Phase C path — the "real traffic" variant. Complements the
 local stub in `README.md` (which covers the hermetic CI-friendly half).
 
 The short version: you need a Google account that is **not your
-primary**, deploy `reference/apps_script/Code.gs` as a Web App, and
+primary**, deploy `apps_script/Code.gs` as a Web App, and
 keep its credentials somewhere secret. Below is the full checklist.
 
 ---
@@ -63,7 +63,7 @@ first-class versioned artifact instead of a copy-paste blob.
 
 **First deploy:**
 
-1. Set the auth key in `reference/apps_script/Code.gs` before pushing.
+1. Set the auth key in `apps_script/Code.gs` before pushing.
    Generate a strong one:
    ```bash
    openssl rand -base64 24 | tr -d '=+/' | head -c 32
@@ -74,7 +74,7 @@ first-class versioned artifact instead of a copy-paste blob.
    (see Option A variant below).
 2. Create the standalone Apps Script project bound to the local dir:
    ```bash
-   cd reference/apps_script
+   cd apps_script
    clasp create --type standalone --title parvaz-relay --rootDir .
    ```
    Writes `.clasp.json` with the new `scriptId`. The file is
@@ -106,7 +106,7 @@ first-class versioned artifact instead of a copy-paste blob.
 **Subsequent redeploys:**
 
 ```bash
-cd reference/apps_script
+cd apps_script
 # edit Code.gs, bump version description
 clasp push
 clasp deploy --description "parvaz relay v2"
