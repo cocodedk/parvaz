@@ -7,6 +7,17 @@ import (
 	"time"
 )
 
+// Pool sizing for the fronted leg. All fronted POSTs target a single
+// Google edge IP, so net/http's default MaxIdleConnsPerHost = 2 is the
+// effective concurrency cap and head-of-line-blocks every request past
+// the second. We size for browser-like fan-out: a typical page load is
+// dozens of small requests with bursty parallelism. 32 in-flight conns
+// per host is generous without leaking fds.
+const (
+	defaultMaxIdleConnsPerHost = 16
+	defaultMaxConnsPerHost     = 32
+)
+
 // NewHTTPClient returns an *http.Client that routes every request through
 // the fronter Dialer.
 //
@@ -26,6 +37,8 @@ func NewHTTPClient(d *Dialer, target string) *http.Client {
 			DialTLSContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 				return d.Dial(ctx, "tcp", target)
 			},
+			MaxIdleConnsPerHost:   defaultMaxIdleConnsPerHost,
+			MaxConnsPerHost:       defaultMaxConnsPerHost,
 			ResponseHeaderTimeout: 30 * time.Second,
 			IdleConnTimeout:       90 * time.Second,
 		},

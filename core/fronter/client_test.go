@@ -117,6 +117,29 @@ func TestClient_HandlesNonSuccessStatus(t *testing.T) {
 	}
 }
 
+// Default net/http MaxIdleConnsPerHost is 2, which serializes every
+// fronted POST behind two TLS sockets to the same Google edge IP. The
+// fronted leg is the dominant per-request latency, so a small pool
+// causes severe head-of-line blocking under any concurrency. Assert
+// the fronter raises the pool to a reasonable size and caps total
+// conns/host so we don't leak file descriptors either.
+func TestNewHTTPClient_TransportPoolDefaults(t *testing.T) {
+	d := &Dialer{FrontDomain: "www.google.com", InsecureSkipVerify: true}
+	client := NewHTTPClient(d, "1.2.3.4:443")
+	tr, ok := client.Transport.(*http.Transport)
+	if !ok {
+		t.Fatalf("Transport type = %T, want *http.Transport", client.Transport)
+	}
+	if tr.MaxIdleConnsPerHost < 8 {
+		t.Errorf("MaxIdleConnsPerHost = %d, want ≥ 8 (net/http default 2 causes HOL blocking)",
+			tr.MaxIdleConnsPerHost)
+	}
+	if tr.MaxConnsPerHost == 0 || tr.MaxConnsPerHost < tr.MaxIdleConnsPerHost {
+		t.Errorf("MaxConnsPerHost = %d, want ≥ MaxIdleConnsPerHost (%d)",
+			tr.MaxConnsPerHost, tr.MaxIdleConnsPerHost)
+	}
+}
+
 func TestClient_PropagatesContextDeadline(t *testing.T) {
 	var sni string
 	// Handler blocks longer than the client context — request must cancel.
