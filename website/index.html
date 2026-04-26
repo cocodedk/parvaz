@@ -273,9 +273,10 @@ Settings → <span class="hl">Security &amp; privacy</span>
         <span>proc · browser.001 · firefox-nightly</span>
         <span>one-time · ~1 min</span>
       </div>
-      <div class="listing-body"><span class="c"># 1. Install Firefox Nightly</span>
-F-Droid       → search <span class="hl">Firefox Nightly</span>
-Play Store    → search <span class="hl">Firefox Nightly for Developers</span>
+      <div class="listing-body"><span class="c"># 1. Install Firefox Nightly (package id: org.mozilla.fenix)</span>
+Play Store    → <a href="https://play.google.com/store/apps/details?id=org.mozilla.fenix" class="hl">play.google.com/store/apps/details?id=org.mozilla.fenix</a>
+All channels  → <a href="https://www.mozilla.org/en-US/firefox/channel/android/" class="hl">mozilla.org/firefox/channel/android</a>
+F-Droid repo  → <a href="https://github.com/mozilla-mobile/fenix#nightly-builds" class="hl">github.com/mozilla-mobile/fenix#nightly-builds</a>
 
 <span class="c"># 2. Open Firefox Nightly. In the URL bar, paste:</span>
 about:config
@@ -290,7 +291,9 @@ security.enterprise_roots.enabled
     <div class="sec-body">
       <p><strong>That's all.</strong> Browse normally in Firefox Nightly — HTTPS pages tunnel through Parvaz. Other browsers continue to load Google-owned sites (YouTube, Google Search, Google Maps) via the SNI-rewrite fast path with no cert needed. Everything else needs Firefox Nightly.</p>
       <p><strong>Why only Nightly?</strong> Firefox uses its own root certificate store baked into the APK; only the Nightly channel exposes the <code>security.enterprise_roots.enabled</code> preference, which tells Firefox to <em>also</em> trust certificates from Android's user CA store. Stock Firefox, Beta, and Focus do not have it.</p>
+      <p><strong>Stores blocked?</strong> If both Play Store and Mozilla.org are unreachable, ask the helper who sent you the <code>parvaz://</code> link to forward the Firefox Nightly APK over Telegram. After install, verify the package id is <code>org.mozilla.fenix</code> in Settings → Apps → Firefox Nightly so you know it's the official build.</p>
       <p><strong>Apps that still don't work.</strong> Instagram, Telegram, WhatsApp, banking, streaming — they all reject user-installed CAs by design. General Android limitation. If you need those tunneled, pair Parvaz with xray + a VPS.</p>
+      <p><strong>References:</strong> <a href="https://support.mozilla.org/en-US/kb/about-config-editor-firefox">Mozilla — about:config editor</a> · <a href="https://wiki.mozilla.org/CA/AdditionalTrustChanges">Mozilla — enterprise root CAs</a></p>
     </div>
   </section>
 

@@ -74,14 +74,22 @@ Parvaz (gesture back); it auto-detects the cert and advances.
 Stock browsers **ignore** user-installed certificates on Android 7+.
 The only no-root browser that honors them is **Firefox Nightly**:
 
-- **F-Droid:** search *Firefox Nightly*
-- **Play Store:** search *Firefox Nightly for Developers*
+- **Play Store:** [Firefox Nightly for Developers](https://play.google.com/store/apps/details?id=org.mozilla.fenix) (`org.mozilla.fenix`)
+- **All download channels (incl. direct APK):** [mozilla.org/firefox/channel/android](https://www.mozilla.org/en-US/firefox/channel/android/)
+- **Mozilla's own F-Droid repo** (no Play Store, no Google account): [github.com/mozilla-mobile/fenix#nightly-builds](https://github.com/mozilla-mobile/fenix#nightly-builds)
+
+> If both stores are blocked on your network, ask the helper who
+> sent you the `parvaz://` link to forward the APK over Telegram.
+> After install, verify the package is `org.mozilla.fenix` (Settings
+> → Apps → Firefox Nightly).
 
 ### 3. Flip one flag in Firefox Nightly
 
 Open Firefox Nightly → paste `about:config` in the URL bar → accept
 the warning → search `security.enterprise_roots.enabled` → tap to
 toggle to **true** → fully close and reopen Firefox Nightly.
+
+> Mozilla's `about:config` reference: [support.mozilla.org/about-config-editor-firefox](https://support.mozilla.org/en-US/kb/about-config-editor-firefox)
 
 That's it. Browse normally in Firefox Nightly; HTTPS pages route
 through Parvaz. Other browsers will still load Google-owned sites

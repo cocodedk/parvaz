@@ -273,9 +273,10 @@ Settings → <span class="hl">Security &amp; privacy</span>           <span clas
         <span>proc · browser.001 · firefox-nightly</span>
         <span>یک بار · ~۱ دقیقه</span>
       </div>
-      <div class="listing-body"><span class="c"># ۱. Firefox Nightly را نصب کنید</span>
-F-Droid       → جست‌وجو: <span class="hl">Firefox Nightly</span>
-Play Store    → جست‌وجو: <span class="hl">Firefox Nightly for Developers</span>
+      <div class="listing-body"><span class="c"># ۱. Firefox Nightly را نصب کنید (شناسهٔ بسته: org.mozilla.fenix)</span>
+Play Store    → <a href="https://play.google.com/store/apps/details?id=org.mozilla.fenix" class="hl">play.google.com/store/apps/details?id=org.mozilla.fenix</a>
+همهٔ کانال‌ها  → <a href="https://www.mozilla.org/en-US/firefox/channel/android/" class="hl">mozilla.org/firefox/channel/android</a>
+مخزن F-Droid  → <a href="https://github.com/mozilla-mobile/fenix#nightly-builds" class="hl">github.com/mozilla-mobile/fenix#nightly-builds</a>
 
 <span class="c"># ۲. Firefox Nightly را باز کنید. در نوار آدرس، این را بچسبانید:</span>
 about:config
@@ -290,7 +291,9 @@ security.enterprise_roots.enabled
     <div class="sec-body">
       <p><strong>تمام شد.</strong> در Firefox Nightly به‌صورت معمول مرور کنید — صفحات HTTPS از طریق پرواز عبور می‌کنند. سایر مرورگرها همچنان دامنه‌های متعلق به Google (YouTube، Google Search، Google Maps) را از مسیر سریع SNI-rewrite بدون نیاز به گواهی بارگذاری می‌کنند. باقی همه چیز نیاز به Firefox Nightly دارد.</p>
       <p><strong>چرا فقط Nightly؟</strong> Firefox فروشگاه گواهی ریشهٔ مخصوص خود را داخل APK جای می‌دهد؛ تنها کانال Nightly تنظیم <code>security.enterprise_roots.enabled</code> را در دسترس قرار می‌دهد، که به Firefox می‌گوید گواهی‌های فروشگاه CA کاربر اندروید را <em>نیز</em> اعتماد کند. Firefox استاندارد، Beta و Focus این تنظیم را ندارند.</p>
+      <p><strong>فروشگاه‌ها مسدود است؟</strong> اگر هم Play Store و هم Mozilla.org قابل دسترس نیستند، از فردی که لینک <code>parvaz://</code> را برایتان فرستاده بخواهید فایل APK مربوط به Firefox Nightly را از طریق تلگرام برایتان بفرستد. پس از نصب، از طریق Settings → Apps → Firefox Nightly مطمئن شوید که شناسهٔ بسته <code>org.mozilla.fenix</code> است تا بدانید نسخهٔ رسمی است.</p>
       <p><strong>اپ‌هایی که هنوز کار نمی‌کنند.</strong> Instagram، Telegram، WhatsApp، اپ‌های بانکی، استریمینگ — همه به‌صورت پیش‌فرض گواهی نصب‌شدهٔ کاربر را رد می‌کنند. محدودیت عمومی اندروید است. اگر به آن‌ها نیاز دارید، پرواز را با xray + VPS ترکیب کنید.</p>
+      <p><strong>منابع:</strong> <a href="https://support.mozilla.org/en-US/kb/about-config-editor-firefox">Mozilla — راهنمای about:config</a> · <a href="https://wiki.mozilla.org/CA/AdditionalTrustChanges">Mozilla — گواهی‌های CA سازمانی</a></p>
     </div>
   </section>
 
