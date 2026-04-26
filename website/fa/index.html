@@ -60,62 +60,122 @@
 </head>
 <body>
 
+<nav class="deck-nav" aria-label="پیمایش اسلایدها">
+  <div class="deck-nav__brand">
+    <img src="../parvaz-mark.svg" alt="" width="30" height="30"/>
+    <span class="deck-nav__brand-label">PVZ · پرواز</span>
+  </div>
+  <div class="deck-nav__dots" id="deck-dots"></div>
+  <div class="deck-nav__right">
+    <span class="deck-nav__count"><span id="deck-current">1</span><span class="sep">/</span><span id="deck-total">11</span></span>
+    <a href="../" class="deck-nav__lang" aria-label="English">EN</a>
+  </div>
+</nav>
+
+<button class="nav-arrow nav-arrow--prev" id="deck-prev" aria-label="اسلاید قبل">←</button>
+<button class="nav-arrow nav-arrow--next" id="deck-next" aria-label="اسلاید بعد">→</button>
+
 <span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
 
-<div class="doc-strip">
-  <span><strong>NOTAM #PVZ-001</strong> · رفع طبقه‌بندی · بریفینگ پرواز</span>
-  <span>برگ ۰۱ / ۰۱ · بازنگری ۱۴۰۵.۰۲.۰۶ · وضعیت // پیش-آلفا · فقط Firefox Nightly</span>
-</div>
+<main class="deck">
 
-<a href="../" class="lang-switch">EN ⇄ English</a>
-
-<main class="sheet">
-
-  <header class="title-block">
-    <dl class="title-meta">
-      <dt>سند</dt><dd>بریفینگ پرواز</dd>
-      <dt>طبقه‌بندی</dt><dd>باز · MIT</dd>
-      <dt>صدور</dt><dd>۱۴۰۵.۰۲.۰۳</dd>
-      <dt>مبدأ</dt><dd>Cocode · دانمارک</dd>
-      <dt>نشان</dt><dd>پرواز / Parvaz</dd>
-    </dl>
-    <div>
-      <p class="airline-welcome">— به خطوط هوایی cocode.dk خوش آمدید —</p>
-      <h1 class="brand"><img src="../parvaz-mark.svg" alt="" class="brand-mark"/><span class="fa-name">پرواز</span><span class="en-name">Parvaz</span></h1>
-      <p class="tagline">پرواز از روی فیلتر</p>
-      <p class="subtitle">تونل مرورگر اندروید · Google Apps Script · دامین فرانتینگ · اولویت با فارسی</p>
-      <div class="cta-row">
-        <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="btn primary">آغاز فرود · دانلود APK</a>
-        <a href="https://github.com/cocodedk/parvaz" class="btn">طرح پرواز · کد منبع</a>
-        <span class="stamp safe">مجوز · MIT</span>
+  <!-- 01 · TITLE -->
+  <section class="slide slide--title" data-slide="1">
+    <div class="slide__content">
+      <div class="doc-strip">
+        <span><strong>NOTAM #PVZ-001</strong> · رفع طبقه‌بندی · بریفینگ پرواز</span>
+        <span>برگ ۰۱ / ۰۱ · بازنگری ۱۴۰۵.۰۲.۰۶ · وضعیت // پیش-آلفا · فقط Firefox Nightly</span>
       </div>
-    </div>
-  </header>
-
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§۱.۰</span>
-      <h2 class="sec-title">چکیده</h2>
-      <span class="sec-stamp">شرح مأموریت</span>
-    </div>
-    <div class="sec-body">
-      <p>پرواز یک <strong>تونل مرورگر اندروید</strong> با اولویت فارسی برای کاربران ایرانی بدون دانش فنی است. یک فرد آشنا به فن — خویشاوند، داوطلب، فعال — پروندهٔ upstream <code>Code.gs</code> متعلق به MasterHttpRelayVPN را روی حساب Google خود مستقر می‌کند. کاربر لینک <code>parvaz://</code> را از طریق یک <strong>پیام‌رسان امن (Signal یا Telegram — نه WhatsApp)</strong> دریافت می‌کند، QR را اسکن یا «چسباندن» را می‌زند، یک بار گواهی MITM را از تنظیمات اندروید نصب می‌کند، <strong>Firefox Nightly</strong> را نصب می‌کند و یک تنظیم در <code>about:config</code> را روشن می‌کند، و Connect را لمس می‌کند. ترافیک Firefox Nightly از طریق Apps Script عبور می‌کند — TLS SNI <code>www.google.com</code>، HTTP Host <code>script.google.com</code>.</p>
-      <p><strong>محدودهٔ پرواز فقط Firefox Nightly است.</strong> Chrome استاندارد و Firefox استاندارد در اندروید ۷+ گواهی نصب‌شدهٔ کاربر را نادیده می‌گیرند و HTTPS را تونل <em>نمی‌کنند</em>. Instagram / Telegram / WhatsApp / اپ‌های بانکی نیز گواهی کاربر را به همین دلیل رد می‌کنند. این‌ها محدودیت‌های عمومی MITM در اندروید است، نه باگ پرواز. معماری با پورت <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> هم‌تراز است؛ تفاوت پرواز در زیبایی‌شناسی NOTAM، رابط پیش‌فرض فارسی، و راه‌اندازی ساده‌تر است.</p>
+      <header class="title-block">
+        <dl class="title-meta">
+          <dt>سند</dt><dd>بریفینگ پرواز</dd>
+          <dt>طبقه‌بندی</dt><dd>باز · MIT</dd>
+          <dt>صدور</dt><dd>۱۴۰۵.۰۲.۰۳</dd>
+          <dt>مبدأ</dt><dd>Cocode · دانمارک</dd>
+          <dt>نشان</dt><dd>پرواز / Parvaz</dd>
+        </dl>
+        <div>
+          <p class="airline-welcome">— به خطوط هوایی cocode.dk خوش آمدید —</p>
+          <h1 class="brand"><img src="../parvaz-mark.svg" alt="" class="brand-mark"/><span class="fa-name">پرواز</span><span class="en-name">Parvaz</span></h1>
+          <p class="tagline">پرواز از روی فیلتر</p>
+          <p class="subtitle">تونل مرورگر اندروید · Google Apps Script · دامین فرانتینگ · اولویت با فارسی</p>
+          <div class="cta-row">
+            <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="btn primary">آغاز فرود · دانلود APK</a>
+            <a href="https://github.com/cocodedk/parvaz" class="btn">طرح پرواز · کد منبع</a>
+            <span class="stamp safe">مجوز · MIT</span>
+          </div>
+        </div>
+      </header>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§۲.۰</span>
-      <h2 class="sec-title">مسیر پرواز</h2>
-      <span class="sec-stamp">شِماتیک مسیریابی</span>
-    </div>
-    <div class="schematic">
-      <div class="schematic-head">
-        <span><strong>Sheet 02</strong> · Routing schematic · domain-fronted relay</span>
-        <span>Rev 2026.04.26</span>
+  <!-- 02 · SOLARI DEPARTURE BOARD -->
+  <section class="slide slide--solari" data-slide="2">
+    <div class="slide__content">
+      <div class="solari-board" aria-label="تابلوی پروازهای راه‌اندازی">
+        <div class="solari-board__head">
+          <span><span class="blink"></span><strong>cocode.dk · departures</strong></span>
+          <span>local time · LIVE</span>
+        </div>
+        <div class="solari-board__rows">
+          <div class="solari-board__col-head">FLT</div>
+          <div class="solari-board__col-head">STAGE</div>
+          <div class="solari-board__col-head">GATE</div>
+          <div class="solari-board__col-head">STATUS</div>
+
+          <div class="solari-board__cell">PVZ 001</div>
+          <div class="solari-board__cell solari-board__cell--dest">paste · the parvaz:// link</div>
+          <div class="solari-board__cell">A1</div>
+          <div class="solari-board__cell solari-board__cell--status-board">boarding</div>
+
+          <div class="solari-board__cell">PVZ 002</div>
+          <div class="solari-board__cell solari-board__cell--dest">install · the user CA</div>
+          <div class="solari-board__cell">B12</div>
+          <div class="solari-board__cell solari-board__cell--status-go">on time</div>
+
+          <div class="solari-board__cell">PVZ 003</div>
+          <div class="solari-board__cell solari-board__cell--dest">flip · enterprise_roots</div>
+          <div class="solari-board__cell">C7</div>
+          <div class="solari-board__cell solari-board__cell--status-cleared">cleared</div>
+
+          <div class="solari-board__cell">PVZ 004</div>
+          <div class="solari-board__cell solari-board__cell--dest">https · all routes open</div>
+          <div class="solari-board__cell">D24</div>
+          <div class="solari-board__cell solari-board__cell--status-final">final call</div>
+        </div>
       </div>
-      <pre class="schematic-body">
+    </div>
+  </section>
+
+  <!-- 03 · §1.0 ABSTRACT -->
+  <section class="slide" data-slide="3">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§۱.۰</span>
+        <h2 class="sec-title">چکیده</h2>
+        <span class="sec-stamp">شرح مأموریت</span>
+      </div>
+      <div class="sec-body">
+        <p>پرواز یک <strong>تونل مرورگر اندروید</strong> با اولویت فارسی برای کاربران ایرانی بدون دانش فنی است. یک فرد آشنا به فن — خویشاوند، داوطلب، فعال — پروندهٔ upstream <code>Code.gs</code> متعلق به MasterHttpRelayVPN را روی حساب Google خود مستقر می‌کند. کاربر لینک <code>parvaz://</code> را از طریق یک <strong>پیام‌رسان امن (Signal یا Telegram — نه WhatsApp)</strong> دریافت می‌کند، QR را اسکن یا «چسباندن» را می‌زند، یک بار گواهی MITM را از تنظیمات اندروید نصب می‌کند، <strong>Firefox Nightly</strong> را نصب می‌کند و یک تنظیم در <code>about:config</code> را روشن می‌کند، و Connect را لمس می‌کند. ترافیک Firefox Nightly از طریق Apps Script عبور می‌کند — TLS SNI <code>www.google.com</code>، HTTP Host <code>script.google.com</code>.</p>
+        <p><strong>محدودهٔ پرواز فقط Firefox Nightly است.</strong> Chrome استاندارد و Firefox استاندارد در اندروید ۷+ گواهی نصب‌شدهٔ کاربر را نادیده می‌گیرند و HTTPS را تونل <em>نمی‌کنند</em>. Instagram / Telegram / WhatsApp / اپ‌های بانکی نیز گواهی کاربر را به همین دلیل رد می‌کنند. این‌ها محدودیت‌های عمومی MITM در اندروید است، نه باگ پرواز. معماری با پورت <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> هم‌تراز است؛ تفاوت پرواز در زیبایی‌شناسی NOTAM، رابط پیش‌فرض فارسی، و راه‌اندازی ساده‌تر است.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · §2.0 FLIGHT PATH -->
+  <section class="slide" data-slide="4">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§۲.۰</span>
+        <h2 class="sec-title">مسیر پرواز</h2>
+        <span class="sec-stamp">شِماتیک مسیریابی</span>
+      </div>
+      <div class="schematic">
+        <div class="schematic-head">
+          <span><strong>Sheet 02</strong> · Routing schematic · domain-fronted relay</span>
+          <span>Rev 2026.04.26</span>
+        </div>
+        <pre class="schematic-body">
   ┌───────────────────────────────────┐
   │  Firefox Nightly · flag enabled   │   <span class="note">◀─ stock browsers + native apps</span>
   └────────────────┬──────────────────┘      <span class="note">reject the user CA → fail TLS</span>
@@ -144,58 +204,69 @@
                    ▼
             { s · h · b }                  <span class="note">← status · headers · body  (response envelope)</span>
 </pre>
-      <div class="schematic-foot">
-        <span>drawn by · parvaz.doc</span>
-        <span>§2.0</span>
+        <div class="schematic-foot">
+          <span>drawn by · parvaz.doc</span>
+          <span>§2.0</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§۳.۰</span>
-      <h2 class="sec-title">اعلان به خلبانان</h2>
-      <span class="sec-stamp">فضای هوایی محدود</span>
-    </div>
-    <div class="notam">
-      <div class="notam-head">
-        <span>هشدار · فضای هوایی محدود</span>
-        <span>NOTAM A0001/26</span>
+  <!-- 05 · §3.0 NOTAM -->
+  <section class="slide" data-slide="5">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§۳.۰</span>
+        <h2 class="sec-title">اعلان به خلبانان</h2>
+        <span class="sec-stamp">فضای هوایی محدود</span>
       </div>
-      <div class="notam-body">
-        <strong>شرایط استفادهٔ Google Apps Script این کاربرد را ممنوع اعلام کرده است.</strong> <code>Code.gs</code> را فقط روی حساب Google <em>خودتان</em> مستقر کنید — مستقرسازی متمرکز یا توزیع یک deployment مشترک ممنوع است. فقط برای استفادهٔ شخصی، تحقیقاتی و آموزشی. اگر با پیامدهای حقوقی آشنا نیستید، آن را مستقر نکنید.
+      <div class="notam">
+        <div class="notam-head">
+          <span>هشدار · فضای هوایی محدود</span>
+          <span>NOTAM A0001/26</span>
+        </div>
+        <div class="notam-body">
+          <strong>شرایط استفادهٔ Google Apps Script این کاربرد را ممنوع اعلام کرده است.</strong> <code>Code.gs</code> را فقط روی حساب Google <em>خودتان</em> مستقر کنید — مستقرسازی متمرکز یا توزیع یک deployment مشترک ممنوع است. فقط برای استفادهٔ شخصی، تحقیقاتی و آموزشی. اگر با پیامدهای حقوقی آشنا نیستید، آن را مستقر نکنید.
+        </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§۴.۰</span>
-      <h2 class="sec-title">مشخصات بدنهٔ پرواز</h2>
-      <span class="sec-stamp">ویژگی‌ها</span>
-    </div>
-    <div class="specs">
-      <div class="spec"><span class="spec-num">۰۱</span><span class="spec-key">دامین فرانتینگ</span><span class="spec-val">TLS SNI می‌گوید <code>www.google.com</code>. HTTP Host می‌گوید <code>script.google.com</code>. DPI فقط فرانت را می‌بیند؛ Google بر اساس Host واقعی به صورت داخلی مسیریابی می‌کند.</span></div>
-      <div class="spec"><span class="spec-num">۰۲</span><span class="spec-key">راه‌اندازی فارسی اول</span><span class="spec-val">لینک <code>parvaz://</code> را (که از طریق Signal یا Telegram فرستاده شده) بچسبانید یا QR را اسکن کنید → یک بار گواهی MITM را از تنظیمات نصب کنید → Connect بزنید. رابط به صورت پیش‌فرض فارسی است؛ انگلیسی فقط بازنویسی.</span></div>
-      <div class="spec"><span class="spec-num">۰۳</span><span class="spec-key">فقط Firefox Nightly — صادقانه</span><span class="spec-val"><strong>Firefox Nightly</strong> با تنظیم <code>security.enterprise_roots.enabled = true</code> به‌درستی HTTPS را تونل می‌کند. Chrome استاندارد، Firefox استاندارد، Brave، Edge — همگی در اندروید ۷+ گواهی کاربر را نادیده می‌گیرند. Instagram، Telegram، WhatsApp، اپ‌های بانکی نیز همین‌طور. محدودیت عمومی MITM اندروید — برای آن‌ها xray + VPS نیاز است.</span></div>
-      <div class="spec"><span class="spec-num">۰۴</span><span class="spec-key">مسیر سریع SNI-rewrite</span><span class="spec-val">دامنه‌های متعلق به Google (google.com، youtube.com، fonts.googleapis.com و …) مستقیماً با بازنویسی SNI تونل می‌شوند و از Apps Script عبور نمی‌کنند. بدون MITM، بدون سهمیهٔ Apps Script، سرعت کامل.</span></div>
-      <div class="spec"><span class="spec-num">۰۵</span><span class="spec-key">APK متن‌باز</span><span class="spec-val">رابط Kotlin + Compose، هستهٔ تعبیه‌شدهٔ Go برای SOCKS5. بدون وابستگی انحصاری. خارج از Play Store — فقط F-Droid و sideload.</span></div>
-      <div class="spec"><span class="spec-num">۰۶</span><span class="spec-key">بدون تله‌متری</span><span class="spec-val">بدون آنالیتیکس، بدون پینگ به‌روزرسانی، بدون گزارش کرش. کلید دسترسی شما در <code>EncryptedSharedPreferences</code> می‌ماند. هیچ تماس شبکه‌ای به خارج، جز خود رله.</span></div>
+  <!-- 06 · §4.0 SPECS -->
+  <section class="slide" data-slide="6">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§۴.۰</span>
+        <h2 class="sec-title">مشخصات بدنهٔ پرواز</h2>
+        <span class="sec-stamp">ویژگی‌ها</span>
+      </div>
+      <div class="specs">
+        <div class="spec"><span class="spec-num">۰۱</span><span class="spec-key">دامین فرانتینگ</span><span class="spec-val">TLS SNI می‌گوید <code>www.google.com</code>. HTTP Host می‌گوید <code>script.google.com</code>. DPI فقط فرانت را می‌بیند؛ Google بر اساس Host واقعی به صورت داخلی مسیریابی می‌کند.</span></div>
+        <div class="spec"><span class="spec-num">۰۲</span><span class="spec-key">راه‌اندازی فارسی اول</span><span class="spec-val">لینک <code>parvaz://</code> را (که از طریق Signal یا Telegram فرستاده شده) بچسبانید یا QR را اسکن کنید → یک بار گواهی MITM را از تنظیمات نصب کنید → Connect بزنید. رابط به صورت پیش‌فرض فارسی است؛ انگلیسی فقط بازنویسی.</span></div>
+        <div class="spec"><span class="spec-num">۰۳</span><span class="spec-key">فقط Firefox Nightly — صادقانه</span><span class="spec-val"><strong>Firefox Nightly</strong> با تنظیم <code>security.enterprise_roots.enabled = true</code> به‌درستی HTTPS را تونل می‌کند. Chrome استاندارد، Firefox استاندارد، Brave، Edge — همگی در اندروید ۷+ گواهی کاربر را نادیده می‌گیرند. Instagram، Telegram، WhatsApp، اپ‌های بانکی نیز همین‌طور. محدودیت عمومی MITM اندروید — برای آن‌ها xray + VPS نیاز است.</span></div>
+        <div class="spec"><span class="spec-num">۰۴</span><span class="spec-key">مسیر سریع SNI-rewrite</span><span class="spec-val">دامنه‌های متعلق به Google (google.com، youtube.com، fonts.googleapis.com و …) مستقیماً با بازنویسی SNI تونل می‌شوند و از Apps Script عبور نمی‌کنند. بدون MITM، بدون سهمیهٔ Apps Script، سرعت کامل.</span></div>
+        <div class="spec"><span class="spec-num">۰۵</span><span class="spec-key">APK متن‌باز</span><span class="spec-val">رابط Kotlin + Compose، هستهٔ تعبیه‌شدهٔ Go برای SOCKS5. بدون وابستگی انحصاری. خارج از Play Store — فقط F-Droid و sideload.</span></div>
+        <div class="spec"><span class="spec-num">۰۶</span><span class="spec-key">بدون تله‌متری</span><span class="spec-val">بدون آنالیتیکس، بدون پینگ به‌روزرسانی، بدون گزارش کرش. کلید دسترسی شما در <code>EncryptedSharedPreferences</code> می‌ماند. هیچ تماس شبکه‌ای به خارج، جز خود رله.</span></div>
+      </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§۵.۰</span>
-      <h2 class="sec-title">مراحل سوارشدن</h2>
-      <span class="sec-stamp">نصب · چهار گام</span>
-    </div>
-    <div class="listing">
-      <div class="listing-head">
-        <span>proc · install.001</span>
-        <span>sh · POSIX</span>
+  <!-- 07 · §5.0 BOARDING PROCEDURE -->
+  <section class="slide" data-slide="7">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§۵.۰</span>
+        <h2 class="sec-title">مراحل سوارشدن</h2>
+        <span class="sec-stamp">نصب · چهار گام</span>
       </div>
-      <div class="listing-body"><span class="c"># ۱. فرد آشنا به فن: reference/apps_script/Code.gs را روی حساب Google خودش مستقر می‌کند</span>
+      <div class="boarding-pass">
+        <div class="boarding-pass__main">
+          <div class="listing">
+            <div class="listing-head">
+              <span>proc · install.001</span>
+              <span>sh · POSIX</span>
+            </div>
+            <div class="listing-body"><span class="c"># ۱. فرد آشنا به فن: reference/apps_script/Code.gs را روی حساب Google خودش مستقر می‌کند</span>
 open https://script.google.com   <span class="c"># پروژهٔ جدید → Code.gs را بچسبانید → AUTH_KEY را تنظیم کنید</span>
 Deploy → New deployment → Web app → Execute as Me → Anyone
 <span class="c"># بخش AKfycby... از URL استقرار را کپی کنید</span>
@@ -212,24 +283,36 @@ adb install Parvaz.apk
 
 <span class="c"># ۴. Firefox Nightly را نصب کنید + security.enterprise_roots.enabled را روشن کنید (به §۵.۶ مراجعه کنید)</span>
 <span class="c"># ۵. پرواز (در Firefox Nightly).</span></div>
+          </div>
+        </div>
+        <aside class="boarding-pass__stub">
+          <div class="row"><span class="label">Passenger</span><span class="value">شما / YOU</span></div>
+          <div class="row"><span class="label">Flight</span><span class="value value--big">PVZ 001</span></div>
+          <div class="row"><span class="label">Gate</span><span class="value">A · MITM</span></div>
+          <div class="row"><span class="label">Boarding</span><span class="value">~ ۴ دقیقه</span></div>
+          <div class="boarding-pass__barcode" aria-hidden="true"></div>
+        </aside>
+      </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§۵.۵</span>
-      <h2 class="sec-title">نصب گواهی · در تنظیمات</h2>
-      <span class="sec-stamp">گام ۱ از ۲ · یک بار · ~۳۰ ثانیه</span>
-    </div>
-    <div class="sec-body">
-      <p>در پرواز، <strong>«بازکردن تنظیمات»</strong> را بزنید. پرواز فایل <code>parvaz-ca.crt</code> را در پوشهٔ <strong>Downloads</strong> قرار می‌دهد و تنظیمات اندروید را باز می‌کند. سپس مسیر مربوط به گوشی خود را دنبال کنید:</p>
-    </div>
-    <div class="listing">
-      <div class="listing-head">
-        <span>proc · cert.001 · samsung</span>
-        <span>One UI 6 / Android 14</span>
+  <!-- 08 · §5.5 CERT INSTALL -->
+  <section class="slide" data-slide="8">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§۵.۵</span>
+        <h2 class="sec-title">نصب گواهی · در تنظیمات</h2>
+        <span class="sec-stamp">گام ۱ از ۲ · یک بار · ~۳۰ ثانیه</span>
       </div>
-      <div class="listing-body"><span class="c"># سامسونگ (Galaxy):</span>
+      <div class="sec-body">
+        <p>در پرواز، <strong>«بازکردن تنظیمات»</strong> را بزنید. پرواز فایل <code>parvaz-ca.crt</code> را در پوشهٔ <strong>Downloads</strong> قرار می‌دهد و تنظیمات اندروید را باز می‌کند. سپس مسیر مربوط به گوشی خود را دنبال کنید:</p>
+      </div>
+      <div class="listing">
+        <div class="listing-head">
+          <span>proc · cert.001 · samsung</span>
+          <span>One UI 6 / Android 14</span>
+        </div>
+        <div class="listing-body"><span class="c"># سامسونگ (Galaxy):</span>
 Settings → <span class="hl">Security and privacy</span>            <span class="c">(امنیت و حریم خصوصی)</span>
         → <span class="hl">More security settings</span>           <span class="c">(تنظیمات امنیتی بیشتر)</span>
         → <span class="hl">Install from device storage</span>      <span class="c">(نصب از حافظهٔ دستگاه)</span>
@@ -237,13 +320,13 @@ Settings → <span class="hl">Security and privacy</span>            <span class
         → فایل <span class="secret">parvaz-ca.crt</span> را از Downloads انتخاب کنید
         → PIN یا اثر انگشت خود را وارد کنید
         → روی هشدار، <span class="hl">Install anyway</span> را بزنید   <span class="c">(به‌هرحال نصب کن)</span></div>
-    </div>
-    <div class="listing">
-      <div class="listing-head">
-        <span>proc · cert.001 · pixel / aosp</span>
-        <span>Android 14 / 15</span>
       </div>
-      <div class="listing-body"><span class="c"># Pixel / اندروید استاندارد:</span>
+      <div class="listing">
+        <div class="listing-head">
+          <span>proc · cert.001 · pixel / aosp</span>
+          <span>Android 14 / 15</span>
+        </div>
+        <div class="listing-body"><span class="c"># Pixel / اندروید استاندارد:</span>
 Settings → <span class="hl">Security &amp; privacy</span>           <span class="c">(امنیت و حریم خصوصی)</span>
         → <span class="hl">More security &amp; privacy</span>       <span class="c">(امنیت و حریم خصوصی بیشتر)</span>
         → <span class="hl">Encryption &amp; credentials</span>      <span class="c">(رمزگذاری و گواهی‌نامه‌ها)</span>
@@ -252,30 +335,30 @@ Settings → <span class="hl">Security &amp; privacy</span>           <span clas
         → فایل <span class="secret">parvaz-ca.crt</span> را از Downloads انتخاب کنید
         → PIN یا اثر انگشت خود را وارد کنید
         → روی هشدار، <span class="hl">Install anyway</span> را بزنید   <span class="c">(به‌هرحال نصب کن)</span></div>
-    </div>
-    <div class="sec-body">
-      <p><strong>پیش‌نیاز:</strong> گوشی شما باید قفل صفحه (PIN، الگو یا رمز) داشته باشد. اندروید بدون قفل صفحه، نصب گواهی را نمی‌پذیرد.</p>
-      <p><strong>مسیر را پیدا نمی‌کنید؟</strong> در تنظیمات، عبارت <code>CA certificate</code> را جست‌وجو کنید. اولین نتیجه مسیر دقیق روی گوشی شما را نشان می‌دهد.</p>
-      <p><strong>هشدار را با خیال راحت رد کنید.</strong> اندروید پنجره‌ای با عنوان <em>«Your data won't be private»</em> («اطلاعات شما خصوصی نخواهد ماند») نمایش می‌دهد. این هشدار به‌طور کلی درست است — یک CA سوءاستفاده‌گر <em>می‌تواند</em> ترافیک شما را شنود کند. در مورد پرواز، CA همان لحظهٔ اول روی <em>گوشی شما</em> ساخته می‌شود و کلید خصوصی آن هرگز از حافظهٔ خصوصی برنامه خارج نمی‌شود. <strong>Install anyway</strong> را بزنید.</p>
-      <p><strong>سپس به پرواز برگردید.</strong> اشارهٔ بازگشت بزنید. پرواز در حدود یک ثانیه گواهی را تشخیص می‌دهد و به صفحهٔ بعد می‌رود. اگر نرفت، یک بار «تلاش دوباره» را بزنید.</p>
+      </div>
+      <div class="sec-body">
+        <p><strong>پیش‌نیاز:</strong> گوشی شما باید قفل صفحه (PIN، الگو یا رمز) داشته باشد. <strong>مسیر را پیدا نمی‌کنید؟</strong> در تنظیمات، عبارت <code>CA certificate</code> را جست‌وجو کنید. <strong>هشدار را با خیال راحت رد کنید</strong> — CA همان لحظهٔ اول روی <em>گوشی شما</em> ساخته می‌شود و کلید خصوصی آن هرگز از حافظهٔ خصوصی برنامه خارج نمی‌شود.</p>
+      </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§۵.۶</span>
-      <h2 class="sec-title">نصب Firefox Nightly · فعال کردن یک تنظیم</h2>
-      <span class="sec-stamp">گام ۲ از ۲ · یک بار · ~۱ دقیقه</span>
-    </div>
-    <div class="sec-body">
-      <p>Chrome استاندارد و Firefox استاندارد گواهی‌ای را که الآن نصب کردید <strong>نادیده می‌گیرند</strong> — اندروید ۷+ مرورگرهای غیرسیستمی را از اعتماد به CA کاربر منع می‌کند و هیچ تنظیمی برای تغییر این رفتار وجود ندارد. تنها مرورگر بدون نیاز به root که CA کاربر را می‌پذیرد <strong>Firefox Nightly</strong> است، آن هم فقط پس از فعال کردن یک تنظیم.</p>
-    </div>
-    <div class="listing">
-      <div class="listing-head">
-        <span>proc · browser.001 · firefox-nightly</span>
-        <span>یک بار · ~۱ دقیقه</span>
+  <!-- 09 · §5.6 FIREFOX NIGHTLY -->
+  <section class="slide" data-slide="9">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§۵.۶</span>
+        <h2 class="sec-title">نصب Firefox Nightly · فعال کردن یک تنظیم</h2>
+        <span class="sec-stamp">گام ۲ از ۲ · یک بار · ~۱ دقیقه</span>
       </div>
-      <div class="listing-body"><span class="c"># ۱. Firefox Nightly را نصب کنید (شناسهٔ بسته: org.mozilla.fenix)</span>
+      <div class="sec-body">
+        <p>Chrome استاندارد و Firefox استاندارد گواهی‌ای را که الآن نصب کردید <strong>نادیده می‌گیرند</strong> — اندروید ۷+ مرورگرهای غیرسیستمی را از اعتماد به CA کاربر منع می‌کند. تنها مرورگر بدون نیاز به root که CA کاربر را می‌پذیرد <strong>Firefox Nightly</strong> است، آن هم پس از فعال کردن یک تنظیم.</p>
+      </div>
+      <div class="listing">
+        <div class="listing-head">
+          <span>proc · browser.001 · firefox-nightly</span>
+          <span>یک بار · ~۱ دقیقه</span>
+        </div>
+        <div class="listing-body"><span class="c"># ۱. Firefox Nightly را نصب کنید (شناسهٔ بسته: org.mozilla.fenix)</span>
 Play Store    → <a href="https://play.google.com/store/apps/details?id=org.mozilla.fenix" class="hl">play.google.com/store/apps/details?id=org.mozilla.fenix</a>
 همهٔ کانال‌ها  → <a href="https://www.mozilla.org/en-US/firefox/channel/android/" class="hl">mozilla.org/firefox/channel/android</a>
 مخزن F-Droid  → <a href="https://github.com/mozilla-mobile/fenix#nightly-builds" class="hl">github.com/mozilla-mobile/fenix#nightly-builds</a>
@@ -289,28 +372,27 @@ security.enterprise_roots.enabled
 <span class="c">    → روی ردیف بزنید تا مقدارش به true تغییر کند</span>
 
 <span class="c"># ۴. Firefox Nightly را کاملاً ببندید (از Recents حذف کنید) و دوباره باز کنید.</span></div>
-    </div>
-    <div class="sec-body">
-      <p><strong>تمام شد.</strong> در Firefox Nightly به‌صورت معمول مرور کنید — صفحات HTTPS از طریق پرواز عبور می‌کنند. سایر مرورگرها همچنان دامنه‌های متعلق به Google (YouTube، Google Search، Google Maps) را از مسیر سریع SNI-rewrite بدون نیاز به گواهی بارگذاری می‌کنند. باقی همه چیز نیاز به Firefox Nightly دارد.</p>
-      <p><strong>چرا فقط Nightly؟</strong> Firefox فروشگاه گواهی ریشهٔ مخصوص خود را داخل APK جای می‌دهد؛ تنها کانال Nightly تنظیم <code>security.enterprise_roots.enabled</code> را در دسترس قرار می‌دهد، که به Firefox می‌گوید گواهی‌های فروشگاه CA کاربر اندروید را <em>نیز</em> اعتماد کند. Firefox استاندارد، Beta و Focus این تنظیم را ندارند.</p>
-      <p><strong>فروشگاه‌ها مسدود است؟</strong> اگر هم Play Store و هم Mozilla.org قابل دسترس نیستند، از فردی که لینک <code>parvaz://</code> را برایتان فرستاده بخواهید فایل APK مربوط به Firefox Nightly را از طریق همان پیام‌رسان امن (Signal یا Telegram — نه WhatsApp) برایتان بفرستد. پس از نصب، از طریق Settings → Apps → Firefox Nightly مطمئن شوید که شناسهٔ بسته <code>org.mozilla.fenix</code> است تا بدانید نسخهٔ رسمی است.</p>
-      <p><strong>اپ‌هایی که هنوز کار نمی‌کنند.</strong> Instagram، Telegram، WhatsApp، اپ‌های بانکی، استریمینگ — همه به‌صورت پیش‌فرض گواهی نصب‌شدهٔ کاربر را رد می‌کنند. محدودیت عمومی اندروید است. اگر به آن‌ها نیاز دارید، پرواز را با xray + VPS ترکیب کنید.</p>
-      <p><strong>منابع:</strong> <a href="https://support.mozilla.org/en-US/kb/about-config-editor-firefox">Mozilla — راهنمای about:config</a> · <a href="https://wiki.mozilla.org/CA/AdditionalTrustChanges">Mozilla — گواهی‌های CA سازمانی</a></p>
+      </div>
+      <div class="sec-body">
+        <p><strong>فروشگاه‌ها مسدود است؟</strong> از فردی که لینک <code>parvaz://</code> را برایتان فرستاده بخواهید فایل APK را از طریق همان پیام‌رسان امن (Signal یا Telegram — نه WhatsApp) برایتان بفرستد. شناسهٔ بسته باید <code>org.mozilla.fenix</code> باشد. <strong>منابع:</strong> <a href="https://support.mozilla.org/en-US/kb/about-config-editor-firefox">Mozilla — راهنمای about:config</a> · <a href="https://wiki.mozilla.org/CA/AdditionalTrustChanges">Mozilla — گواهی‌های CA سازمانی</a>.</p>
+      </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§۶.۰</span>
-      <h2 class="sec-title">شِماتیک بدنه</h2>
-      <span class="sec-stamp">ساختار monorepo</span>
-    </div>
-    <div class="schematic">
-      <div class="schematic-head">
-        <span><strong>Sheet 06</strong> · Monorepo topology · Kotlin + Go</span>
-        <span>MIT · Android 7.0+</span>
+  <!-- 10 · §6.0 ARCHITECTURE -->
+  <section class="slide" data-slide="10">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§۶.۰</span>
+        <h2 class="sec-title">شِماتیک بدنه</h2>
+        <span class="sec-stamp">ساختار monorepo</span>
       </div>
-      <pre class="schematic-body">parvaz/
+      <div class="schematic">
+        <div class="schematic-head">
+          <span><strong>Sheet 06</strong> · Monorepo topology · Kotlin + Go</span>
+          <span>MIT · Android 7.0+</span>
+        </div>
+        <pre class="schematic-body">parvaz/
 ├── <span class="hl">app/</span>             رابط Kotlin + Compose (فارسی پیش‌فرض)
 │                 · VpnService · tun2socks · نصب CA · تم NOTAM
 ├── <span class="hl">core/</span>            sidecar Go برای SOCKS5
@@ -328,31 +410,35 @@ security.enterprise_roots.enabled
 <span class="note">· core از app با ProcessBuilder صدا زده می‌شود، نه JNI</span>
 <span class="note">· یک APK + یک Code.gs + یک تگ ریلیز</span>
 </pre>
-      <div class="schematic-foot">
-        <span>drawn by · parvaz.doc</span>
-        <span>§6.0</span>
+        <div class="schematic-foot">
+          <span>drawn by · parvaz.doc</span>
+          <span>§6.0</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§۷.۰</span>
-      <h2 class="sec-title">پشتیبانی زمینی</h2>
-      <span class="sec-stamp">موردنیاز · upstream</span>
-    </div>
-    <div class="sec-body">
-      <p>پرواز فقط نیمهٔ <em>کلاینت</em> MasterHttpRelayVPN را جایگزین می‌کند. سرور Apps Script همان <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">Code.gs</a> upstream است — بدون تغییر روی حساب Google خودتان مستقر کنید. اگر به ظرافت‌های UX پرواز (فارسی پیش‌فرض، زیبایی‌شناسی NOTAM) نیاز ندارید، پورت رست <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> امروز با APKهای آماده و راهنمای کامل انگلیسی + فارسی در دسترس است.</p>
+  <!-- 11 · §7.0 GROUND SUPPORT (final, includes footer) -->
+  <section class="slide slide--final" data-slide="11">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§۷.۰</span>
+        <h2 class="sec-title">پشتیبانی زمینی</h2>
+        <span class="sec-stamp">موردنیاز · upstream</span>
+      </div>
+      <div class="sec-body">
+        <p>پرواز فقط نیمهٔ <em>کلاینت</em> MasterHttpRelayVPN را جایگزین می‌کند. سرور Apps Script همان <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">Code.gs</a> upstream است — بدون تغییر روی حساب Google خودتان مستقر کنید. اگر به ظرافت‌های UX پرواز (فارسی پیش‌فرض، زیبایی‌شناسی NOTAM) نیاز ندارید، پورت رست <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> امروز با APKهای آماده و راهنمای کامل انگلیسی + فارسی در دسترس است.</p>
+      </div>
+      <footer>
+        <span>فرم #PVZ-001 · برگ ۰۱ / ۰۱</span>
+        <span class="sig">— پرواز —</span>
+        <span class="right">MIT · © ۲۰۲۶ <a href="https://cocode.dk">Cocode</a> · ساخته شده توسط <a href="https://linkedin.com/in/babakbandpey">بابک بندپی</a></span>
+      </footer>
     </div>
   </section>
 
 </main>
 
-<footer>
-  <span>فرم #PVZ-001 · برگ ۰۱ / ۰۱</span>
-  <span class="sig">— پرواز —</span>
-  <span class="right">MIT · © ۲۰۲۶ <a href="https://cocode.dk">Cocode</a> · ساخته شده توسط <a href="https://linkedin.com/in/babakbandpey">بابک بندپی</a></span>
-</footer>
-
+<script src="../script.js" defer></script>
 </body>
 </html>

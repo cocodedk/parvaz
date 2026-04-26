@@ -61,62 +61,122 @@
 </head>
 <body>
 
+<nav class="deck-nav" aria-label="Slide navigation">
+  <div class="deck-nav__brand">
+    <img src="parvaz-mark.svg" alt="" width="30" height="30"/>
+    <span class="deck-nav__brand-label">PVZ · Parvaz</span>
+  </div>
+  <div class="deck-nav__dots" id="deck-dots"></div>
+  <div class="deck-nav__right">
+    <span class="deck-nav__count"><span id="deck-current">1</span><span class="sep">/</span><span id="deck-total">11</span></span>
+    <a href="fa/" class="deck-nav__lang" aria-label="فارسی">FA · فا</a>
+  </div>
+</nav>
+
+<button class="nav-arrow nav-arrow--prev" id="deck-prev" aria-label="Previous slide">←</button>
+<button class="nav-arrow nav-arrow--next" id="deck-next" aria-label="Next slide">→</button>
+
 <span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
 
-<div class="doc-strip">
-  <span><strong>NOTAM #PVZ-001</strong> · Declassified · Flight briefing</span>
-  <span>Sheet 01 / 01 · Rev 2026.04.26 · Status // Pre-alpha · Firefox Nightly only</span>
-</div>
+<main class="deck">
 
-<a href="fa/" class="lang-switch">فارسی ⇄ FA</a>
-
-<main class="sheet">
-
-  <header class="title-block">
-    <dl class="title-meta">
-      <dt>Document</dt><dd>Flight briefing</dd>
-      <dt>Classification</dt><dd>Open · MIT</dd>
-      <dt>Issued</dt><dd>2026.04.23</dd>
-      <dt>Origin</dt><dd>Cocode · DK</dd>
-      <dt>Callsign</dt><dd>Parvaz / پرواز</dd>
-    </dl>
-    <div>
-      <p class="airline-welcome">— Welcome aboard · cocode.dk Airways —</p>
-      <h1 class="brand"><img src="parvaz-mark.svg" alt="" class="brand-mark"/><span class="en-name">Parvaz</span><span class="fa-name">پرواز</span></h1>
-      <p class="tagline">A flight over the filter</p>
-      <p class="subtitle">Android browser tunnel · Google Apps Script · domain fronting · Farsi-first</p>
-      <div class="cta-row">
-        <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="btn primary">Begin descent · Download APK</a>
-        <a href="https://github.com/cocodedk/parvaz" class="btn">Flight plan · Source</a>
-        <span class="stamp safe">Cleared · MIT</span>
+  <!-- 01 · TITLE -->
+  <section class="slide slide--title" data-slide="1">
+    <div class="slide__content">
+      <div class="doc-strip">
+        <span><strong>NOTAM #PVZ-001</strong> · Declassified · Flight briefing</span>
+        <span>Sheet 01 / 01 · Rev 2026.04.26 · Status // Pre-alpha · Firefox Nightly only</span>
       </div>
-    </div>
-  </header>
-
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§1.0</span>
-      <h2 class="sec-title">Abstract</h2>
-      <span class="sec-stamp">Mission brief</span>
-    </div>
-    <div class="sec-body">
-      <p>Parvaz is a Farsi-first <strong>Android browser tunnel</strong> for Iranian users with no technical background. A helper deploys the upstream MasterHttpRelayVPN <code>Code.gs</code> on their own Google account; the user receives a <code>parvaz://</code> link over a <strong>secure messenger (Signal or Telegram — not WhatsApp)</strong>, scans a QR or taps Paste, installs a MITM certificate via Android Settings once, installs <strong>Firefox Nightly</strong> and flips one <code>about:config</code> flag, and taps Connect. Firefox Nightly traffic routes through Apps Script — TLS SNI <code>www.google.com</code>, HTTP Host <code>script.google.com</code>.</p>
-      <p><strong>Scope is Firefox Nightly only.</strong> Stock Chrome and stock Firefox ignore user-installed CAs on Android 7+ and will <em>not</em> tunnel HTTPS. Instagram / Telegram / WhatsApp / banking apps reject user CAs the same way. These are general Android MITM constraints, not Parvaz bugs. Architecturally aligned with the proven <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port; Parvaz's edge is NOTAM visual identity, Farsi-by-default UI, and tighter onboarding.</p>
+      <header class="title-block">
+        <dl class="title-meta">
+          <dt>Document</dt><dd>Flight briefing</dd>
+          <dt>Classification</dt><dd>Open · MIT</dd>
+          <dt>Issued</dt><dd>2026.04.23</dd>
+          <dt>Origin</dt><dd>Cocode · DK</dd>
+          <dt>Callsign</dt><dd>Parvaz / پرواز</dd>
+        </dl>
+        <div>
+          <p class="airline-welcome">— Welcome aboard · cocode.dk Airways —</p>
+          <h1 class="brand"><img src="parvaz-mark.svg" alt="" class="brand-mark"/><span class="en-name">Parvaz</span><span class="fa-name">پرواز</span></h1>
+          <p class="tagline">A flight over the filter</p>
+          <p class="subtitle">Android browser tunnel · Google Apps Script · domain fronting · Farsi-first</p>
+          <div class="cta-row">
+            <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="btn primary">Begin descent · Download APK</a>
+            <a href="https://github.com/cocodedk/parvaz" class="btn">Flight plan · Source</a>
+            <span class="stamp safe">Cleared · MIT</span>
+          </div>
+        </div>
+      </header>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§2.0</span>
-      <h2 class="sec-title">Flight path</h2>
-      <span class="sec-stamp">Routing schematic</span>
-    </div>
-    <div class="schematic">
-      <div class="schematic-head">
-        <span><strong>Sheet 02</strong> · Routing schematic · domain-fronted relay</span>
-        <span>Rev 2026.04.26</span>
+  <!-- 02 · SOLARI DEPARTURE BOARD -->
+  <section class="slide slide--solari" data-slide="2">
+    <div class="slide__content">
+      <div class="solari-board" aria-label="Onboarding flight board">
+        <div class="solari-board__head">
+          <span><span class="blink"></span><strong>cocode.dk · departures</strong></span>
+          <span>local time · LIVE</span>
+        </div>
+        <div class="solari-board__rows">
+          <div class="solari-board__col-head">FLT</div>
+          <div class="solari-board__col-head">STAGE</div>
+          <div class="solari-board__col-head">GATE</div>
+          <div class="solari-board__col-head">STATUS</div>
+
+          <div class="solari-board__cell">PVZ 001</div>
+          <div class="solari-board__cell solari-board__cell--dest">paste · the parvaz:// link</div>
+          <div class="solari-board__cell">A1</div>
+          <div class="solari-board__cell solari-board__cell--status-board">boarding</div>
+
+          <div class="solari-board__cell">PVZ 002</div>
+          <div class="solari-board__cell solari-board__cell--dest">install · the user CA</div>
+          <div class="solari-board__cell">B12</div>
+          <div class="solari-board__cell solari-board__cell--status-go">on time</div>
+
+          <div class="solari-board__cell">PVZ 003</div>
+          <div class="solari-board__cell solari-board__cell--dest">flip · enterprise_roots</div>
+          <div class="solari-board__cell">C7</div>
+          <div class="solari-board__cell solari-board__cell--status-cleared">cleared</div>
+
+          <div class="solari-board__cell">PVZ 004</div>
+          <div class="solari-board__cell solari-board__cell--dest">https · all routes open</div>
+          <div class="solari-board__cell">D24</div>
+          <div class="solari-board__cell solari-board__cell--status-final">final call</div>
+        </div>
       </div>
-      <pre class="schematic-body">
+    </div>
+  </section>
+
+  <!-- 03 · §1.0 ABSTRACT -->
+  <section class="slide" data-slide="3">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§1.0</span>
+        <h2 class="sec-title">Abstract</h2>
+        <span class="sec-stamp">Mission brief</span>
+      </div>
+      <div class="sec-body">
+        <p>Parvaz is a Farsi-first <strong>Android browser tunnel</strong> for Iranian users with no technical background. A helper deploys the upstream MasterHttpRelayVPN <code>Code.gs</code> on their own Google account; the user receives a <code>parvaz://</code> link over a <strong>secure messenger (Signal or Telegram — not WhatsApp)</strong>, scans a QR or taps Paste, installs a MITM certificate via Android Settings once, installs <strong>Firefox Nightly</strong> and flips one <code>about:config</code> flag, and taps Connect. Firefox Nightly traffic routes through Apps Script — TLS SNI <code>www.google.com</code>, HTTP Host <code>script.google.com</code>.</p>
+        <p><strong>Scope is Firefox Nightly only.</strong> Stock Chrome and stock Firefox ignore user-installed CAs on Android 7+ and will <em>not</em> tunnel HTTPS. Instagram / Telegram / WhatsApp / banking apps reject user CAs the same way. These are general Android MITM constraints, not Parvaz bugs. Architecturally aligned with the proven <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port; Parvaz's edge is NOTAM visual identity, Farsi-by-default UI, and tighter onboarding.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · §2.0 FLIGHT PATH -->
+  <section class="slide" data-slide="4">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§2.0</span>
+        <h2 class="sec-title">Flight path</h2>
+        <span class="sec-stamp">Routing schematic</span>
+      </div>
+      <div class="schematic">
+        <div class="schematic-head">
+          <span><strong>Sheet 02</strong> · Routing schematic · domain-fronted relay</span>
+          <span>Rev 2026.04.26</span>
+        </div>
+        <pre class="schematic-body">
   ┌───────────────────────────────────┐
   │  Firefox Nightly · flag enabled   │   <span class="note">◀─ stock browsers + native apps</span>
   └────────────────┬──────────────────┘      <span class="note">reject the user CA → fail TLS</span>
@@ -145,58 +205,69 @@
                    ▼
             { s · h · b }                  <span class="note">← status · headers · body  (response envelope)</span>
 </pre>
-      <div class="schematic-foot">
-        <span>drawn by · parvaz.doc</span>
-        <span>§2.0</span>
+        <div class="schematic-foot">
+          <span>drawn by · parvaz.doc</span>
+          <span>§2.0</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§3.0</span>
-      <h2 class="sec-title">Notice to airmen</h2>
-      <span class="sec-stamp">Restricted airspace</span>
-    </div>
-    <div class="notam">
-      <div class="notam-head">
-        <span>Caution · Restricted airspace</span>
-        <span>NOTAM A0001/26</span>
+  <!-- 05 · §3.0 NOTAM -->
+  <section class="slide" data-slide="5">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§3.0</span>
+        <h2 class="sec-title">Notice to airmen</h2>
+        <span class="sec-stamp">Restricted airspace</span>
       </div>
-      <div class="notam-body">
-        <strong>Google Apps Script's terms forbid this use.</strong> Deploy the <code>Code.gs</code> to your <em>own</em> Google account only — do not centralize deployments, do not commercialise, do not distribute a shared one. Personal, research, and educational use only. If you do not understand the legal implications, do not deploy.
+      <div class="notam">
+        <div class="notam-head">
+          <span>Caution · Restricted airspace</span>
+          <span>NOTAM A0001/26</span>
+        </div>
+        <div class="notam-body">
+          <strong>Google Apps Script's terms forbid this use.</strong> Deploy the <code>Code.gs</code> to your <em>own</em> Google account only — do not centralize deployments, do not commercialise, do not distribute a shared one. Personal, research, and educational use only. If you do not understand the legal implications, do not deploy.
+        </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§4.0</span>
-      <h2 class="sec-title">Airframe specifications</h2>
-      <span class="sec-stamp">Features</span>
-    </div>
-    <div class="specs">
-      <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">TLS SNI says <code>www.google.com</code>. HTTP Host says <code>script.google.com</code>. DPI sees the front; Google's edge routes by the real Host internally.</span></div>
-      <div class="spec"><span class="spec-num">02</span><span class="spec-key">Farsi-first onboarding</span><span class="spec-val">Paste a <code>parvaz://</code> URL (forwarded via Signal or Telegram) or scan a QR → install the MITM certificate once → tap Connect. UI defaults to Persian; English is the override.</span></div>
-      <div class="spec"><span class="spec-num">03</span><span class="spec-key">Firefox Nightly only — honest</span><span class="spec-val"><strong>Firefox Nightly</strong> with <code>security.enterprise_roots.enabled = true</code> tunnels HTTPS correctly. Stock Chrome, stock Firefox, Brave, Edge — all ignore user-installed CAs on Android 7+. Instagram, Telegram, WhatsApp, banking apps reject them too. General Android MITM limitation — pair with xray + VPS if you need those.</span></div>
-      <div class="spec"><span class="spec-num">04</span><span class="spec-key">SNI-rewrite fast path</span><span class="spec-val">Google-owned hosts (google.com, youtube.com, fonts.googleapis.com, …) skip Apps Script entirely and tunnel directly via SNI rewrite. No MITM, no Apps Script quota, full speed.</span></div>
-      <div class="spec"><span class="spec-num">05</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose front end, embedded Go SOCKS5 sidecar. No proprietary dependencies. Ships outside the Play Store — F-Droid and sideload only.</span></div>
-      <div class="spec"><span class="spec-num">06</span><span class="spec-key">Zero telemetry</span><span class="spec-val">No analytics, no auto-update pings, no crash reporting. Your access key stays in <code>EncryptedSharedPreferences</code>. No third-party network calls other than the relay itself.</span></div>
+  <!-- 06 · §4.0 SPECS -->
+  <section class="slide" data-slide="6">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§4.0</span>
+        <h2 class="sec-title">Airframe specifications</h2>
+        <span class="sec-stamp">Features</span>
+      </div>
+      <div class="specs">
+        <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">TLS SNI says <code>www.google.com</code>. HTTP Host says <code>script.google.com</code>. DPI sees the front; Google's edge routes by the real Host internally.</span></div>
+        <div class="spec"><span class="spec-num">02</span><span class="spec-key">Farsi-first onboarding</span><span class="spec-val">Paste a <code>parvaz://</code> URL (forwarded via Signal or Telegram) or scan a QR → install the MITM certificate once → tap Connect. UI defaults to Persian; English is the override.</span></div>
+        <div class="spec"><span class="spec-num">03</span><span class="spec-key">Firefox Nightly only — honest</span><span class="spec-val"><strong>Firefox Nightly</strong> with <code>security.enterprise_roots.enabled = true</code> tunnels HTTPS correctly. Stock Chrome, stock Firefox, Brave, Edge — all ignore user-installed CAs on Android 7+. Instagram, Telegram, WhatsApp, banking apps reject them too. General Android MITM limitation — pair with xray + VPS if you need those.</span></div>
+        <div class="spec"><span class="spec-num">04</span><span class="spec-key">SNI-rewrite fast path</span><span class="spec-val">Google-owned hosts (google.com, youtube.com, fonts.googleapis.com, …) skip Apps Script entirely and tunnel directly via SNI rewrite. No MITM, no Apps Script quota, full speed.</span></div>
+        <div class="spec"><span class="spec-num">05</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose front end, embedded Go SOCKS5 sidecar. No proprietary dependencies. Ships outside the Play Store — F-Droid and sideload only.</span></div>
+        <div class="spec"><span class="spec-num">06</span><span class="spec-key">Zero telemetry</span><span class="spec-val">No analytics, no auto-update pings, no crash reporting. Your access key stays in <code>EncryptedSharedPreferences</code>. No third-party network calls other than the relay itself.</span></div>
+      </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§5.0</span>
-      <h2 class="sec-title">Boarding procedure</h2>
-      <span class="sec-stamp">Install · four steps</span>
-    </div>
-    <div class="listing">
-      <div class="listing-head">
-        <span>proc · install.001</span>
-        <span>sh · POSIX</span>
+  <!-- 07 · §5.0 BOARDING PROCEDURE (boarding-pass treatment) -->
+  <section class="slide" data-slide="7">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§5.0</span>
+        <h2 class="sec-title">Boarding procedure</h2>
+        <span class="sec-stamp">Install · four steps</span>
       </div>
-      <div class="listing-body"><span class="c"># 1. helper: deploy reference/apps_script/Code.gs to your google account</span>
+      <div class="boarding-pass">
+        <div class="boarding-pass__main">
+          <div class="listing">
+            <div class="listing-head">
+              <span>proc · install.001</span>
+              <span>sh · POSIX</span>
+            </div>
+            <div class="listing-body"><span class="c"># 1. helper: deploy reference/apps_script/Code.gs to your google account</span>
 open https://script.google.com   <span class="c"># New project → paste Code.gs → set AUTH_KEY</span>
 Deploy → New deployment → Web app → Execute as Me → Anyone
 <span class="c"># copy the AKfycby... segment of the deployment URL</span>
@@ -213,37 +284,49 @@ adb install Parvaz.apk
 
 <span class="c"># 4. install Firefox Nightly + flip security.enterprise_roots.enabled (see §5.6)</span>
 <span class="c"># 5. fly (in Firefox Nightly).</span></div>
+          </div>
+        </div>
+        <aside class="boarding-pass__stub">
+          <div class="row"><span class="label">Passenger</span><span class="value">YOU</span></div>
+          <div class="row"><span class="label">Flight</span><span class="value value--big">PVZ 001</span></div>
+          <div class="row"><span class="label">Gate</span><span class="value">A · MITM</span></div>
+          <div class="row"><span class="label">Boarding</span><span class="value">~ 4 min</span></div>
+          <div class="boarding-pass__barcode" aria-hidden="true"></div>
+        </aside>
+      </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§5.5</span>
-      <h2 class="sec-title">Install the certificate · in Settings</h2>
-      <span class="sec-stamp">Step 1 of 2 · once · ~30 seconds</span>
-    </div>
-    <div class="sec-body">
-      <p>In Parvaz, tap <strong>Open Settings</strong>. Parvaz drops <code>parvaz-ca.crt</code> into your <strong>Downloads</strong> folder and opens Android Settings. Then follow the path for your phone:</p>
-    </div>
-    <div class="listing">
-      <div class="listing-head">
-        <span>proc · cert.001 · samsung</span>
-        <span>One UI 6 / Android 14</span>
+  <!-- 08 · §5.5 CERT INSTALL -->
+  <section class="slide" data-slide="8">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§5.5</span>
+        <h2 class="sec-title">Install the certificate · in Settings</h2>
+        <span class="sec-stamp">Step 1 of 2 · once · ~30 seconds</span>
       </div>
-      <div class="listing-body"><span class="c"># SAMSUNG (Galaxy):</span>
+      <div class="sec-body">
+        <p>In Parvaz, tap <strong>Open Settings</strong>. Parvaz drops <code>parvaz-ca.crt</code> into your <strong>Downloads</strong> folder and opens Android Settings. Then follow the path for your phone:</p>
+      </div>
+      <div class="listing">
+        <div class="listing-head">
+          <span>proc · cert.001 · samsung</span>
+          <span>One UI 6 / Android 14</span>
+        </div>
+        <div class="listing-body"><span class="c"># SAMSUNG (Galaxy):</span>
 Settings → <span class="hl">Security and privacy</span>
         → <span class="hl">More security settings</span>
         → <span class="hl">Install from device storage</span> → <span class="hl">CA certificate</span>
         → pick <span class="secret">parvaz-ca.crt</span> from Downloads
         → enter your PIN / fingerprint
         → tap <span class="hl">Install anyway</span> on the warning</div>
-    </div>
-    <div class="listing">
-      <div class="listing-head">
-        <span>proc · cert.001 · pixel / aosp</span>
-        <span>Android 14 / 15</span>
       </div>
-      <div class="listing-body"><span class="c"># PIXEL / stock Android:</span>
+      <div class="listing">
+        <div class="listing-head">
+          <span>proc · cert.001 · pixel / aosp</span>
+          <span>Android 14 / 15</span>
+        </div>
+        <div class="listing-body"><span class="c"># PIXEL / stock Android:</span>
 Settings → <span class="hl">Security &amp; privacy</span>
         → <span class="hl">More security &amp; privacy</span>
         → <span class="hl">Encryption &amp; credentials</span>
@@ -251,30 +334,30 @@ Settings → <span class="hl">Security &amp; privacy</span>
         → pick <span class="secret">parvaz-ca.crt</span> from Downloads
         → enter your PIN / fingerprint
         → tap <span class="hl">Install anyway</span> on the warning</div>
-    </div>
-    <div class="sec-body">
-      <p><strong>Pre-requisite:</strong> your phone must have a screen lock (PIN, pattern, or password). Android refuses CA install otherwise.</p>
-      <p><strong>Can't find the menu?</strong> In Settings, search <code>CA certificate</code>. The first result shows the path for your phone.</p>
-      <p><strong>The warning is fine to dismiss.</strong> Android calls the dialog <em>"Your data won't be private"</em>. That's true in general — a malicious CA <em>could</em> intercept your traffic. Parvaz's CA was generated on <em>your</em> phone on first launch; its private key never leaves the app's private storage. Tap <strong>Install anyway</strong>.</p>
-      <p><strong>Then return to Parvaz.</strong> Gesture back. Parvaz auto-detects the cert in about one second and moves to the next screen. If it doesn't, tap Retry once.</p>
+      </div>
+      <div class="sec-body">
+        <p><strong>Pre-requisite:</strong> your phone must have a screen lock (PIN, pattern, or password). Android refuses CA install otherwise. <strong>Can't find the menu?</strong> In Settings, search <code>CA certificate</code>. The first result shows the path for your phone. <strong>The warning is fine to dismiss</strong> — Parvaz's CA was generated on <em>your</em> phone on first launch; its private key never leaves the app's private storage.</p>
+      </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§5.6</span>
-      <h2 class="sec-title">Install Firefox Nightly · flip one flag</h2>
-      <span class="sec-stamp">Step 2 of 2 · once · ~1 minute</span>
-    </div>
-    <div class="sec-body">
-      <p>Stock Chrome and stock Firefox <strong>ignore</strong> the certificate you just installed — Android 7+ blocks user CAs from non-system browsers, and there is no setting to change this. The only no-root browser that honors user CAs is <strong>Firefox Nightly</strong>, and only after you flip one flag.</p>
-    </div>
-    <div class="listing">
-      <div class="listing-head">
-        <span>proc · browser.001 · firefox-nightly</span>
-        <span>one-time · ~1 min</span>
+  <!-- 09 · §5.6 FIREFOX NIGHTLY -->
+  <section class="slide" data-slide="9">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§5.6</span>
+        <h2 class="sec-title">Install Firefox Nightly · flip one flag</h2>
+        <span class="sec-stamp">Step 2 of 2 · once · ~1 minute</span>
       </div>
-      <div class="listing-body"><span class="c"># 1. Install Firefox Nightly (package id: org.mozilla.fenix)</span>
+      <div class="sec-body">
+        <p>Stock Chrome and stock Firefox <strong>ignore</strong> the certificate you just installed — Android 7+ blocks user CAs from non-system browsers. The only no-root browser that honors user CAs is <strong>Firefox Nightly</strong>, after one flag flip.</p>
+      </div>
+      <div class="listing">
+        <div class="listing-head">
+          <span>proc · browser.001 · firefox-nightly</span>
+          <span>one-time · ~1 min</span>
+        </div>
+        <div class="listing-body"><span class="c"># 1. Install Firefox Nightly (package id: org.mozilla.fenix)</span>
 Play Store    → <a href="https://play.google.com/store/apps/details?id=org.mozilla.fenix" class="hl">play.google.com/store/apps/details?id=org.mozilla.fenix</a>
 All channels  → <a href="https://www.mozilla.org/en-US/firefox/channel/android/" class="hl">mozilla.org/firefox/channel/android</a>
 F-Droid repo  → <a href="https://github.com/mozilla-mobile/fenix#nightly-builds" class="hl">github.com/mozilla-mobile/fenix#nightly-builds</a>
@@ -288,28 +371,27 @@ security.enterprise_roots.enabled
 <span class="c">    → tap the row to toggle the value to true</span>
 
 <span class="c"># 4. Fully close Firefox Nightly (swipe out of recents) and reopen.</span></div>
-    </div>
-    <div class="sec-body">
-      <p><strong>That's all.</strong> Browse normally in Firefox Nightly — HTTPS pages tunnel through Parvaz. Other browsers continue to load Google-owned sites (YouTube, Google Search, Google Maps) via the SNI-rewrite fast path with no cert needed. Everything else needs Firefox Nightly.</p>
-      <p><strong>Why only Nightly?</strong> Firefox uses its own root certificate store baked into the APK; only the Nightly channel exposes the <code>security.enterprise_roots.enabled</code> preference, which tells Firefox to <em>also</em> trust certificates from Android's user CA store. Stock Firefox, Beta, and Focus do not have it.</p>
-      <p><strong>Stores blocked?</strong> If both Play Store and Mozilla.org are unreachable, ask the helper who sent you the <code>parvaz://</code> link to forward the Firefox Nightly APK via the same secure messenger (Signal or Telegram — not WhatsApp). After install, verify the package id is <code>org.mozilla.fenix</code> in Settings → Apps → Firefox Nightly so you know it's the official build.</p>
-      <p><strong>Apps that still don't work.</strong> Instagram, Telegram, WhatsApp, banking, streaming — they all reject user-installed CAs by design. General Android limitation. If you need those tunneled, pair Parvaz with xray + a VPS.</p>
-      <p><strong>References:</strong> <a href="https://support.mozilla.org/en-US/kb/about-config-editor-firefox">Mozilla — about:config editor</a> · <a href="https://wiki.mozilla.org/CA/AdditionalTrustChanges">Mozilla — enterprise root CAs</a></p>
+      </div>
+      <div class="sec-body">
+        <p><strong>Stores blocked?</strong> Ask the helper who sent you the <code>parvaz://</code> link to forward the Firefox Nightly APK via the same secure messenger (Signal or Telegram — not WhatsApp). After install, verify the package id is <code>org.mozilla.fenix</code> in Settings → Apps. <strong>References:</strong> <a href="https://support.mozilla.org/en-US/kb/about-config-editor-firefox">Mozilla — about:config editor</a> · <a href="https://wiki.mozilla.org/CA/AdditionalTrustChanges">Mozilla — enterprise root CAs</a>.</p>
+      </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§6.0</span>
-      <h2 class="sec-title">Airframe schematic</h2>
-      <span class="sec-stamp">Monorepo topology</span>
-    </div>
-    <div class="schematic">
-      <div class="schematic-head">
-        <span><strong>Sheet 06</strong> · Monorepo topology · Kotlin + Go</span>
-        <span>MIT · Android 7.0+</span>
+  <!-- 10 · §6.0 ARCHITECTURE -->
+  <section class="slide" data-slide="10">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§6.0</span>
+        <h2 class="sec-title">Airframe schematic</h2>
+        <span class="sec-stamp">Monorepo topology</span>
       </div>
-      <pre class="schematic-body">parvaz/
+      <div class="schematic">
+        <div class="schematic-head">
+          <span><strong>Sheet 06</strong> · Monorepo topology · Kotlin + Go</span>
+          <span>MIT · Android 7.0+</span>
+        </div>
+        <pre class="schematic-body">parvaz/
 ├── <span class="hl">app/</span>             kotlin + compose UI · VpnService · tun2socks
 │                 · sidecar launcher · MITM CA install · NOTAM
 ├── <span class="hl">core/</span>            go SOCKS5 sidecar
@@ -327,31 +409,35 @@ security.enterprise_roots.enabled
 <span class="note">· core is called from app via ProcessBuilder, not JNI</span>
 <span class="note">· one apk + one Code.gs drop-in + one release tag</span>
 </pre>
-      <div class="schematic-foot">
-        <span>drawn by · parvaz.doc</span>
-        <span>§6.0</span>
+        <div class="schematic-foot">
+          <span>drawn by · parvaz.doc</span>
+          <span>§6.0</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <span class="sec-num">§7.0</span>
-      <h2 class="sec-title">Ground support</h2>
-      <span class="sec-stamp">Required · upstream</span>
-    </div>
-    <div class="sec-body">
-      <p>Parvaz replaces only the <em>client</em> half of MasterHttpRelayVPN. The Apps Script server is the upstream <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">Code.gs</a> unchanged — deploy it to your own Google account. If you don't need the Farsi-first NOTAM UX touches Parvaz adds, the mature <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port ships today with prebuilt APKs and an English + Persian walkthrough.</p>
+  <!-- 11 · §7.0 GROUND SUPPORT (final slide, includes footer) -->
+  <section class="slide slide--final" data-slide="11">
+    <div class="slide__content">
+      <div class="sec-head">
+        <span class="sec-num">§7.0</span>
+        <h2 class="sec-title">Ground support</h2>
+        <span class="sec-stamp">Required · upstream</span>
+      </div>
+      <div class="sec-body">
+        <p>Parvaz replaces only the <em>client</em> half of MasterHttpRelayVPN. The Apps Script server is the upstream <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">Code.gs</a> unchanged — deploy it to your own Google account. If you don't need the Farsi-first NOTAM UX touches Parvaz adds, the mature <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port ships today with prebuilt APKs and an English + Persian walkthrough.</p>
+      </div>
+      <footer>
+        <span>Form #PVZ-001 · Sheet 01 / 01</span>
+        <span class="sig">— parvaz —</span>
+        <span class="right">MIT · © 2026 <a href="https://cocode.dk">Cocode</a> · <a href="https://linkedin.com/in/babakbandpey">Babak Bandpey</a></span>
+      </footer>
     </div>
   </section>
 
 </main>
 
-<footer>
-  <span>Form #PVZ-001 · Sheet 01 / 01</span>
-  <span class="sig">— parvaz —</span>
-  <span class="right">MIT · © 2026 <a href="https://cocode.dk">Cocode</a> · <a href="https://linkedin.com/in/babakbandpey">Babak Bandpey</a></span>
-</footer>
-
+<script src="script.js" defer></script>
 </body>
 </html>

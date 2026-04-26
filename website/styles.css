@@ -470,3 +470,323 @@ footer .right { text-align: right; }
 @media (max-width: 780px) {
   [dir="rtl"] .lang-switch { left: 22px; right: auto; }
 }
+
+/* ═══════ Airline / airways theme additions ════════════════════════ */
+
+/* Airmail diagonal stripe — par-avion red/blue chevrons.
+   Use as a thin band at the very top + bottom of <body>. */
+.airmail-band {
+  height: 14px;
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--stamp) 0 12px,
+    var(--paper) 12px 14px,
+    #1c4a78 14px 26px,
+    var(--paper) 26px 28px
+  );
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+/* Solari split-flap departure board.
+   Dark + amber phosphor — the one intentional dark element in the
+   light scheme, marking it as its own physical "device". */
+.solari-board {
+  background: #0e0a07;
+  color: #f0c674;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  margin: 32px 0 48px;
+  box-shadow:
+    inset 0 0 60px rgba(0,0,0,0.55),
+    0 4px 0 rgba(26,20,16,0.18);
+  font-family: var(--mono);
+  position: relative;
+  overflow: hidden;
+}
+.solari-board::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(240,198,116,0.06), transparent 60%);
+  pointer-events: none;
+}
+.solari-board__head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 22px;
+  border-bottom: 1px solid rgba(240,198,116,0.18);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(240,198,116,0.55);
+}
+.solari-board__head strong { color: #f0c674; letter-spacing: 0.32em; }
+.solari-board__head .blink {
+  display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; background: #6fbe6c;
+  box-shadow: 0 0 6px #6fbe6c;
+  animation: solari-blink 1.6s ease-in-out infinite;
+  margin-right: 8px; vertical-align: middle;
+}
+@keyframes solari-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; box-shadow: 0 0 2px #6fbe6c; }
+}
+.solari-board__rows {
+  display: grid;
+  grid-template-columns: 96px 1fr 80px 130px;
+}
+.solari-board__col-head {
+  padding: 8px 22px;
+  font-size: 9px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: rgba(240,198,116,0.45);
+  background: rgba(0,0,0,0.25);
+  border-bottom: 1px solid rgba(240,198,116,0.12);
+}
+.solari-board__cell {
+  padding: 13px 22px;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(240,198,116,0.08);
+  position: relative;
+  direction: ltr;
+}
+.solari-board__cell:nth-last-child(-n+4) { border-bottom: none; }
+.solari-board__cell::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%;
+  height: 1px; background: rgba(0,0,0,0.4); pointer-events: none;
+}
+.solari-board__cell--dest      { color: #fff3d4; letter-spacing: 0.18em; }
+.solari-board__cell--status-go      { color: #6fbe6c; }
+.solari-board__cell--status-board   { color: #f0c674; font-weight: 700; }
+.solari-board__cell--status-final   { color: #d97a4a; }
+.solari-board__cell--status-cleared { color: #88d3a4; }
+
+/* Boarding pass card — perforated divider with ticket stub on the
+   right. Wraps §5.0 "Boarding procedure". */
+.boarding-pass {
+  display: grid;
+  grid-template-columns: 1fr 230px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  background: var(--paper-2);
+  position: relative;
+  margin: 28px 0;
+  box-shadow: 0 3px 0 rgba(26,20,16,0.12);
+}
+.boarding-pass__main {
+  padding: 22px 28px;
+  border-right: 1.5px dashed var(--ink-3);
+  position: relative;
+}
+.boarding-pass__main::before,
+.boarding-pass__main::after {
+  content: ''; position: absolute; right: -14px;
+  width: 24px; height: 24px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  z-index: 2;
+}
+.boarding-pass__main::before { top: -14px; }
+.boarding-pass__main::after  { bottom: -14px; }
+.boarding-pass__stub {
+  padding: 24px 22px;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 8px, rgba(26,20,16,0.04) 8px 9px),
+    var(--paper-3);
+  display: flex; flex-direction: column; gap: 14px;
+  font-family: var(--mono);
+}
+.boarding-pass__stub .row { display: flex; flex-direction: column; }
+.boarding-pass__stub .label {
+  font-size: 9px; letter-spacing: 0.36em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.boarding-pass__stub .value {
+  font-size: 16px; letter-spacing: 0.08em;
+  color: var(--ink); font-weight: 700;
+  margin-top: 2px;
+}
+.boarding-pass__stub .value--big {
+  font-size: 22px; letter-spacing: 0.06em; color: var(--stamp);
+}
+.boarding-pass__barcode {
+  margin-top: auto;
+  height: 36px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0 1px, transparent 1px 3px,
+    var(--ink) 3px 5px, transparent 5px 6px,
+    var(--ink) 6px 9px, transparent 9px 11px,
+    var(--ink) 11px 12px, transparent 12px 14px
+  );
+  border: 1px solid var(--ink-3);
+}
+
+/* RTL — flip the boarding pass so the stub is on the left */
+[dir="rtl"] .boarding-pass { grid-template-columns: 230px 1fr; }
+[dir="rtl"] .boarding-pass__main {
+  border-right: none; border-left: 1.5px dashed var(--ink-3);
+  order: 2;
+}
+[dir="rtl"] .boarding-pass__main::before,
+[dir="rtl"] .boarding-pass__main::after { right: auto; left: -14px; }
+[dir="rtl"] .boarding-pass__stub { order: 1; direction: rtl; text-align: right; }
+[dir="rtl"] .solari-board__head, [dir="rtl"] .solari-board__col-head { direction: ltr; }
+
+/* Mobile: stack the boarding pass vertically with a horizontal perf */
+@media (max-width: 780px) {
+  .boarding-pass { grid-template-columns: 1fr; }
+  .boarding-pass__main {
+    border-right: none; border-bottom: 1.5px dashed var(--ink-3);
+  }
+  .boarding-pass__main::before  { top: auto; bottom: -14px; right: -14px; }
+  .boarding-pass__main::after   { top: auto; bottom: -14px; right: auto; left: -14px; }
+  [dir="rtl"] .boarding-pass { grid-template-columns: 1fr; }
+  [dir="rtl"] .boarding-pass__main {
+    order: 1; border-left: none; border-bottom: 1.5px dashed var(--ink-3);
+  }
+  [dir="rtl"] .boarding-pass__stub { order: 2; }
+  .solari-board__rows { grid-template-columns: 70px 1fr 56px 100px; }
+  .solari-board__cell { padding: 10px 14px; font-size: 11px; }
+  .solari-board__col-head { font-size: 8px; padding: 6px 14px; }
+}
+
+/* ═══════ Slide-deck navigation (presentation mode) ═══════════════ */
+
+html { scroll-behavior: smooth; }
+
+.deck {
+  scroll-snap-type: y mandatory;
+}
+
+.slide {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  min-height: 100vh;
+  width: 100%;
+  display: flex; align-items: center;
+  padding: 88px clamp(28px, 6vw, 80px) 64px;
+  position: relative;
+  background: var(--paper);
+}
+.slide__content { width: 100%; max-width: 1080px; margin: 0 auto; }
+.slide__content .sec-head { margin-bottom: 18px; }
+.slide--title { padding-top: 96px; }
+.slide--solari .slide__content { max-width: 1100px; }
+
+/* Fixed top nav strip */
+.deck-nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 14px clamp(20px, 4vw, 40px);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(241,232,212,0.96) 0%,
+    rgba(241,232,212,0.85) 60%,
+    rgba(241,232,212,0.0)  100%
+  );
+}
+.deck-nav > * { pointer-events: auto; }
+.deck-nav__brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.deck-nav__brand img {
+  width: 30px; height: 30px;
+  border-radius: 7px;
+}
+.deck-nav__dots {
+  display: flex; gap: 8px;
+  justify-self: center;
+}
+.deck-nav__dots button {
+  appearance: none;
+  width: 10px; height: 10px;
+  background: transparent;
+  border: 1px solid var(--ink-3);
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color .18s ease, transform .18s ease;
+}
+.deck-nav__dots button:hover { background: var(--ink-3); transform: scale(1.15); }
+.deck-nav__dots button.is-active {
+  background: var(--stamp);
+  border-color: var(--stamp);
+}
+.deck-nav__right {
+  display: flex; align-items: center; gap: 16px;
+  justify-self: end;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.20em;
+  color: var(--ink-2);
+}
+.deck-nav__count { font-variant-numeric: tabular-nums; }
+.deck-nav__count .sep { opacity: 0.45; margin: 0 4px; }
+.deck-nav__lang {
+  text-transform: uppercase;
+  border: 1px solid var(--ink-3);
+  border-radius: 999px;
+  padding: 5px 12px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color .18s, color .18s;
+}
+.deck-nav__lang:hover { background: var(--ink); color: var(--paper); }
+
+/* Side arrow buttons */
+.nav-arrow {
+  position: fixed;
+  top: 50%; transform: translateY(-50%);
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  font-family: var(--display);
+  font-size: 20px;
+  color: var(--ink);
+  cursor: pointer;
+  z-index: 49;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 0 rgba(26,20,16,0.15);
+  transition: opacity .2s, transform .18s, background-color .18s;
+}
+.nav-arrow:hover:not(:disabled) {
+  transform: translateY(-50%) scale(1.07);
+  background: var(--paper-3);
+}
+.nav-arrow:disabled { opacity: 0.22; cursor: default; }
+.nav-arrow--prev { left: 18px; }
+.nav-arrow--next { right: 18px; }
+
+/* Hide the legacy fixed lang-switch — replaced by .deck-nav__lang */
+.deck-mode .lang-switch { display: none; }
+
+/* Make the doc-strip sit naturally INSIDE the title slide instead of
+   running across the whole page top */
+.slide--title .doc-strip {
+  margin-top: 0; margin-bottom: 28px;
+}
+
+/* Mobile: reduce nav, hide arrows */
+@media (max-width: 780px) {
+  .nav-arrow { display: none; }
+  .slide { padding: 76px 22px 56px; min-height: 100vh; }
+  .deck-nav { padding: 10px 16px; grid-template-columns: 1fr auto auto; }
+  .deck-nav__brand-label { display: none; }
+  .deck-nav__count { font-size: 10px; }
+}
