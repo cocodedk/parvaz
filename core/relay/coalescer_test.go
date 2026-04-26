@@ -22,7 +22,7 @@ func TestCoalescer_MaxBatchOne_FlushesImmediately(t *testing.T) {
 	c := relay.NewCoalescer(r, relay.CoalescerConfig{Window: 50 * time.Millisecond, MaxBatch: 1})
 	defer c.Close()
 
-	resp, err := c.Submit(context.Background(), protocol.Request{Method: "GET", URL: "https://api.example.com/x", FollowRedirects: true})
+	resp, err := c.Do(context.Background(), protocol.Request{Method: "GET", URL: "https://api.example.com/x", FollowRedirects: true})
 	if err != nil {
 		t.Fatalf("Submit: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestCoalescer_ConcurrentSubmissions_CollapseToOneEnvelope(t *testing.T) {
 		wg.Add(1)
 		go func(i int, u string) {
 			defer wg.Done()
-			results[i], errs[i] = c.Submit(context.Background(),
+			results[i], errs[i] = c.Do(context.Background(),
 				protocol.Request{Method: "GET", URL: u, FollowRedirects: true})
 		}(i, u)
 	}
@@ -86,7 +86,7 @@ func TestCoalescer_WindowExpiryFlushesPending(t *testing.T) {
 	defer c.Close()
 
 	start := time.Now()
-	resp, err := c.Submit(context.Background(),
+	resp, err := c.Do(context.Background(),
 		protocol.Request{Method: "GET", URL: "https://api.example.com/x", FollowRedirects: true})
 	elapsed := time.Since(start)
 	if err != nil {
@@ -131,7 +131,7 @@ func TestCoalescer_MaxBatchTriggersEarlyFlush(t *testing.T) {
 		wg.Add(1)
 		go func(u string) {
 			defer wg.Done()
-			_, _ = c.Submit(context.Background(),
+			_, _ = c.Do(context.Background(),
 				protocol.Request{Method: "GET", URL: u, FollowRedirects: true})
 		}(u)
 	}
@@ -160,13 +160,13 @@ func TestCoalescer_CallerCtxCancel_DoesNotPoisonOthers(t *testing.T) {
 
 	cancelledCtx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_, err := c.Submit(cancelledCtx, protocol.Request{Method: "GET", URL: "https://api.example.com/ok", FollowRedirects: true})
+	_, err := c.Do(cancelledCtx, protocol.Request{Method: "GET", URL: "https://api.example.com/ok", FollowRedirects: true})
 	if err == nil {
 		t.Error("cancelled-ctx Submit should error, got nil")
 	}
 
 	// A subsequent live submission must succeed.
-	resp, err := c.Submit(context.Background(),
+	resp, err := c.Do(context.Background(),
 		protocol.Request{Method: "GET", URL: "https://api.example.com/ok", FollowRedirects: true})
 	if err != nil {
 		t.Fatalf("live Submit: %v", err)

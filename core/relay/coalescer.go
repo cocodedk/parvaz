@@ -64,10 +64,12 @@ func NewCoalescer(r *Relay, cfg CoalescerConfig) *Coalescer {
 	return c
 }
 
-// Submit hands req to the coalescer and blocks until either the batch
+// Do hands req to the coalescer and blocks until either the batch
 // completes or ctx fires. If ctx fires before the request reaches the
-// coalescer goroutine, no batch resources are consumed.
-func (c *Coalescer) Submit(ctx context.Context, req protocol.Request) (*protocol.Response, error) {
+// coalescer goroutine, no batch resources are consumed. The signature
+// matches Relay.Do so *Coalescer satisfies the same Relayer interfaces
+// (mitm.Relayer, parvazd.Relayer) — drop-in replacement.
+func (c *Coalescer) Do(ctx context.Context, req protocol.Request) (*protocol.Response, error) {
 	sub := &coalescerSubmission{req: req, result: make(chan coalescerResult, 1)}
 	select {
 	case c.submit <- sub:

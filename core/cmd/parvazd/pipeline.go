@@ -15,12 +15,26 @@ import (
 	"github.com/cocodedk/parvaz/core/socks5"
 )
 
+// Coalescer defaults — see docs/perf-throughput.md Phase 2. Window is
+// the upper bound on extra latency a single isolated request pays.
+// MaxBatch caps Apps Script's parallel UrlFetchApp.fetchAll fan-out
+// per envelope; conservative because Code.gs has its own per-deployment
+// concurrency limit and we want headroom for occasional bursts.
+const (
+	defaultCoalescerWindow   = 10 * time.Millisecond
+	defaultCoalescerMaxBatch = 8
+)
+
 // buildPipeline wires the full request path:
 //
 //	socks5.Server → dispatcher.Dispatcher
 //	                  ├─ direct TCP       (AllowList: accounts/mail/gmail/etc.)
 //	                  ├─ SNI-rewrite      (SNIRewriteList: YouTube / ytimg / ggpht)
 //	                  └─ MITM + relay     (everything else → Apps Script)
+//
+// All Apps-Script-bound traffic (MITM and DoH) goes through a Coalescer
+// that batches concurrent requests into one envelope; this is the
+// runtime side of perf-throughput Phase 2.
 //
 // Returns a socks5.Server ready to Serve. The only persistent state is
 // the CA under cfg.DataDir.
@@ -32,6 +46,10 @@ func buildPipeline(cfg Config, logger *slog.Logger) (*socks5.Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("relay: %w", err)
 	}
+	relayer := relay.NewCoalescer(rel, relay.CoalescerConfig{
+		Window:   defaultCoalescerWindow,
+		MaxBatch: defaultCoalescerMaxBatch,
+	})
 	// Resolve DataDir to absolute so running parvazd from a different CWD
 	// can't silently generate a second CA — Android's installed user-root
 	// would no longer chain to it and every MITM would fail with
@@ -45,7 +63,7 @@ func buildPipeline(cfg Config, logger *slog.Logger) (*socks5.Server, error) {
 		return nil, fmt.Errorf("mitm ca: %w", err)
 	}
 
-	interceptor := &mitm.Interceptor{CA: ca, Relay: rel, Logger: logger}
+	interceptor := &mitm.Interceptor{CA: ca, Relay: relayer, Logger: logger}
 
 	// A dedicated fronter for the SNI-rewrite path — same FrontDomain as
 	// the Apps Script client (so DPI sees the same SNI in either leg) but
@@ -91,7 +109,7 @@ func buildPipeline(cfg Config, logger *slog.Logger) (*socks5.Server, error) {
 	// listener that tun2socks dials into — so the Datagram handler
 	// must be wired now, not after recvTunFD.
 	if cfg.TunFD != 0 {
-		dns := newDNSHandler(rel, cfg, logger)
+		dns := newDNSHandler(relayer, cfg, logger)
 		disp.DNSTCP = dns
 		disp.DNSHost = cfg.dnsHost()
 		disp.DNSPort = dnsListenPort
