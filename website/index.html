@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Parvaz — A flight over the filter. Android browser tunnel via Apps Script.</title>
-<meta name="description" content="Parvaz is a Farsi-first Android browser tunnel for Iranian users that routes Chrome / Firefox traffic through a user-deployed Google Apps Script relay using TLS SNI concealment."/>
+<meta name="description" content="Parvaz is a Farsi-first Android browser tunnel for Iranian users that routes Firefox Nightly traffic through a user-deployed Google Apps Script relay using TLS SNI concealment. Stock Chrome and stock Firefox ignore user CAs on Android 7+; Firefox Nightly with security.enterprise_roots.enabled is the supported browser."/>
 <meta name="robots" content="index, follow"/>
 <meta name="keywords" content="parvaz, android, browser tunnel, iran, apps script, domain fronting, masterhttprelayvpn, circumvention, vpnservice, kotlin, go, farsi, open source"/>
 <link rel="canonical" href="https://cocodedk.github.io/parvaz/"/>
@@ -16,7 +16,7 @@
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Parvaz"/>
 <meta property="og:title" content="Parvaz — A flight over the filter"/>
-<meta property="og:description" content="Farsi-first Android browser tunnel for Iranian users. Routes Chrome / Firefox through a user-deployed Google Apps Script relay with TLS SNI concealment."/>
+<meta property="og:description" content="Farsi-first Android browser tunnel for Iranian users. Routes Firefox Nightly through a user-deployed Google Apps Script relay with TLS SNI concealment."/>
 <meta property="og:url" content="https://cocodedk.github.io/parvaz/"/>
 <meta property="og:image" content="https://cocodedk.github.io/parvaz/og.png"/>
 <meta property="og:image:width" content="1200"/>
@@ -28,11 +28,11 @@
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="Parvaz — A flight over the filter"/>
-<meta name="twitter:description" content="Farsi-first Android browser tunnel — Chrome / Firefox through your own Google Apps Script relay. One APK, QR scan, done."/>
+<meta name="twitter:description" content="Farsi-first Android browser tunnel — Firefox Nightly through your own Google Apps Script relay. One APK, one cert, one config flag."/>
 <meta name="twitter:image" content="https://cocodedk.github.io/parvaz/og.png"/>
 <meta name="twitter:image:alt" content="Parvaz — declassified flight briefing document."/>
 
-<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+<link rel="icon" type="image/svg+xml" href="parvaz-mark.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Redaction&family=Redaction+35&family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet"/>
@@ -43,7 +43,7 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Parvaz",
-  "description": "Farsi-first Android browser tunnel for Iranian users — routes Chrome / Firefox traffic through a user-deployed Google Apps Script relay using TLS SNI concealment and a local on-device MITM to terminate TLS for re-encapsulation. Kotlin + Compose front end, embedded Go SOCKS5 sidecar. Non-browser apps reject user-installed CAs and will not tunnel — scope is browser traffic only.",
+  "description": "Farsi-first Android browser tunnel for Iranian users — routes Firefox Nightly traffic through a user-deployed Google Apps Script relay using TLS SNI concealment and a local on-device MITM to terminate TLS for re-encapsulation. Kotlin + Compose front end, embedded Go SOCKS5 sidecar. Stock Chrome and stock Firefox ignore user-installed CAs on Android 7+; only Firefox Nightly with the about:config flag security.enterprise_roots.enabled honors them. Non-browser apps reject user CAs by design and will not tunnel.",
   "url": "https://cocodedk.github.io/parvaz/",
   "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
   "applicationCategory": "UtilitiesApplication",
@@ -65,7 +65,7 @@
 
 <div class="doc-strip">
   <span><strong>NOTAM #PVZ-001</strong> · Declassified · Flight briefing</span>
-  <span>Sheet 01 / 01 · Rev 2026.04.23 · Status // Pre-alpha · Browsers only</span>
+  <span>Sheet 01 / 01 · Rev 2026.04.26 · Status // Pre-alpha · Firefox Nightly only</span>
 </div>
 
 <a href="fa/" class="lang-switch">فارسی ⇄ FA</a>
@@ -81,7 +81,7 @@
       <dt>Callsign</dt><dd>Parvaz / پرواز</dd>
     </dl>
     <div>
-      <h1 class="brand"><span class="en-name">Parvaz</span><span class="fa-name">پرواز</span></h1>
+      <h1 class="brand"><img src="parvaz-mark.svg" alt="" class="brand-mark"/><span class="en-name">Parvaz</span><span class="fa-name">پرواز</span></h1>
       <p class="tagline">A flight over the filter</p>
       <p class="subtitle">Android browser tunnel · Google Apps Script · domain fronting · Farsi-first</p>
       <div class="cta-row">
@@ -99,8 +99,8 @@
       <span class="sec-stamp">Mission brief</span>
     </div>
     <div class="sec-body">
-      <p>Parvaz is a Farsi-first <strong>Android browser tunnel</strong> for Iranian users with no technical background. A helper deploys the upstream MasterHttpRelayVPN <code>Code.gs</code> on their own Google account; the user receives a <code>parvaz://</code> link over Telegram, scans a QR or taps Paste, installs a MITM certificate via Android Settings once, and taps Connect. Chrome and Firefox traffic routes through Apps Script — TLS SNI <code>www.google.com</code>, HTTP Host <code>script.google.com</code>.</p>
-      <p><strong>Scope is browsers only.</strong> Instagram / Telegram / WhatsApp / banking apps reject user-installed CAs and will not tunnel — this is a general Android MITM constraint, not a Parvaz bug. Architecturally aligned with the proven <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port; Parvaz's edge is NOTAM visual identity, Farsi-by-default UI, and tighter onboarding.</p>
+      <p>Parvaz is a Farsi-first <strong>Android browser tunnel</strong> for Iranian users with no technical background. A helper deploys the upstream MasterHttpRelayVPN <code>Code.gs</code> on their own Google account; the user receives a <code>parvaz://</code> link over Telegram, scans a QR or taps Paste, installs a MITM certificate via Android Settings once, installs <strong>Firefox Nightly</strong> and flips one <code>about:config</code> flag, and taps Connect. Firefox Nightly traffic routes through Apps Script — TLS SNI <code>www.google.com</code>, HTTP Host <code>script.google.com</code>.</p>
+      <p><strong>Scope is Firefox Nightly only.</strong> Stock Chrome and stock Firefox ignore user-installed CAs on Android 7+ and will <em>not</em> tunnel HTTPS. Instagram / Telegram / WhatsApp / banking apps reject user CAs the same way. These are general Android MITM constraints, not Parvaz bugs. Architecturally aligned with the proven <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port; Parvaz's edge is NOTAM visual identity, Farsi-by-default UI, and tighter onboarding.</p>
     </div>
   </section>
 
@@ -177,7 +177,7 @@
     <div class="specs">
       <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">TLS SNI says <code>www.google.com</code>. HTTP Host says <code>script.google.com</code>. DPI sees the front; Google's edge routes by the real Host internally.</span></div>
       <div class="spec"><span class="spec-num">02</span><span class="spec-key">Farsi-first onboarding</span><span class="spec-val">Paste a <code>parvaz://</code> URL or scan a QR from Telegram → install the MITM certificate once → tap Connect. UI defaults to Persian; English is the override.</span></div>
-      <div class="spec"><span class="spec-num">03</span><span class="spec-key">Browsers only — honest</span><span class="spec-val">Chrome + Firefox tunnel correctly. Instagram, Telegram, WhatsApp, banking apps reject the user-installed CA by default and will <em>not</em> tunnel. General Android MITM limitation — pair with xray + VPS for those.</span></div>
+      <div class="spec"><span class="spec-num">03</span><span class="spec-key">Firefox Nightly only — honest</span><span class="spec-val"><strong>Firefox Nightly</strong> with <code>security.enterprise_roots.enabled = true</code> tunnels HTTPS correctly. Stock Chrome, stock Firefox, Brave, Edge — all ignore user-installed CAs on Android 7+. Instagram, Telegram, WhatsApp, banking apps reject them too. General Android MITM limitation — pair with xray + VPS if you need those.</span></div>
       <div class="spec"><span class="spec-num">04</span><span class="spec-key">SNI-rewrite fast path</span><span class="spec-val">Google-owned hosts (google.com, youtube.com, fonts.googleapis.com, …) skip Apps Script entirely and tunnel directly via SNI rewrite. No MITM, no Apps Script quota, full speed.</span></div>
       <div class="spec"><span class="spec-num">05</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose front end, embedded Go SOCKS5 sidecar. No proprietary dependencies. Ships outside the Play Store — F-Droid and sideload only.</span></div>
       <div class="spec"><span class="spec-num">06</span><span class="spec-key">Zero telemetry</span><span class="spec-val">No analytics, no auto-update pings, no crash reporting. Your access key stays in <code>EncryptedSharedPreferences</code>. No third-party network calls other than the relay itself.</span></div>
@@ -210,29 +210,31 @@ adb install Parvaz.apk
 <span class="c"># walk through Android Settings → Install certificate (see §5.5).</span>
 <span class="c"># return to Parvaz; it auto-verifies and advances to Connect.</span>
 
-<span class="c"># 4. fly (in Chrome / Firefox).</span></div>
+<span class="c"># 4. install Firefox Nightly + flip security.enterprise_roots.enabled (see §5.6)</span>
+<span class="c"># 5. fly (in Firefox Nightly).</span></div>
     </div>
   </section>
 
   <section>
     <div class="sec-head">
       <span class="sec-num">§5.5</span>
-      <h2 class="sec-title">Certificate install · in Settings</h2>
-      <span class="sec-stamp">Manual · once · the gnarly part</span>
+      <h2 class="sec-title">Install the certificate · in Settings</h2>
+      <span class="sec-stamp">Step 1 of 2 · once · ~30 seconds</span>
     </div>
     <div class="sec-body">
-      <p>Android 11 and later won't let an app install a CA certificate on its own. When you tap <strong>Open Settings</strong> in Parvaz, the app drops <code>parvaz-ca.crt</code> into your <strong>Downloads</strong> folder, then opens Android Settings as close as it can get. From there you walk the rest manually — once. Pre-condition: you must have a screen lock (PIN, pattern, or password). Android refuses CA install on devices without one.</p>
+      <p>In Parvaz, tap <strong>Open Settings</strong>. Parvaz drops <code>parvaz-ca.crt</code> into your <strong>Downloads</strong> folder and opens Android Settings. Then follow the path for your phone:</p>
     </div>
     <div class="listing">
       <div class="listing-head">
         <span>proc · cert.001 · samsung</span>
         <span>One UI 6 / Android 14</span>
       </div>
-      <div class="listing-body"><span class="c"># SAMSUNG (Galaxy S23 / A52s / similar — One UI 6.x):</span>
+      <div class="listing-body"><span class="c"># SAMSUNG (Galaxy):</span>
 Settings → <span class="hl">Security and privacy</span>
         → <span class="hl">More security settings</span>
         → <span class="hl">Install from device storage</span> → <span class="hl">CA certificate</span>
         → pick <span class="secret">parvaz-ca.crt</span> from Downloads
+        → enter your PIN / fingerprint
         → tap <span class="hl">Install anyway</span> on the warning</div>
     </div>
     <div class="listing">
@@ -240,19 +242,55 @@ Settings → <span class="hl">Security and privacy</span>
         <span>proc · cert.001 · pixel / aosp</span>
         <span>Android 14 / 15</span>
       </div>
-      <div class="listing-body"><span class="c"># PIXEL / stock Android (Android 14, 15 — labels identical):</span>
+      <div class="listing-body"><span class="c"># PIXEL / stock Android:</span>
 Settings → <span class="hl">Security &amp; privacy</span>
         → <span class="hl">More security &amp; privacy</span>
         → <span class="hl">Encryption &amp; credentials</span>
         → <span class="hl">Install a certificate</span> → <span class="hl">CA certificate</span>
         → pick <span class="secret">parvaz-ca.crt</span> from Downloads
+        → enter your PIN / fingerprint
         → tap <span class="hl">Install anyway</span> on the warning</div>
     </div>
     <div class="sec-body">
-      <p><strong>Can't find the path?</strong> In Settings, tap the magnifying-glass search icon and type <code>CA certificate</code>. The first result will breadcrumb the exact menu chain on your device's skin.</p>
-      <p><strong>About the warning.</strong> Android shows a dialog titled <em>"Your data won't be private"</em> with a long paragraph and two buttons — <em>Don't install</em> and <em>Install anyway</em>. The dialog is correct in principle: a malicious CA could intercept your traffic. In Parvaz's case the CA was generated on <em>your</em> device, on first launch, and its private key never leaves <code>filesDir</code>. Tap <strong>Install anyway</strong>.</p>
-      <p><strong>What happens after.</strong> Walk back to Parvaz (gesture back, or app switcher). The app's <code>onResume</code> handler walks the user CA store, matches by SHA-256, and advances to VPN permission within a second. If verification fails, the screen offers a Retry — usually it's a stale Settings cache; one retry is enough.</p>
-      <p><strong>Apps that still don't work.</strong> Browsers (Chrome, Firefox) trust user CAs and will tunnel. Instagram / Telegram / WhatsApp / banking apps reject user-installed CAs by design and will <em>not</em> tunnel — same Android limitation as every MITM proxy. If you need those apps tunneled, pair Parvaz with xray + a VPS.</p>
+      <p><strong>Pre-requisite:</strong> your phone must have a screen lock (PIN, pattern, or password). Android refuses CA install otherwise.</p>
+      <p><strong>Can't find the menu?</strong> In Settings, search <code>CA certificate</code>. The first result shows the path for your phone.</p>
+      <p><strong>The warning is fine to dismiss.</strong> Android calls the dialog <em>"Your data won't be private"</em>. That's true in general — a malicious CA <em>could</em> intercept your traffic. Parvaz's CA was generated on <em>your</em> phone on first launch; its private key never leaves the app's private storage. Tap <strong>Install anyway</strong>.</p>
+      <p><strong>Then return to Parvaz.</strong> Gesture back. Parvaz auto-detects the cert in about one second and moves to the next screen. If it doesn't, tap Retry once.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">§5.6</span>
+      <h2 class="sec-title">Install Firefox Nightly · flip one flag</h2>
+      <span class="sec-stamp">Step 2 of 2 · once · ~1 minute</span>
+    </div>
+    <div class="sec-body">
+      <p>Stock Chrome and stock Firefox <strong>ignore</strong> the certificate you just installed — Android 7+ blocks user CAs from non-system browsers, and there is no setting to change this. The only no-root browser that honors user CAs is <strong>Firefox Nightly</strong>, and only after you flip one flag.</p>
+    </div>
+    <div class="listing">
+      <div class="listing-head">
+        <span>proc · browser.001 · firefox-nightly</span>
+        <span>one-time · ~1 min</span>
+      </div>
+      <div class="listing-body"><span class="c"># 1. Install Firefox Nightly</span>
+F-Droid       → search <span class="hl">Firefox Nightly</span>
+Play Store    → search <span class="hl">Firefox Nightly for Developers</span>
+
+<span class="c"># 2. Open Firefox Nightly. In the URL bar, paste:</span>
+about:config
+<span class="c">    → tap to accept the warning</span>
+
+<span class="c"># 3. In the search box at the top, type:</span>
+security.enterprise_roots.enabled
+<span class="c">    → tap the row to toggle the value to true</span>
+
+<span class="c"># 4. Fully close Firefox Nightly (swipe out of recents) and reopen.</span></div>
+    </div>
+    <div class="sec-body">
+      <p><strong>That's all.</strong> Browse normally in Firefox Nightly — HTTPS pages tunnel through Parvaz. Other browsers continue to load Google-owned sites (YouTube, Google Search, Google Maps) via the SNI-rewrite fast path with no cert needed. Everything else needs Firefox Nightly.</p>
+      <p><strong>Why only Nightly?</strong> Firefox uses its own root certificate store baked into the APK; only the Nightly channel exposes the <code>security.enterprise_roots.enabled</code> preference, which tells Firefox to <em>also</em> trust certificates from Android's user CA store. Stock Firefox, Beta, and Focus do not have it.</p>
+      <p><strong>Apps that still don't work.</strong> Instagram, Telegram, WhatsApp, banking, streaming — they all reject user-installed CAs by design. General Android limitation. If you need those tunneled, pair Parvaz with xray + a VPS.</p>
     </div>
   </section>
 
