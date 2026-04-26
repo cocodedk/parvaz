@@ -32,6 +32,8 @@ if [ -n "$STAGED_TEXT" ]; then
     case "$f" in
       reference/*|website/*|*/build/*|.gradle/*) continue ;;
     esac
+    # README.md files are exempt — long-form intros are allowed.
+    case "$(basename "$f")" in README.md) continue ;; esac
     lines=$(wc -l < "$f" | tr -d ' ')
     if [ "$lines" -gt 200 ]; then
       offenders="$offenders\n  $f ($lines lines)"
