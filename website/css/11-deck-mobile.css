@@ -1,0 +1,126 @@
+/* =====================================================================
+   AIRLINE DECK · mobile responsive (≤780px) + phone-portrait (≤380px)
+   Split out of 10-deck-end.css to honour the 200-line limit.
+   - Hides the boarding-pass band (CPH/THR/Flight) on mobile
+   - Stacks 5-hop route, specs, honesty-foot, etc. into single columns
+   - Extracts prev/next arrows to floating side buttons; thins the footer
+   - Belt-and-braces overflow-x: hidden + word-break for unbreakable strings
+   ===================================================================== */
+
+@media (max-width: 780px) {
+  body.airline-deck { --header-h: 130px; --controls-h: 36px; }
+  body.airline-deck .deck-alert {
+    font-size: 9.5px;
+    padding: 6px 86px 6px 10px;     /* right padding clears the FA·فا pill */
+    gap: 8px;
+    flex-wrap: nowrap; align-items: flex-start;
+    line-height: 1.3; letter-spacing: 0.02em;
+  }
+  body.airline-deck[dir="rtl"] .deck-alert { padding: 6px 10px 6px 86px; }
+  body.airline-deck .deck-alert__stop { width: 22px; height: 22px; font-size: 10px; }
+  body.airline-deck .deck-alert__siren { font-size: 16px; }
+  body.airline-deck .deck-alert__msg { font-size: 9.5px; }
+  /* Boarding-pass band hidden on mobile — its info is already on slide 1
+     and the page counter lives in the bottom controls. */
+  body.airline-deck .bp-header { display: none; }
+
+  /* Belt-and-braces: never let the deck scroll horizontally on mobile. */
+  body.airline-deck .deck-track { overflow-x: hidden; }
+  body.airline-deck .slide__body,
+  body.airline-deck .who__list,
+  body.airline-deck .notam-body,
+  body.airline-deck .route__notes,
+  body.airline-deck .route__hop,
+  body.airline-deck .check__title,
+  body.airline-deck .check__sub {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Make each slide internally scrollable on mobile so content taller than
+     the viewport (most of slides 8/9/12) doesn't get clipped behind the
+     fixed footer. */
+  body.airline-deck .slide {
+    padding: calc(var(--header-h) + 12px) 16px calc(var(--controls-h) + 16px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* No overscroll-behavior: contain — that swallows swipe-chain to the
+       parent track and breaks slide-to-slide navigation on touch. */
+  }
+  body.airline-deck .slide::-webkit-scrollbar { width: 3px; }
+  body.airline-deck .slide::-webkit-scrollbar-track { background: transparent; }
+  body.airline-deck .slide::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 2px; }
+  body.airline-deck .slide__head { flex-wrap: wrap; gap: 10px; }
+  body.airline-deck .slide__title { font-size: clamp(22px, 6.4vw, 32px); }
+  body.airline-deck .slide--title, body.airline-deck .who, body.airline-deck .board, body.airline-deck .depart {
+    grid-template-columns: 1fr; gap: 22px;
+  }
+  body.airline-deck .hero__brand { font-size: clamp(36px, 11vw, 64px); gap: 12px; }
+  body.airline-deck .hero__brand img { width: 46px; height: 46px; border-radius: 12px; }
+  body.airline-deck .hero__brand .flight-no { margin-left: 0; flex-basis: 100%; }
+  body.airline-deck[dir="rtl"] .hero__brand .flight-no { margin-right: 0; }
+  body.airline-deck .hero__welcome { font-size: clamp(16px, 4.6vw, 26px); white-space: normal; }
+  body.airline-deck .hero__tagline { font-size: 17px; }
+
+  /* Route: stack hops vertically — the 5-step horizontal flow overflowed
+     when "script.google.com" / display-22px text wouldn't break. */
+  body.airline-deck .route { grid-template-columns: 1fr; gap: 8px; }
+  body.airline-deck .route__hop { padding: 12px 14px; }
+  body.airline-deck .route__hop strong { font-size: 16px; margin-bottom: 4px; }
+  body.airline-deck .route__hop::after { display: none; }
+  body.airline-deck .route__notes { grid-template-columns: 1fr; margin-top: 16px; gap: 10px; }
+
+  body.airline-deck .solari-board__rows { grid-template-columns: 60px 1fr 44px 76px; font-size: 10px; }
+  body.airline-deck .solari-board__col-head { font-size: 7px; padding: 5px 10px; }
+  body.airline-deck .solari-board__cell { padding: 8px 10px; font-size: 10px; }
+  body.airline-deck .check { grid-template-columns: 36px 1fr; padding: 10px 12px; }
+  body.airline-deck .check__stamp { grid-column: 1 / -1; justify-self: start; }
+  body.airline-deck .specs { grid-template-columns: 1fr; }
+  body.airline-deck .spec { grid-template-columns: 36px 1fr; row-gap: 4px; column-gap: 12px; padding: 10px 0; }
+  body.airline-deck .spec-val { grid-column: 1 / -1; }
+
+  /* Honesty foot: stack label above chips so it doesn't fight for width. */
+  body.airline-deck .honesty-foot { grid-template-columns: 1fr; gap: 10px; padding: 10px 12px; }
+  body.airline-deck .honesty-foot__label {
+    border-right: none;
+    border-bottom: 1px dashed var(--ink-3);
+    padding: 0 0 8px 0;
+  }
+  body.airline-deck[dir="rtl"] .honesty-foot__label {
+    border-left: none;
+    border-bottom: 1px dashed var(--ink-3);
+    padding: 0 0 8px 0;
+  }
+  body.airline-deck .honesty-foot__chips { gap: 10px; font-size: 9.5px; }
+
+  body.airline-deck .who__col { padding: 14px 16px; }
+  body.airline-deck .who__head strong { font-size: 18px; }
+  body.airline-deck .who__list { font-size: 11.5px; }
+
+  /* Bottom controls: thin strip with dots + counter. Arrows are hidden
+     on mobile — navigation is via vertical swipe (scroll-snap) and dot
+     taps. Programmatic .click() on the buttons still works for tests. */
+  body.airline-deck .deck-controls {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  body.airline-deck .deck-controls__group { display: none; }
+  body.airline-deck .deck-arrow { display: none; }
+  body.airline-deck .deck-counter {
+    font-size: 9px; letter-spacing: 0.22em;
+  }
+  body.airline-deck .deck-dots { gap: 4px; }
+  body.airline-deck .deck-dots button { width: 10px; height: 5px; border-width: 1px; }
+  body.airline-deck .deck-controls__lang { display: none; }
+  body.airline-deck .deck-lang-pill { top: 8px; right: 10px; padding: 4px 10px; font-size: 11px; }
+  body.airline-deck[dir="rtl"] .deck-lang-pill { left: 10px; right: auto; }
+}
+
+/* Phone-portrait — really narrow screens (≤380px): even tighter. */
+@media (max-width: 380px) {
+  body.airline-deck .slide { padding: calc(var(--header-h) + 10px) 12px calc(var(--controls-h) + 10px); }
+  body.airline-deck .slide__title { font-size: clamp(20px, 5.8vw, 28px); }
+  body.airline-deck .solari-board__rows { grid-template-columns: 52px 1fr 38px 64px; }
+  body.airline-deck .deck-counter { display: none; }
+}

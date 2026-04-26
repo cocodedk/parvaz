@@ -37,6 +37,16 @@ assert() {
         FAIL=$((FAIL+1))
     fi
 }
+refute() {
+    local label="$1" name="$2" needle="$3" dom_file="$4"
+    if grep -q -- "$needle" "$dom_file"; then
+        echo "  [$label] ✗ $name  (unexpected: $needle)" >&2
+        FAIL=$((FAIL+1))
+    else
+        echo "  [$label] ✓ $name"
+        PASS=$((PASS+1))
+    fi
+}
 
 run_suite() {
     local label="$1" url="$2"
@@ -64,6 +74,11 @@ run_suite() {
     assert "$label" "route diagram slide"       'slide--route'         "$f"
     assert "$label" "lang switch in controls"   'deck-controls__lang'  "$f"
     assert "$label" "script.js linked"          'script.js'            "$f"
+    assert "$label" "destination is THR"        '>THR<'                "$f"
+    refute "$label" "no stale IKA airport code" '>IKA<'                "$f"
+    assert "$label" "heads-up advisory present" 'class="heads-up"'     "$f"
+    assert "$label" "heads-up tag rendered"     'heads-up__tag'        "$f"
+    assert "$label" "websockets caveat visible" 'WebSocket'            "$f"
 
     # Script-generated DOM (proves JS executed and dot-gen + IO ran)
     assert "$label" "JS generated 13 dots"      'aria-label="Slide 13"' "$f"
@@ -75,6 +90,50 @@ echo "=== EN ==="
 run_suite "en" "$URL_EN"
 echo "=== FA ==="
 run_suite "fa" "$URL_FA"
+
+echo "=== nav interactivity (?test=nav) ==="
+nav_check() {
+    local label="$1" url="$2"
+    local f="/tmp/parvaz-deck-nav-${label}.html"
+    google-chrome --headless=new --no-sandbox --disable-gpu \
+        --hide-scrollbars --window-size=384,800 --virtual-time-budget=5000 \
+        --dump-dom "${url}?test=nav" > "$f" 2>/dev/null
+    if grep -q 'data-nav-test="pass"' "$f"; then
+        echo "  [nav-${label}] ✓ next arrow scrolls one viewport down"
+        PASS=$((PASS+1))
+    else
+        local exp=$(grep -oE 'data-nav-test-expected="[^"]*"' "$f" | head -1)
+        local act=$(grep -oE 'data-nav-test-actual="[^"]*"' "$f" | head -1)
+        echo "  [nav-${label}] ✗ next arrow did not navigate ($exp $act)" >&2
+        FAIL=$((FAIL+1))
+    fi
+}
+nav_check "en" "$URL_EN"
+nav_check "fa" "$URL_FA"
+
+echo "=== stylesheet manifest ==="
+css_manifest=$(curl -s "http://127.0.0.1:${PORT}/styles.css")
+for partial in 07-deck-base.css 08-deck-slide.css 09-deck-content.css 10-deck-end.css 11-deck-mobile.css; do
+    if echo "$css_manifest" | grep -q -- "$partial"; then
+        echo "  [css] ✓ $partial imported"
+        PASS=$((PASS+1))
+    else
+        echo "  [css] ✗ $partial not imported via styles.css" >&2
+        FAIL=$((FAIL+1))
+    fi
+done
+# Ensure no css partial exceeds the project's 200-line cap.
+for f in "$DIR/css"/*.css; do
+    lines=$(wc -l < "$f")
+    name=$(basename "$f")
+    if [[ $lines -le 200 ]]; then
+        echo "  [css] ✓ $name ${lines}L (≤200)"
+        PASS=$((PASS+1))
+    else
+        echo "  [css] ✗ $name ${lines}L (over 200-line cap)" >&2
+        FAIL=$((FAIL+1))
+    fi
+done
 
 echo "=== EN ↔ FA parity ==="
 parity() {
