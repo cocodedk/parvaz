@@ -106,14 +106,19 @@ func TestCoalescer_Close_CancelsInFlightBatch(t *testing.T) {
 // The guard prevents an out-of-range panic that would crash the run
 // loop's flusher goroutine.
 func TestCoalescer_BatchLengthMismatch_FailsAllCallers(t *testing.T) {
+	const n = 3
+	// Window=5s + MaxBatch=n: the size cap forces the flush as soon as
+	// the n-th submission arrives, so the test doesn't depend on all
+	// goroutines reaching c.submit within a tight window — that's
+	// timing-sensitive under CI load and would let a delayed submission
+	// form its own 1-item batch (no mismatch fires, regression hidden).
 	c, _ := coalescerWithHandler(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		// Reply with exactly 1 item regardless of how many were sent.
 		_, _ = w.Write([]byte(`{"q":[{"s":200,"h":{},"b":""}]}`))
-	}, relay.CoalescerConfig{Window: 30 * time.Millisecond, MaxBatch: 8})
+	}, relay.CoalescerConfig{Window: 5 * time.Second, MaxBatch: n})
 	defer c.Close()
 
-	const n = 3
 	errs := make([]error, n)
 	var wg sync.WaitGroup
 	for i := 0; i < n; i++ {
