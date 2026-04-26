@@ -77,7 +77,7 @@ onboarding.
                                     ▼
             ╔════════════════════════════════════════════════════╗
             ║      APPS SCRIPT RUNTIME   (on YOUR Google account)║
-            ║      Code.gs (reference/apps_script/Code.gs):      ║
+            ║      Code.gs (apps_script/Code.gs):      ║
             ║        var res = UrlFetchApp.fetch(req.u, {        ║
             ║            method: req.m, headers: req.h,          ║
             ║            payload: decode64(req.b),               ║

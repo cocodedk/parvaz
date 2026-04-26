@@ -60,39 +60,85 @@ func (r *Relay) Do(ctx context.Context, req protocol.Request) (*protocol.Respons
 	if err != nil {
 		return nil, fmt.Errorf("relay: encode: %w", err)
 	}
-	url := r.pickURL()
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
+	raw, err := r.postEnvelope(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := protocol.DecodeResponse(raw)
+	if err != nil {
+		return nil, err
+	}
+	if err := decodeContentEncoding(resp); err != nil {
+		return nil, fmt.Errorf("relay: decode body: %w", err)
+	}
+	return resp, nil
+}
+
+// DoBatch sends a BatchRequest as a single Apps Script invocation. The
+// server uses UrlFetchApp.fetchAll to fan out internally — see Code.gs
+// _doBatch. One envelope, per-item failures stay isolated to their slot.
+func (r *Relay) DoBatch(ctx context.Context, batch protocol.BatchRequest) (*protocol.BatchResponse, error) {
+	body, err := protocol.EncodeBatch(batch, r.cfg.AuthKey)
+	if err != nil {
+		return nil, fmt.Errorf("relay: encode batch: %w", err)
+	}
+	raw, err := r.postEnvelope(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	bresp, err := protocol.DecodeBatchResponse(raw)
+	if err != nil {
+		return nil, err
+	}
+	for i, item := range bresp.Items {
+		if item.Err != nil || item.Response == nil {
+			continue
+		}
+		if err := decodeContentEncoding(item.Response); err != nil {
+			bresp.Items[i] = protocol.BatchItemResult{
+				Err: fmt.Errorf("relay: decode item %d body: %w", i, err),
+			}
+		}
+	}
+	return bresp, nil
+}
+
+// postEnvelope POSTs an already-marshalled envelope to the next round-
+// robin script URL and returns the raw response bytes.
+func (r *Relay) postEnvelope(ctx context.Context, body []byte) ([]byte, error) {
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, r.pickURL(), bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("relay: new request: %w", err)
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
-
 	httpResp, err := r.cfg.HTTPClient.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("relay: http: %w", err)
 	}
 	defer httpResp.Body.Close()
-
 	raw, err := io.ReadAll(httpResp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("relay: read body: %w", err)
 	}
+	return raw, nil
+}
 
-	resp, err := protocol.DecodeResponse(raw)
+// decodeContentEncoding mutates resp in place: if Content-Encoding is
+// set, run codec.Decode and strip the now-stale CE + Content-Length
+// headers. No-op when CE is absent.
+func decodeContentEncoding(resp *protocol.Response) error {
+	ce := resp.Header.Get("Content-Encoding")
+	if ce == "" {
+		return nil
+	}
+	decoded, err := codec.Decode(resp.Body, ce)
 	if err != nil {
-		return nil, err // already a typed error (ServerError or parse error)
+		return err
 	}
-
-	if ce := resp.Header.Get("Content-Encoding"); ce != "" {
-		decoded, err := codec.Decode(resp.Body, ce)
-		if err != nil {
-			return nil, fmt.Errorf("relay: decode body: %w", err)
-		}
-		resp.Body = decoded
-		resp.Header.Del("Content-Encoding")
-		resp.Header.Del("Content-Length")
-	}
-	return resp, nil
+	resp.Body = decoded
+	resp.Header.Del("Content-Encoding")
+	resp.Header.Del("Content-Length")
+	return nil
 }
 
 // pickURL round-robins across the configured ScriptURLs.

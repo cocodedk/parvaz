@@ -56,10 +56,11 @@ func TestBrowser_Live_CocodeDk(t *testing.T) {
 		// which this test doesn't touch — the fd value is never dereferenced.
 		TunFD: 1,
 	}
-	srv, err := buildPipeline(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	srv, cleanup, err := buildPipeline(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	if err != nil {
 		t.Fatalf("buildPipeline: %v", err)
 	}
+	defer cleanup()
 	if srv.Datagram == nil {
 		t.Fatal("DNS handler not wired — did TunFD gate change?")
 	}

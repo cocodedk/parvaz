@@ -8,7 +8,7 @@ or don't want to install Node + clasp. Recommendation stays with clasp
 
 1. Sign in to the test account at <https://script.google.com>.
 2. **New project**. Delete the default `Code.gs` content.
-3. Paste the entire contents of `reference/apps_script/Code.gs` from
+3. Paste the entire contents of `apps_script/Code.gs` from
    this repo.
 4. **Change the auth key.** Find the line:
 

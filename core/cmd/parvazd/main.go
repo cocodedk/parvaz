@@ -92,10 +92,11 @@ func run() error {
 		return err
 	}
 
-	srv, err := buildPipeline(cfg, logger)
+	srv, cleanup, err := buildPipeline(cfg, logger)
 	if err != nil {
 		return err
 	}
+	defer cleanup()
 
 	ln, err := net.Listen("tcp", net.JoinHostPort(cfg.ListenHost, fmt.Sprint(cfg.ListenPort)))
 	if err != nil {

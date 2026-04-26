@@ -65,6 +65,9 @@ func TestEncodeSingle_HeaderFiltering(t *testing.T) {
 	for _, k := range []string{
 		"Host", "Connection", "Content-Length", "Transfer-Encoding",
 		"Proxy-Connection", "Proxy-Authorization", "Priority", "TE",
+		// Accept-Encoding is stripped client-side: UrlFetchApp auto-decodes
+		// regardless, so shipping it upstream just inflates the envelope.
+		"Accept-Encoding",
 	} {
 		h.Set(k, "x")
 	}

@@ -196,4 +196,4 @@ informed consent via the Android user-root install flow.
 - `core/mitm/interceptor.go` — TLS server + keep-alive loop
 - `core/fronter/dialer.go` — SNI/Host split for the upstream leg
 - `core/relay/relay.go` — Apps Script envelope POST + decode
-- `reference/apps_script/Code.gs` — server-side fetch logic
+- `apps_script/Code.gs` — server-side fetch logic

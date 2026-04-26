@@ -489,7 +489,7 @@ open <a href="https://www.google.com" class="hl">google.com</a>             <spa
 open <a href="https://script.google.com" class="hl">script.google.com</a>   <span class="c"># click "New project"</span>
 
 <span class="c"># 2. Paste the relay code into Code.gs (replace the default contents)</span>
-view  <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs" class="hl">github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs</a>
+view  <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs" class="hl">github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs</a>
 copy → paste into the Code.gs tab in the editor
 
 <span class="c"># 3. Generate a strong random AUTH_KEY (do not reuse passwords)</span>
@@ -526,7 +526,7 @@ parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
 ✗ Email    · server-readable           → NEVER</div>
       </div>
       <div class="slide__body">
-        <p><strong>Quota:</strong> ~20k UrlFetch / day · 30 s per fetch · 6 min per execution. <strong>One relay per Google account</strong> (Apps Script TOS). <strong>Test it:</strong> open the Web app URL in a browser — you should see <code>{"e":"unauthorized"}</code> (proof the deployment is live and rejecting unauthenticated calls). <strong>Source:</strong> <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">reference/apps_script/Code.gs</a> · <a href="https://developers.google.com/apps-script/guides/web">Apps Script · Web Apps</a>.</p>
+        <p><strong>Quota:</strong> ~20k UrlFetch / day · 30 s per fetch · 6 min per execution. <strong>One relay per Google account</strong> (Apps Script TOS). <strong>Test it:</strong> open the Web app URL in a browser — you should see <code>{"e":"unauthorized"}</code> (proof the deployment is live and rejecting unauthenticated calls). <strong>Source:</strong> <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">apps_script/Code.gs</a> · <a href="https://developers.google.com/apps-script/guides/web">Apps Script · Web Apps</a>.</p>
       </div>
     </div>
   </section>
@@ -552,7 +552,7 @@ parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
         </div>
         <div class="depart__cta">
           <h2>Cleared for take-off.</h2>
-          <p>Parvaz replaces only the <em>client</em> half of MasterHttpRelayVPN. The Apps Script server is the upstream <a href="https://github.com/cocodedk/parvaz/blob/main/reference/apps_script/Code.gs">Code.gs</a>, unchanged — deploy it to your own Google account.</p>
+          <p>Parvaz replaces only the <em>client</em> half of MasterHttpRelayVPN. The Apps Script server is the upstream <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">Code.gs</a>, unchanged — deploy it to your own Google account.</p>
           <p>If you don't need the Farsi-first NOTAM UX touches, the mature <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port ships today with prebuilt APKs and an English + Persian walkthrough.</p>
           <div class="bp-tabs">
             <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">Download APK<span class="stub">PVZ&nbsp;001</span></a>
