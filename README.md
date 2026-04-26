@@ -129,13 +129,20 @@ needed; everything else needs Firefox Nightly.
 
 ## Download
 
-Once the first release is cut:
+[**Download Parvaz.apk (latest)**](https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk)
+· [SHA-256](https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk.sha256)
+· [All releases](https://github.com/cocodedk/parvaz/releases)
 
-```
-https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
+CLI install + integrity check (recommended on hostile networks):
+
+```sh
+curl -LO https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk
+curl -LO https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk.sha256
+sha256sum -c Parvaz.apk.sha256        # must print: Parvaz.apk: OK
+adb install Parvaz.apk                 # or sideload through your file manager
 ```
 
-F-Droid / sideload only. Google Play Store is not a viable channel.
+Sideload / F-Droid only — Google Play Store is not a viable channel.
 
 ## Helper guide — deploy the relay on Apps Script
 
