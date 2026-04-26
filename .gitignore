@@ -41,3 +41,13 @@ config.json
 # own Google account; must never land in git.
 /reference/apps_script/.clasp.json
 /reference/apps_script/.clasprc.json
+
+# ── Review artifacts (codex / opencode CLI workspace dumps) ─────
+# Per-commit diff + log files written by /codex-review and
+# /opencode-review when run locally. ~14k lines of these slipped
+# into PR #41 before this rule existed.
+/oc-*.diff
+/oc-*.log
+/opencode-*.diff
+/opencode-*.log
+.codex
