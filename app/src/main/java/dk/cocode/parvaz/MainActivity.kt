@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
      */
     override fun attachBaseContext(newBase: Context) {
         val lang = ParvazSettings(newBase).language
-        val locale = Locale(lang)
+        val locale = Locale.forLanguageTag(lang)
         Locale.setDefault(locale)
         val config = Configuration(newBase.resources.configuration)
         config.setLocale(locale)

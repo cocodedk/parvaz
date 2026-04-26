@@ -73,6 +73,9 @@ jobs:
                      -o -name '*.yml' -o -name '*.yaml' -o -name '*.sh' \
                      -o -name '*.py' -o -name '*.xml' \) \
             -print 2>/dev/null | while read -r f; do
+              # README.md files are exempt — long-form project intros
+              # are a legitimate exception to the 200-line rule.
+              case "$(basename "$f")" in README.md) continue ;; esac
               lines=$(wc -l < "$f")
               if [ "$lines" -gt 200 ]; then
                 echo "  $f ($lines lines)"

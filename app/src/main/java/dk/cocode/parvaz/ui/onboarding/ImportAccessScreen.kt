@@ -22,11 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -71,8 +73,9 @@ fun ImportAccessScreen(
         }
     }
 
-    val clipboard = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = modifier
@@ -126,9 +129,14 @@ fun ImportAccessScreen(
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(
                 onClick = {
-                    clipboard.getText()?.text?.let {
-                        text = it
-                        error = null
+                    scope.launch {
+                        val pasted = clipboard.getClipEntry()
+                            ?.clipData?.getItemAt(0)
+                            ?.coerceToText(context)?.toString()
+                        if (!pasted.isNullOrEmpty()) {
+                            text = pasted
+                            error = null
+                        }
                     }
                 },
                 modifier = Modifier.testTag(TestTags.ImportPasteButton),

@@ -29,12 +29,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import dk.cocode.parvaz.R
 import dk.cocode.parvaz.ui.theme.Ink
 import dk.cocode.parvaz.ui.theme.InkSoft
@@ -181,7 +181,8 @@ private fun VpnPermissionPrimary(phase: VpnPermissionPhase, onClick: () -> Unit)
     val ctaRes = when (phase) {
         VpnPermissionPhase.IDLE -> R.string.vpn_explain_cta
         VpnPermissionPhase.DENIED -> R.string.ca_install_retry_cta
-        else -> return
+        VpnPermissionPhase.AWAITING_SYSTEM_PROMPT -> return
+        VpnPermissionPhase.GRANTED -> return
     }
     Button(
         onClick = onClick,
