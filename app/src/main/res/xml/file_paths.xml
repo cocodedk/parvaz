@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!--
+      Exposes app-scoped external Downloads (filesDir/Download/) so that
+      the API 24-28 fallback path in CaExporter can hand a content URI
+      to the system's "Open file" intent without requesting the legacy
+      WRITE_EXTERNAL_STORAGE runtime permission.
+    -->
+    <external-files-path
+        name="ca_export"
+        path="Download/" />
+</paths>

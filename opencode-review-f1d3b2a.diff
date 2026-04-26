@@ -1,0 +1,2611 @@
+commit f1d3b2a3720a53dfd209b41305e06a0d1d0efb18
+Author: Babak Bandpey <bb@cocode.dk>
+Date:   Thu Apr 23 21:48:24 2026 +0200
+
+    feat: M15b-beta — UDP/DNS via SOCKS5 UDP ASSOCIATE + DoH
+    
+    Completes the tunnel data path so Chrome on Android can actually
+    resolve hostnames through the VPN. Codex architecture review picked
+    Option A over upstream DNS-hijacking: keep the SOCKS5 seam, add
+    UDP ASSOCIATE to core/socks5, answer port-53 queries inside parvazd
+    via DoH over the existing fronter transport. xjasonlyu/tun2socks
+    already speaks UDP ASSOCIATE, so no client-side changes.
+    
+    1. core/socks5 — UDP ASSOCIATE (CMD=0x03)
+       - New DatagramHandler interface. Nil → REP=0x07 (legacy behaviour
+         preserved for the apps-stub E2E path).
+       - Per codex's review: server ignores the request's DST.ADDR/DST.PORT
+         (xjasonlyu sends 0.0.0.0:0), uses the per-datagram header as
+         authoritative, replies with IP ATYP (domain ATYP would be rejected
+         by xjasonlyu's symmetric-NAT check), carries the original
+         destination back in the UDP reply header for the same reason.
+       - FRAG != 0 datagrams dropped per RFC + xjasonlyu behaviour.
+       - TCP control-conn close tears down the association (RFC 1928 §6).
+    
+    2. core/doh — DoH client
+       - RFC 8484 POST application/dns-message to dns.google/dns-query.
+       - Zeroes the query ID (§4.1 HTTP-cache friendliness) and restores
+         the caller's ID on the response so Android's resolver still
+         matches requests to answers.
+       - Caller-supplied http.Client. parvazd wires it to a relay-backed
+         RoundTripper (core/cmd/parvazd/relay_rt.go) so DoH rides the
+         Apps Script envelope — see below for why.
+    
+    Architecture note — DoH transport.
+       First-draft approach was "reuse the fronter target directly"
+       (216.239.38.120:443 / SNI=www.google.com / Host=dns.google). Live-
+       mode wire test revealed dns.google is NOT served on Google's Apps
+       front — returns 404 with Host=dns.google there. 8.8.8.8 does serve
+       dns.google, but presents a cert that doesn't match SNI=www.google.com,
+       so the TLS handshake fails verification under our fronter. Dialing
+       with SNI=dns.google would expose "user is doing DNS" to DPI, which
+       is exactly what Parvaz exists to hide.
+       Resolution: route DoH through the Apps Script relay. Code.gs fetches
+       dns.google/dns-query on the server side; the response body (binary
+       wire) survives the envelope's base64 round-trip. Cost is one Apps
+       Script quota unit per DNS query (~100/session), perfectly within
+       the 20k/day free tier. Preserves identical DPI cover to every other
+       tunneled request. Proven live via TestDNS_Live_ResolvesExampleComViaRelay:
+       2 A records for example.com in 1.95s end-to-end.
+    
+    3. core/cmd/parvazd/dns.go — in-process DNS shim
+       - Satisfies both socks5.DatagramHandler (UDP/53) and the
+         dispatcher's DNSTCPHandler (TCP/53 fallback; RFC 1035 §4.2.2).
+       - Hard-gates on the synthetic VPN DNS host (10.0.0.2). Apps
+         hitting 1.1.1.1 or a corporate resolver are DROPPED, not
+         silently rewritten with Google's answer (codex P2 —
+         split-horizon / private zones).
+       - AAAA queries answered locally with empty NOERROR. VPN is
+         IPv4-only; handing out AAAA records would let Chrome
+         Happy-Eyeballs onto paths the VPN can't carry (codex P2).
+       - DoH failures synthesise SERVFAIL. Previously silent drops
+         forced Android's resolver to wait out multi-second retry
+         budget (codex P2).
+    
+    4. core/dispatcher — TCP/53 fallback route
+       - New DNSTCPHandler + DNSHost/DNSPort fields. CONNECTs to
+         <DNSHost>:<DNSPort> return a pipe wired to ServeTCP instead of
+         the usual AllowList/SNI/MITM paths. Without this a TC=1 UDP
+         response would trigger TCP/53 that the MITM path can't serve
+         (codex P2).
+    
+    5. core/cmd/parvazd — wiring
+       - buildPipeline only wires the DNS shim when cfg.TunFD > 0.
+         Pre-M15b-beta the apps-stub E2E flow still gets the old
+         REP=0x07 UDP rejection — normal DNS like 8.8.8.8:53 isn't
+         silently swallowed by a handler that only answers 10.0.0.2:53
+         (codex P3).
+       - DNSListenHost config (default 10.0.0.2) configurable via
+         stdin JSON for tests.
+    
+    6. app — Kotlin TUN setup
+       - ParvazVpnService.DNS_SERVER changed from 8.8.8.8 to 10.0.0.2.
+         Synthetic in-TUN address that parvazd answers for; matches
+         the defaultDNSListenHost constant in core/.
+    
+    Codex review + live-wire verification surfaced:
+      Iter 1 — dst-port-only DoH gate (P2), TCP/53 not routed (P2) → fixed.
+      Iter 2 — DoH inherits relay -google-ip overrides (P2), legacy SOCKS
+        mode wires DNS handler regressively (P3) → fixed.
+      Iter 3 — hardcoded fronter ignores cfg (P1), test nil-deref (P3) → fixed.
+      Iter 4 — AAAA leaks (P2), silent DoH-failure drops (P2) → fixed.
+      Live test — direct-fronter approach returned 404 from dns.google on
+        the Apps-front edge; pivoted DoH onto the Apps Script relay
+        (architecture note above). Now verified end-to-end against a real
+        Code.gs deployment.
+    
+    Test status:
+    - go test -C core -race ./... — all 12 packages green.
+    - TestDNS_Live_ResolvesExampleComViaRelay — PASS (live Apps Script).
+    - TestRelay_Live_GetExampleCom — PASS (no regression).
+    - ./gradlew test assembleDebug — green, 27.7 MB APK.
+    - Cross-compile for android/arm64 — clean 17.7 MB libparvaz.so.
+    - Emulator walkthrough — still pending; M15b-beta is what unblocks it.
+    
+    Stacked on feat/android-tun2socks (PR #34); merge order is #34 → this.
+    
+    Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+diff --git a/PLAN.md b/PLAN.md
+index 56e9381..61779dd 100644
+--- a/PLAN.md
++++ b/PLAN.md
+@@ -88,104 +88,112 @@ Failing-test order:
+ - [x] Wildcard matching: exact + leading `*.` suffix, case-insensitive
+ - [x] `TestDispatcher_GoogleHost_UsesDirect`,
+       `TestDispatcher_ArbitraryHost_UsesMITM`,
+       `TestDispatcher_AllowListLookup_MatchesWildcards`
+ 
+ ## Milestone M-sni-rewrite · DONE
+ 
+ - [x] `core/mitm/snitunnel.go` — terminate browser TLS with a CA-signed
+       leaf, open upstream via fronter (SNI=www.google.com), pipe
+       plaintext between the two TLS sessions. No Apps Script quota.
+ - [x] Dispatcher Path 2: `SNIRewriteList` + `SNITunneler` interface.
+       `DefaultSNIRewriteList` = `*.youtube.com`, `*.ytimg.com`, `*.ggpht.com`
+ - [x] Fail-fast on misconfig: `SNIRewriteList` set with `SNITunnel` nil
+       returns an error at `Dial`, not a silent fallback that'd burn
+       Apps Script quota invisibly
+ - [x] TLS 1.2 floor enforced on fronter dialer (fixed as part of this
+       milestone — applies to relay + SNI paths + any future fronted leg)
+ 
+ ## Milestone 9b — parvazd wiring · DONE
+ 
+ - [x] `stubDialer` removed from `core/cmd/parvazd/main.go`
+ - [x] `buildPipeline(cfg, logger)` factored into `pipeline.go` — wires
+       fronter → relay → CA → interceptor → dispatcher → socks5.Server
+ - [x] `--data-dir` flag (default `./parvaz-data`, resolved to absolute
+       inside `buildPipeline` so CWD drift can't fork the CA)
+ - [x] `TestBuildPipeline_MITMHandshake` — SOCKS5 CONNECT through the
+       real pipeline, TLS handshake succeeds against the generated CA
+ 
+ Go-side milestones are complete. Everything the sidecar needs is in
+ place. Next: **Phase B** — the Android side (VpnService wrapper,
+ tun2socks, sidecar launcher, CA-install flow, `parvaz://` intent
+ filter). See milestones 10–14 below.
+ 
+ # Phase B — Android App (Farsi-first)
+ 
+ ## Milestone 10 — Compose NOTAM theme
+ 
+ - [x] Color.kt / Theme.kt / Type.kt — NOTAM palette, light-only
+ - [ ] Bundle **Vazirmatn** (required), Redaction, JetBrains Mono in `res/font/`
+ - [ ] Swap Type.kt from placeholder FontFamily.Serif/Monospace to bundled fonts
+ - [ ] Persian-aware letter-spacing (Vazirmatn = 0, Latin labels 2sp+)
+ 
+ ## Milestone 11 — Settings + parvaz:// URL parser
+ 
+ - [x] `Access.kt` parses `parvaz://<deployment-id>/<key>#<display-name>`
+ - [x] `AccessParseException` with Farsi messages (9 unit tests)
+ - [ ] `ParvazSettings.kt` — EncryptedSharedPreferences for key; plain prefs for deployment ID, display name, language
+ 
+ ## Milestone 12 — Onboarding (4 screens)
+ 
+ Farsi strings default (`res/values/`); English override (`res/values-en/`).
+ 
+ 1. [x] M12.1 — `SplashScreen` — `پرواز` + `شروع` rubber-stamp button.
+ 2. [x] M12.2 — `ImportAccessScreen` — single field + `چسباندن` + `اسکن QR`. Auto-detects clipboard `parvaz://` on appear.
+ 3. [x] M12.3 — `CaInstallScreen` — Farsi walkthrough. `parvazd -gen-ca` writes the PEM under `filesDir/parvaz-data/ca/`; the screen pre-checks screen-lock via `KeyguardManager`, fires `ACTION_MANAGE_CA_CERTIFICATES`, then walks `AndroidCAStore` by SHA-256 fingerprint. State machine (GENERATING → READY → AWAITING_INSTALL → VERIFYING → INSTALLED/FAILED/NO_SCREEN_LOCK) survives rotation + process death via `rememberSaveable`.
+ 4. [x] M12.4 — `VpnPermissionScreen` — Farsi explainer BEFORE Android's system VPN consent dialog. State machine (IDLE → AWAITING_SYSTEM_PROMPT → GRANTED/DENIED) rotation-safe via `rememberSaveable`. `Lifecycle.ON_RESUME` observer recovers from stuck AWAITING after process death / user-returned-without-responding.
+ 
+ ## Milestone 13 — Main screen
+ 
+ - [x] **M13a** — Disconnected outline → tap → CONNECTING spinner →
+       CONNECTED olive stamp + `T+HH:MM:SS` uptime (ticks from service's
+       own `connectedAtMs` so recreation doesn't reset). Second tap
+       disconnects. Persian numerals via `ui/util/PersianDigits`.
+ - [x] **M13b** — Long-press → `ModalBottomSheet`: language toggle + access
+       reset (confirm dialog). SNI pool deferred.
+ - [ ] **M13c** — Service-binding refactor (with M15b tun2socks).
+ - [ ] **M13d** — Per-app locale via `LocaleManager.setApplicationLocales`.
+ 
+ ## Milestone 14 — URL scheme handler + QR scanner
+ 
+ `parvaz://` intent-filter already lands on MainActivity; QR scanner via
+ `androidx.camera` + MLKit. Both paths feed `ImportAccessScreen.onImport`.
+ 
+ ## Milestone 15 — VpnService + tun2socks + sidecar
+ 
+ - [x] **M15a** — VpnService + CoreLauncher.
+ - [x] **M15b-alpha** — `xjasonlyu/tun2socks/v2` in parvazd. Kotlin
+       FD_CLOEXEC-clears (API 30+) and passes raw TUN fd via stdin.
+       MITM uses `GetCertificate` so leaf matches browser SNI even on
+       bare-IP targets. Own package in VpnService's disallowed-list.
+-- [ ] **M15b-beta (REQUIRED for demo)** — UDP/DNS. SOCKS5 needs UDP
+-      ASSOCIATE, or intercept UDP/53 + local DoH resolver.
++- [x] **M15b-beta** — UDP/DNS. `core/socks5` speaks UDP ASSOCIATE;
++      `core/doh` answers port-53 queries via RFC 8484 POST to
++      `dns.google/dns-query`, transported through the Apps Script
++      relay (not a direct fronter) — dns.google isn't served on
++      Google's Apps edge, and riding the relay preserves DPI cover at
++      the cost of ~1 Apps Script quota unit per lookup. TUN advertises
++      `10.0.0.2` as DNS server. AAAA answered locally (TUN is v4-only);
++      DoH failures synthesise SERVFAIL so resolvers bail fast. Non-DNS
++      UDP is dropped (Chrome falls back to TCP/TLS). Proven live via
++      `TestDNS_Live_ResolvesExampleComViaRelay` (2 A records in 1.95s).
+ - [ ] **M15c** — API ≤ 29 compat (currently hard-fails above minSdk 24).
+ 
+ ## Milestone 16 — Error / edge states (Farsi)
+ 
+ Covers: bad parvaz:// URL, no internet, server unreachable, CA not
+ installed, VPN permission denied. Copy lives in `res/values/strings.xml`.
+ 
+ # Phase C — Integration
+ 
+ ## Milestone 17 — Deploy Code.gs + live E2E
+ 
+ - Deploy `reference/apps_script/Code.gs` to a test Google account.
+ - Smoke: install APK on device, paste `parvaz://...`, install CA, Connect, load google.com + a non-Google site in Chrome.
+ - Optional gated test: `PARVAZ_E2E=1 go test -C core ./relay/...`.
+ 
+ ## Out of scope (explicit non-goals)
+ 
+ - **Non-browser apps** (Instagram/Telegram/WhatsApp/banking native) — will fail by design (Android MITM limitation). Documented clearly.
+ - **iOS** — different VPN model.
+ - **Play Store** — F-Droid + sideload only.
+ - **Standalone SOCKS5 daemon** — just a sidecar to the app.
+ - **Analytics / crash reporting / telemetry** — zero-telemetry is a principle.
+diff --git a/app/src/main/java/dk/cocode/parvaz/vpn/ParvazVpnService.kt b/app/src/main/java/dk/cocode/parvaz/vpn/ParvazVpnService.kt
+index ce7ddba..a7c1667 100644
+--- a/app/src/main/java/dk/cocode/parvaz/vpn/ParvazVpnService.kt
++++ b/app/src/main/java/dk/cocode/parvaz/vpn/ParvazVpnService.kt
+@@ -116,83 +116,85 @@ class ParvazVpnService : VpnService() {
+ 
+             // Clear FD_CLOEXEC on the PFD's FileDescriptor so exec()
+             // inside ProcessBuilder preserves the fd on the child side.
+             // Without this the sidecar's os.NewFile gets an
+             // already-closed fd and tun2socks reads EBADF.
+             //
+             // API check is above — execution is already guaranteed to
+             // be on API 30+ by the time we reach this line.
+             val tunFd: Int = try {
+                 Os.fcntlInt(tun!!.fileDescriptor, OsConstants.F_SETFD, 0)
+                 tun!!.fd
+             } catch (e: Throwable) {
+                 Log.e(TAG, "fcntl F_SETFD clear failed: ${e.message}")
+                 fail()
+                 return@launch
+             }
+ 
+             // MUST point at the same dir CaInstallController uses or the
+             // sidecar signs leaves with a CA the user never installed.
+             val dataDir = ParvazDataDir.forContext(this@ParvazVpnService)
+             val cfg = SidecarConfig(
+                 access = access,
+                 dataDir = dataDir.absolutePath,
+                 tunFD = tunFd,
+                 tunMTU = TUN_MTU,
+             )
+ 
+             launcher = CoreLauncher(this@ParvazVpnService).also { l ->
+                 val r = l.start(cfg)
+                 if (r.isFailure) {
+                     Log.e(TAG, "sidecar failed: ${r.exceptionOrNull()}")
+                     fail()
+                     return@launch
+                 }
+             }
+             _state.value = SessionState.connected(System.currentTimeMillis())
+         }
+     }
+ 
+     private fun cleanup() {
+         launcher?.stop()
+         launcher = null
+         tun?.close()
+         tun = null
+     }
+ 
+     private fun fail() {
+         startJob?.cancel()
+         startJob = null
+         cleanup()
+         _state.value = SessionState.failed()
+         stopSelf()
+     }
+ 
+     private fun teardown() {
+         // Cancel any in-flight scheduleStart coroutine first — without
+         // this, a user who resets access mid-CONNECTING could see the
+         // startJob later write CONNECTED/FAILED after teardown cleared
+         // DISCONNECTED, stranding them on onboarding with a running VPN.
+         startJob?.cancel()
+         startJob = null
+         cleanup()
+         _state.value = SessionState.disconnected()
+         stopSelf()
+     }
+ 
+     companion object {
+         const val ACTION_START = "dk.cocode.parvaz.vpn.START"
+         const val ACTION_STOP = "dk.cocode.parvaz.vpn.STOP"
+ 
+         private val _state = MutableStateFlow(SessionState.disconnected())
+         /** Observe to drive the main-screen UI. See class-level doc for lifetime caveats. */
+         val state: StateFlow<SessionState> = _state.asStateFlow()
+ 
+         private const val NOTIFICATION_ID = 1
+         private const val TAG = "ParvazVpnService"
+         private const val SESSION_NAME = "Parvaz"
+         private const val TUN_ADDRESS = "10.0.0.1"
+         private const val TUN_PREFIX = 24
+         private const val TUN_MTU = 1500
+-        private const val DNS_SERVER = "8.8.8.8"
++        // Synthetic in-TUN DNS target. Android UDP/53 → tun2socks → SOCKS5
++        // UDP ASSOCIATE → parvazd DoH. Not a real server.
++        private const val DNS_SERVER = "10.0.0.2"
+     }
+ }
+diff --git a/core/cmd/parvazd/config.go b/core/cmd/parvazd/config.go
+index fd2fdc6..f9b058d 100644
+--- a/core/cmd/parvazd/config.go
++++ b/core/cmd/parvazd/config.go
+@@ -1,102 +1,123 @@
+ package main
+ 
+ import "errors"
+ 
+ // Config mirrors reference/src/config.example.json. Fields can be supplied
+ // via flags or via a JSON document on stdin; stdin wins on overlap.
+ type Config struct {
+ 	ScriptURLs  []string `json:"script_urls"`
+ 	AuthKey     string   `json:"auth_key"`
+ 	GoogleIP    string   `json:"google_ip"`
+ 	FrontDomain string   `json:"front_domain"`
+ 	FrontPort   int      `json:"front_port"`
+ 	ListenHost  string   `json:"listen_host"`
+ 	ListenPort  int      `json:"listen_port"`
+ 	DataDir     string   `json:"data_dir"`
+ 	// TunFD is the Android TUN file descriptor inherited from the Kotlin
+ 	// VpnService via ProcessBuilder. When > 0 the sidecar runs tun2socks
+ 	// on it; the loopback SOCKS5 listener is skipped because traffic
+ 	// arrives through the TUN instead. 0/absent means "no TUN, legacy
+ 	// SOCKS5 mode" — still used by the e2e harness and integration tests.
+ 	TunFD int `json:"tun_fd"`
+ 	// TunMTU mirrors what VpnService.Builder.setMtu() was given. Must
+ 	// match or tun2socks will fragment / misread packets.
+ 	TunMTU int `json:"tun_mtu"`
++	// DNSListenHost is the IPv4 literal Android advertises via
++	// VpnService.addDnsServer — the "server" parvazd's DoH shim answers
++	// for. Default "10.0.0.2" (see ParvazVpnService.DNS_SERVER). Any
++	// query NOT addressed to this host+53 is dropped: we won't
++	// silently rewrite apps that hit their own resolver (1.1.1.1,
++	// split-horizon corporate DNS, etc.) with Google's answer.
++	DNSListenHost string `json:"dns_listen_host,omitempty"`
+ 	// InsecureTLS disables certificate verification on every fronter
+ 	// (relay path + SNI-rewrite path). Strictly for local e2e against
+ 	// a self-signed Apps Script stub — never flip this in production.
+ 	//
+ 	// Pointer so JSON can distinguish "field absent" (nil) from
+ 	// "field explicitly false" (*false). Stdin wins on overlap as
+ 	// documented — stdin {"insecure_tls": false} turns off a
+ 	// flag-supplied -insecure-tls=true.
+ 	InsecureTLS *bool `json:"insecure_tls,omitempty"`
+ }
+ 
+ // InsecureTLSEnabled reports whether InsecureTLS is set and true.
+ // Nil-safe so call sites don't need to guard.
+ func (c Config) InsecureTLSEnabled() bool {
+ 	return c.InsecureTLS != nil && *c.InsecureTLS
+ }
+ 
+ const (
+ 	defaultGoogleIP    = "216.239.38.120"
+ 	defaultFrontDomain = "www.google.com"
+ 	defaultFrontPort   = 443
+ 	defaultListenHost  = "127.0.0.1"
+-	defaultListenPort  = 1080
+-	defaultDataDir     = "./parvaz-data"
++	defaultListenPort    = 1080
++	defaultDataDir       = "./parvaz-data"
++	defaultDNSListenHost = "10.0.0.2"
++	dnsListenPort        = 53
+ )
+ 
+ func merge(base, over Config) Config {
+ 	if len(over.ScriptURLs) > 0 {
+ 		base.ScriptURLs = over.ScriptURLs
+ 	}
+ 	if over.AuthKey != "" {
+ 		base.AuthKey = over.AuthKey
+ 	}
+ 	if over.GoogleIP != "" {
+ 		base.GoogleIP = over.GoogleIP
+ 	}
+ 	if over.FrontDomain != "" {
+ 		base.FrontDomain = over.FrontDomain
+ 	}
+ 	if over.FrontPort != 0 {
+ 		base.FrontPort = over.FrontPort
+ 	}
+ 	if over.InsecureTLS != nil {
+ 		// Pointer distinguishes "stdin silent" (nil) from "stdin false"
+ 		// (*false); we honour either direction — stdin always wins on
+ 		// overlap.
+ 		base.InsecureTLS = over.InsecureTLS
+ 	}
+ 	if over.ListenHost != "" {
+ 		base.ListenHost = over.ListenHost
+ 	}
+ 	if over.ListenPort != 0 {
+ 		base.ListenPort = over.ListenPort
+ 	}
+ 	if over.TunFD != 0 {
+ 		base.TunFD = over.TunFD
+ 	}
+ 	if over.TunMTU != 0 {
+ 		base.TunMTU = over.TunMTU
+ 	}
+ 	if over.DataDir != "" {
+ 		base.DataDir = over.DataDir
+ 	}
++	if over.DNSListenHost != "" {
++		base.DNSListenHost = over.DNSListenHost
++	}
+ 	return base
+ }
+ 
++// dnsHost returns the configured synthetic DNS host, defaulting to
++// defaultDNSListenHost when unset. Centralised so every call site agrees.
++func (c Config) dnsHost() string {
++	if c.DNSListenHost != "" {
++		return c.DNSListenHost
++	}
++	return defaultDNSListenHost
++}
++
+ func (c Config) validate() error {
+ 	if c.AuthKey == "" {
+ 		return errors.New("auth_key required")
+ 	}
+ 	if len(c.ScriptURLs) == 0 {
+ 		return errors.New("at least one script_url required")
+ 	}
+ 	if c.DataDir == "" {
+ 		return errors.New("data_dir required")
+ 	}
+ 	return nil
+ }
+diff --git a/core/cmd/parvazd/dns.go b/core/cmd/parvazd/dns.go
+new file mode 100644
+index 0000000..21ed78f
+--- /dev/null
++++ b/core/cmd/parvazd/dns.go
+@@ -0,0 +1,167 @@
++package main
++
++import (
++	"context"
++	"encoding/binary"
++	"errors"
++	"fmt"
++	"io"
++	"log/slog"
++	"net"
++	"net/http"
++	"strings"
++	"time"
++
++	"github.com/cocodedk/parvaz/core/doh"
++	"github.com/cocodedk/parvaz/core/protocol"
++)
++
++// dnsHandler satisfies both socks5.DatagramHandler (UDP/53) and the
++// dispatcher's TCP-DNS interface (TCP/53 fallback). One backing DoH
++// client either way — so the two transports give identical answers.
++//
++// Wire: DoH → dns.google/dns-query, but transported via the Apps Script
++// relay rather than a direct fronter dial. dns.google is NOT served on
++// Google's Apps-front edge (216.239.38.120 returns 404), and dialing
++// 8.8.8.8 directly is often DPI-blocked exactly because it's the well-
++// known DNS IP. Routing through the relay keeps perfect cover — the
++// network observer sees the same Google-edge + SNI=www.google.com
++// pattern as every other tunneled request.
++//
++// Cost: one Apps Script quota unit per DNS query. Acceptable for alpha;
++// future work can cache or bulk-batch.
++//
++// Policy summary:
++//   - Only the synthetic VPN DNS host is served (codex P2). Queries to
++//     specific resolvers like 1.1.1.1 are dropped, not silently
++//     rewritten — prevents split-horizon / private-zone surprises.
++//   - AAAA queries are answered NOERROR/empty locally (codex P2). The
++//     TUN is IPv4-only; handing out AAAA records would let Chrome
++//     Happy-Eyeballs onto paths the VPN can't carry.
++//   - DoH failures become SERVFAIL synchronously (codex P2) instead of
++//     silent drops that force Android's resolver to wait out its
++//     multi-second retry budget.
++type dnsHandler struct {
++	syntheticIP string
++	client      *doh.Client
++	logger      *slog.Logger
++}
++
++// Relayer is what newDNSHandler needs from *relay.Relay. Declared here
++// so the dns test can stub it without depending on the full relay
++// package (and its fronter/HTTP plumbing).
++type Relayer interface {
++	Do(ctx context.Context, req protocol.Request) (*protocol.Response, error)
++}
++
++func newDNSHandler(rel Relayer, cfg Config, logger *slog.Logger) *dnsHandler {
++	return &dnsHandler{
++		syntheticIP: cfg.dnsHost(),
++		client: &doh.Client{
++			HTTP:     newDoHHTTPClient(rel),
++			Endpoint: doh.DefaultEndpoint,
++		},
++		logger: logger,
++	}
++}
++
++// Handle — socks5.DatagramHandler for UDP/53.
++func (h *dnsHandler) Handle(ctx context.Context, dstHost string, dstPort uint16, payload []byte) ([]byte, error) {
++	if !h.isSyntheticTarget(dstHost, dstPort) {
++		h.logger.Debug("dns: dropping non-synthetic UDP",
++			"dst", net.JoinHostPort(dstHost, fmt.Sprint(dstPort)))
++		return nil, nil
++	}
++	return h.answer(ctx, payload), nil
++}
++
++// ServeTCP is invoked by the dispatcher when a CONNECT targets the
++// synthetic DNS host:53. Implements RFC 1035 §4.2.2 TCP framing:
++// 2-byte length prefix followed by the DNS message.
++func (h *dnsHandler) ServeTCP(ctx context.Context, conn net.Conn) {
++	defer conn.Close()
++	for {
++		if err := ctx.Err(); err != nil {
++			return
++		}
++		_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
++		msg, err := readDNSTCPMessage(conn)
++		if err != nil {
++			if !errors.Is(err, io.EOF) && !isTimeout(err) {
++				h.logger.Debug("dns tcp: read", "err", err)
++			}
++			return
++		}
++		resp := h.answer(ctx, msg)
++		if resp == nil {
++			return
++		}
++		if err := writeDNSTCPMessage(conn, resp); err != nil {
++			h.logger.Debug("dns tcp: write", "err", err)
++			return
++		}
++	}
++}
++
++// answer applies the full DNS policy: AAAA-suppress → DoH → SERVFAIL.
++func (h *dnsHandler) answer(ctx context.Context, query []byte) []byte {
++	if qtype, ok := parseQueryQType(query); ok && qtype == dnsTypeAAAA {
++		return synthesizeEmpty(query)
++	}
++	resp, err := h.client.Query(ctx, query)
++	if err != nil {
++		h.logger.Debug("dns: doh query failed, returning SERVFAIL", "err", err)
++		return synthesizeSERVFAIL(query)
++	}
++	return resp
++}
++
++func (h *dnsHandler) isSyntheticTarget(host string, port uint16) bool {
++	return port == dnsListenPort && strings.EqualFold(host, h.syntheticIP)
++}
++
++func readDNSTCPMessage(r io.Reader) ([]byte, error) {
++	var lenBuf [2]byte
++	if _, err := io.ReadFull(r, lenBuf[:]); err != nil {
++		return nil, err
++	}
++	n := binary.BigEndian.Uint16(lenBuf[:])
++	if n == 0 {
++		return nil, errors.New("dns tcp: zero-length message")
++	}
++	body := make([]byte, n)
++	if _, err := io.ReadFull(r, body); err != nil {
++		return nil, err
++	}
++	return body, nil
++}
++
++func writeDNSTCPMessage(w io.Writer, msg []byte) error {
++	if len(msg) > 0xFFFF {
++		return fmt.Errorf("dns tcp: message too long (%d)", len(msg))
++	}
++	var lenBuf [2]byte
++	binary.BigEndian.PutUint16(lenBuf[:], uint16(len(msg)))
++	if _, err := w.Write(lenBuf[:]); err != nil {
++		return err
++	}
++	_, err := w.Write(msg)
++	return err
++}
++
++func isTimeout(err error) bool {
++	ne, ok := err.(net.Error)
++	return ok && ne.Timeout()
++}
++
++// newDoHHTTPClient builds an http.Client whose RoundTripper (see
++// relay_rt.go) wraps each HTTP request into an Apps Script envelope
++// via the shared relay. Code.gs fetches dns.google/dns-query and
++// returns the wire response. Short 3s timeout so SERVFAIL fires fast
++// rather than stalling page loads.
++func newDoHHTTPClient(rel Relayer) *http.Client {
++	return &http.Client{
++		Transport: &relayRoundTripper{relay: rel},
++		Timeout:   3 * time.Second,
++	}
++}
+diff --git a/core/cmd/parvazd/dns_fixtures_test.go b/core/cmd/parvazd/dns_fixtures_test.go
+new file mode 100644
+index 0000000..da902d0
+--- /dev/null
++++ b/core/cmd/parvazd/dns_fixtures_test.go
+@@ -0,0 +1,77 @@
++package main
++
++import (
++	"log/slog"
++	"net/http"
++	"net/http/httptest"
++	"os"
++	"testing"
++
++	"github.com/cocodedk/parvaz/core/doh"
++)
++
++func silentLogger() *slog.Logger {
++	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
++}
++
++// stubDoHServer returns any fixed response to every POST /dns-query.
++// The dnsHandler forwards the response body verbatim (after ID restore
++// and optional SERVFAIL/AAAA substitution), which is exactly what
++// tests assert on.
++func stubDoHServer(t *testing.T, response []byte) *httptest.Server {
++	t.Helper()
++	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		w.Header().Set("Content-Type", "application/dns-message")
++		_, _ = w.Write(response)
++	}))
++}
++
++func newTestHandler(endpoint string) *dnsHandler {
++	return &dnsHandler{
++		syntheticIP: "10.0.0.2",
++		client:      &doh.Client{HTTP: http.DefaultClient, Endpoint: endpoint},
++		logger:      silentLogger(),
++	}
++}
++
++func fakeDNSQuery(txID byte) []byte {
++	return []byte{
++		txID, 0xCD,
++		0x01, 0x00,
++		0x00, 0x01,
++		0x00, 0x00,
++		0x00, 0x00,
++		0x00, 0x00,
++		0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e',
++		0x03, 'c', 'o', 'm',
++		0x00,
++		0x00, 0x01, 0x00, 0x01, // QTYPE=A, QCLASS=IN
++	}
++}
++
++func fakeAAAAQuery(txID byte) []byte {
++	return []byte{
++		txID, 0x01,
++		0x01, 0x00,
++		0x00, 0x01,
++		0x00, 0x00,
++		0x00, 0x00,
++		0x00, 0x00,
++		0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e',
++		0x03, 'c', 'o', 'm',
++		0x00,
++		0x00, 0x1C, 0x00, 0x01, // QTYPE=AAAA(28), QCLASS=IN
++	}
++}
++
++func fakeDNSResponse(txID byte) []byte {
++	return []byte{
++		txID, 0xEE,
++		0x81, 0x80,
++		0x00, 0x01,
++		0x00, 0x01,
++		0x00, 0x00,
++		0x00, 0x00,
++		0xDE, 0xAD, 0xBE, 0xEF,
++	}
++}
+diff --git a/core/cmd/parvazd/dns_live_test.go b/core/cmd/parvazd/dns_live_test.go
+new file mode 100644
+index 0000000..8b412a7
+--- /dev/null
++++ b/core/cmd/parvazd/dns_live_test.go
+@@ -0,0 +1,92 @@
++package main
++
++import (
++	"context"
++	"encoding/binary"
++	"net"
++	"os"
++	"testing"
++	"time"
++
++	"github.com/cocodedk/parvaz/core/doh"
++	"github.com/cocodedk/parvaz/core/fronter"
++	"github.com/cocodedk/parvaz/core/relay"
++)
++
++// Live end-to-end DNS test. Walks the full production data plane:
++//
++//	dnsHandler.Handle → doh.Client.Query → relayRoundTripper → relay.Do
++//	→ fronter → Google edge (216.239.38.120) → Apps Script → dns.google
++//	→ back.
++//
++// Skipped unless PARVAZ_LIVE=1 + PARVAZ_LIVE_DEPLOYMENT_ID + PARVAZ_LIVE_AUTH_KEY
++// are set. Consumes exactly one Apps Script quota unit per run.
++//
++//	source scripts/e2e/live.env
++//	export PARVAZ_LIVE=1 PARVAZ_LIVE_DEPLOYMENT_ID PARVAZ_LIVE_AUTH_KEY
++//	go test -C core -v -run TestDNS_Live ./cmd/parvazd/...
++func TestDNS_Live_ResolvesExampleComViaRelay(t *testing.T) {
++	if os.Getenv("PARVAZ_LIVE") != "1" {
++		t.Skip("live test: set PARVAZ_LIVE=1 to run")
++	}
++	deploymentID := os.Getenv("PARVAZ_LIVE_DEPLOYMENT_ID")
++	authKey := os.Getenv("PARVAZ_LIVE_AUTH_KEY")
++	if deploymentID == "" || authKey == "" {
++		t.Skip("live test: set PARVAZ_LIVE_DEPLOYMENT_ID + PARVAZ_LIVE_AUTH_KEY to run")
++	}
++
++	scriptURL := "https://script.google.com/macros/s/" + deploymentID + "/exec"
++	d := &fronter.Dialer{
++		FrontDomain:      "www.google.com",
++		DialTimeout:      30 * time.Second,
++		HandshakeTimeout: 30 * time.Second,
++	}
++	target := net.JoinHostPort("216.239.38.120", "443")
++	rel, err := relay.New(relay.Config{
++		HTTPClient: fronter.NewHTTPClient(d, target),
++		ScriptURLs: []string{scriptURL},
++		AuthKey:    authKey,
++	})
++	if err != nil {
++		t.Fatalf("relay.New: %v", err)
++	}
++
++	h := &dnsHandler{
++		syntheticIP: "10.0.0.2",
++		client: &doh.Client{
++			HTTP:     newDoHHTTPClient(rel),
++			Endpoint: doh.DefaultEndpoint,
++		},
++		logger: silentLogger(),
++	}
++	// Loosen the default 3s DoH timeout — relay-via-Apps-Script adds
++	// significant latency on top of the direct DoH POST.
++	h.client.HTTP.Timeout = 30 * time.Second
++
++	query := fakeDNSQuery(0xAB)
++	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
++	defer cancel()
++
++	resp, err := h.Handle(ctx, "10.0.0.2", 53, query)
++	if err != nil {
++		t.Fatalf("Handle: %v", err)
++	}
++	if len(resp) < 12 {
++		t.Fatalf("response too short: %d bytes", len(resp))
++	}
++	if resp[0] != query[0] || resp[1] != query[1] {
++		t.Errorf("ID not restored: got %02x%02x, want %02x%02x",
++			resp[0], resp[1], query[0], query[1])
++	}
++	if resp[2]&0x80 == 0 {
++		t.Error("QR bit not set")
++	}
++	if rcode := resp[3] & 0x0F; rcode != 0 {
++		t.Errorf("RCODE = %d, want 0 (NOERROR); SERVFAIL means the relay path is broken", rcode)
++	}
++	ancount := binary.BigEndian.Uint16(resp[6:8])
++	if ancount == 0 {
++		t.Error("ANCOUNT = 0; expected ≥1 A record for example.com")
++	}
++	t.Logf("live DNS via relay: ANCOUNT=%d, %d bytes", ancount, len(resp))
++}
+diff --git a/core/cmd/parvazd/dns_test.go b/core/cmd/parvazd/dns_test.go
+new file mode 100644
+index 0000000..2127a95
+--- /dev/null
++++ b/core/cmd/parvazd/dns_test.go
+@@ -0,0 +1,175 @@
++package main
++
++import (
++	"bytes"
++	"context"
++	"encoding/binary"
++	"io"
++	"net"
++	"net/http"
++	"net/http/httptest"
++	"sync"
++	"testing"
++	"time"
++)
++
++func TestDNSHandler_UDP_DropsNonSyntheticTarget(t *testing.T) {
++	srv := stubDoHServer(t, fakeDNSResponse(0x00))
++	defer srv.Close()
++	h := newTestHandler(srv.URL)
++
++	// Apps hitting 1.1.1.1 or any other DNS IP directly must NOT be
++	// silently rewritten to Google. Codex-review P2.
++	resp, err := h.Handle(context.Background(), "1.1.1.1", 53, fakeDNSQuery(0xAB))
++	if err != nil {
++		t.Fatalf("Handle returned err: %v", err)
++	}
++	if resp != nil {
++		t.Errorf("non-synthetic target should drop, got %d bytes", len(resp))
++	}
++}
++
++func TestDNSHandler_UDP_DropsNonDNSPort(t *testing.T) {
++	srv := stubDoHServer(t, fakeDNSResponse(0x00))
++	defer srv.Close()
++	h := newTestHandler(srv.URL)
++
++	resp, err := h.Handle(context.Background(), "10.0.0.2", 80, []byte("not dns"))
++	if err != nil {
++		t.Fatalf("Handle err: %v", err)
++	}
++	if resp != nil {
++		t.Errorf("non-53 port should drop, got %d bytes", len(resp))
++	}
++}
++
++func TestDNSHandler_UDP_SyntheticTargetForwardsToDoH(t *testing.T) {
++	srv := stubDoHServer(t, fakeDNSResponse(0x00))
++	defer srv.Close()
++	h := newTestHandler(srv.URL)
++
++	resp, err := h.Handle(context.Background(), "10.0.0.2", 53, fakeDNSQuery(0xAB))
++	if err != nil {
++		t.Fatalf("Handle err: %v", err)
++	}
++	if len(resp) == 0 {
++		t.Fatal("synthetic target produced empty response")
++	}
++	// doh.Client restores the query's ID; our stub returned 0, so
++	// the response's first two bytes should be the query's.
++	if resp[0] != 0xAB {
++		t.Errorf("response ID not restored: got %02x%02x", resp[0], resp[1])
++	}
++}
++
++func TestDNSHandler_TCP_FramesAndDoHRoundTrip(t *testing.T) {
++	canned := fakeDNSResponse(0x00)
++	srv := stubDoHServer(t, canned)
++	defer srv.Close()
++	h := newTestHandler(srv.URL)
++
++	clientSide, serverSide := net.Pipe()
++	ctx, cancel := context.WithCancel(context.Background())
++	defer cancel()
++
++	var wg sync.WaitGroup
++	wg.Add(1)
++	go func() {
++		defer wg.Done()
++		h.ServeTCP(ctx, serverSide)
++	}()
++
++	query := fakeDNSQuery(0xCD)
++	var lenBuf [2]byte
++	binary.BigEndian.PutUint16(lenBuf[:], uint16(len(query)))
++	if _, err := clientSide.Write(lenBuf[:]); err != nil {
++		t.Fatalf("write len: %v", err)
++	}
++	if _, err := clientSide.Write(query); err != nil {
++		t.Fatalf("write body: %v", err)
++	}
++
++	_ = clientSide.SetReadDeadline(time.Now().Add(3 * time.Second))
++	var respLenBuf [2]byte
++	if _, err := io.ReadFull(clientSide, respLenBuf[:]); err != nil {
++		t.Fatalf("read len: %v", err)
++	}
++	n := binary.BigEndian.Uint16(respLenBuf[:])
++	body := make([]byte, n)
++	if _, err := io.ReadFull(clientSide, body); err != nil {
++		t.Fatalf("read body: %v", err)
++	}
++
++	// doh.Client zeroes both ID bytes on the way in and restores
++	// both on the way out, so expected[0..2] == query[0..2].
++	expected := append([]byte(nil), canned...)
++	expected[0] = query[0]
++	expected[1] = query[1]
++	if !bytes.Equal(body, expected) {
++		t.Errorf("tcp response = %x, want %x", body, expected)
++	}
++
++	_ = clientSide.Close()
++	wg.Wait()
++}
++
++func TestDNSHandler_AAAAQuery_SuppressedLocally(t *testing.T) {
++	var dohHit bool
++	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		dohHit = true
++		_, _ = w.Write(fakeDNSResponse(0x00))
++	}))
++	defer srv.Close()
++	h := newTestHandler(srv.URL)
++
++	query := fakeAAAAQuery(0xAA)
++	resp, err := h.Handle(context.Background(), "10.0.0.2", 53, query)
++	if err != nil {
++		t.Fatalf("Handle: %v", err)
++	}
++	if dohHit {
++		t.Error("AAAA query reached DoH — should be answered locally with empty NOERROR")
++	}
++	if len(resp) < 12 {
++		t.Fatalf("response too short: %d bytes", len(resp))
++	}
++	if resp[0] != query[0] || resp[1] != query[1] {
++		t.Errorf("response ID %02x%02x != query ID %02x%02x", resp[0], resp[1], query[0], query[1])
++	}
++	if resp[2]&0x80 == 0 {
++		t.Error("QR bit not set in synthesised response")
++	}
++	if resp[3]&0x0F != 0 {
++		t.Errorf("RCODE should be 0 (NOERROR) for AAAA-suppress, got %d", resp[3]&0x0F)
++	}
++	if binary.BigEndian.Uint16(resp[6:8]) != 0 {
++		t.Errorf("ANCOUNT should be 0, got %d", binary.BigEndian.Uint16(resp[6:8]))
++	}
++}
++
++func TestDNSHandler_DoHFailure_SynthesizesSERVFAIL(t *testing.T) {
++	// Upstream unavailable → every POST fails. Our handler should answer
++	// SERVFAIL synchronously so the resolver bails instead of waiting out
++	// its multi-second retry budget.
++	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		http.Error(w, "boom", http.StatusInternalServerError)
++	}))
++	defer srv.Close()
++	h := newTestHandler(srv.URL)
++
++	query := fakeDNSQuery(0xAB)
++	resp, err := h.Handle(context.Background(), "10.0.0.2", 53, query)
++	if err != nil {
++		t.Fatalf("Handle returned unexpected err: %v", err)
++	}
++	if len(resp) < 12 {
++		t.Fatalf("response too short: %d bytes", len(resp))
++	}
++	if rcode := resp[3] & 0x0F; rcode != 2 {
++		t.Errorf("RCODE = %d, want 2 (SERVFAIL)", rcode)
++	}
++	if resp[0] != query[0] || resp[1] != query[1] {
++		t.Errorf("response ID not mirrored: got %02x%02x, want %02x%02x",
++			resp[0], resp[1], query[0], query[1])
++	}
++}
+diff --git a/core/cmd/parvazd/dnsutil.go b/core/cmd/parvazd/dnsutil.go
+new file mode 100644
+index 0000000..c644d1d
+--- /dev/null
++++ b/core/cmd/parvazd/dnsutil.go
+@@ -0,0 +1,88 @@
++package main
++
++import "encoding/binary"
++
++// DNS constants we care about. Kept tight — we only read QTYPE on
++// incoming queries and rewrite flags on synthesised responses.
++const (
++	dnsTypeAAAA    uint16 = 28
++	dnsHeaderBytes        = 12
++
++	// DNS flag bits (see RFC 1035 §4.1.1). Byte 2 holds QR|Opcode|AA|TC|RD;
++	// byte 3 holds RA|Z|RCODE. We only set QR/RA and strip AA/TC/Z/RCODE —
++	// the opcode and RD bits are echoed from the query.
++	//
++	// byte2Mask = QR | Opcode(4) | RD   (preserved/set)
++	// byte2Mask retains the opcode + RD bits from the query and guarantees
++	// QR=1 by ORing 0x80 separately.
++	byte2Preserve byte = 0x79 // 0b01111001 — opcode nibble + RD, clears AA+TC
++	rcodeNoError  byte = 0x00
++	rcodeServFail byte = 0x02
++)
++
++// parseQueryQType returns the QTYPE of the first question in a DNS
++// wire-format query. Returns (0, false) for anything malformed — the
++// caller should treat that as "type unknown" and forward without
++// local synthesis.
++func parseQueryQType(query []byte) (uint16, bool) {
++	if len(query) < dnsHeaderBytes {
++		return 0, false
++	}
++	qdcount := binary.BigEndian.Uint16(query[4:6])
++	if qdcount == 0 {
++		return 0, false
++	}
++	off := dnsHeaderBytes
++	for off < len(query) {
++		l := int(query[off])
++		if l == 0 {
++			off++
++			break
++		}
++		// Compression pointers (0xC0+) are illegal in a question's QNAME,
++		// so treat them as malformed rather than chasing the pointer.
++		if l&0xC0 != 0 {
++			return 0, false
++		}
++		off += 1 + l
++	}
++	if off+4 > len(query) {
++		return 0, false
++	}
++	return binary.BigEndian.Uint16(query[off : off+2]), true
++}
++
++// synthesizeEmpty returns a DNS response mirroring `query` with QR=1,
++// RA=1, RCODE=NOERROR, and zero answer/authority/additional records.
++// Used to short-circuit AAAA queries while the TUN remains IPv4-only
++// — the client sees a valid "no such record" answer immediately.
++func synthesizeEmpty(query []byte) []byte {
++	return synthesizeResponse(query, rcodeNoError)
++}
++
++// synthesizeSERVFAIL builds the same response shape with RCODE=2.
++// Used when the upstream DoH fetch fails — without this the resolver
++// waits out its retry budget (often several seconds) before giving
++// up, making every page load hang during upstream outages.
++func synthesizeSERVFAIL(query []byte) []byte {
++	return synthesizeResponse(query, rcodeServFail)
++}
++
++// synthesizeResponse copies the query's header + question section,
++// sets response flags, and zeros the counts past QDCOUNT. The
++// question is carried back for resolver pedantry — some clients
++// validate it matches what they asked.
++func synthesizeResponse(query []byte, rcode byte) []byte {
++	if len(query) < dnsHeaderBytes {
++		return nil
++	}
++	resp := make([]byte, len(query))
++	copy(resp, query)
++	resp[2] = (query[2] & byte2Preserve) | 0x80 // QR=1, clear AA+TC, keep opcode+RD
++	resp[3] = 0x80 | (rcode & 0x0F)             // RA=1, clear Z, set RCODE
++	// ANCOUNT, NSCOUNT, ARCOUNT = 0 (QDCOUNT echoed from query).
++	resp[6], resp[7] = 0, 0
++	resp[8], resp[9] = 0, 0
++	resp[10], resp[11] = 0, 0
++	return resp
++}
+diff --git a/core/cmd/parvazd/pipeline.go b/core/cmd/parvazd/pipeline.go
+index 48d28eb..5107fa9 100644
+--- a/core/cmd/parvazd/pipeline.go
++++ b/core/cmd/parvazd/pipeline.go
+@@ -1,81 +1,95 @@
+ package main
+ 
+ import (
+ 	"context"
+ 	"fmt"
+ 	"log/slog"
+ 	"net"
+ 	"path/filepath"
+ 	"time"
+ 
+ 	"github.com/cocodedk/parvaz/core/dispatcher"
+ 	"github.com/cocodedk/parvaz/core/fronter"
+ 	"github.com/cocodedk/parvaz/core/mitm"
+ 	"github.com/cocodedk/parvaz/core/relay"
+ 	"github.com/cocodedk/parvaz/core/socks5"
+ )
+ 
+ // buildPipeline wires the full request path:
+ //
+ //	socks5.Server → dispatcher.Dispatcher
+ //	                  ├─ direct TCP       (AllowList: accounts/mail/gmail/etc.)
+ //	                  ├─ SNI-rewrite      (SNIRewriteList: YouTube / ytimg / ggpht)
+ //	                  └─ MITM + relay     (everything else → Apps Script)
+ //
+ // Returns a socks5.Server ready to Serve. The only persistent state is
+ // the CA under cfg.DataDir.
+ func buildPipeline(cfg Config, logger *slog.Logger) (*socks5.Server, error) {
+ 	client := buildHTTPClient(cfg)
+ 	rel, err := relay.New(relay.Config{
+ 		HTTPClient: client, ScriptURLs: cfg.ScriptURLs, AuthKey: cfg.AuthKey,
+ 	})
+ 	if err != nil {
+ 		return nil, fmt.Errorf("relay: %w", err)
+ 	}
+ 	// Resolve DataDir to absolute so running parvazd from a different CWD
+ 	// can't silently generate a second CA — Android's installed user-root
+ 	// would no longer chain to it and every MITM would fail with
+ 	// untrusted-cert errors.
+ 	dataDir, err := filepath.Abs(cfg.DataDir)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("resolve data_dir: %w", err)
+ 	}
+ 	ca, err := mitm.LoadOrCreate(dataDir)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("mitm ca: %w", err)
+ 	}
+ 
+ 	interceptor := &mitm.Interceptor{CA: ca, Relay: rel, Logger: logger}
+ 
+ 	// A dedicated fronter for the SNI-rewrite path — same FrontDomain as
+ 	// the Apps Script client (so DPI sees the same SNI in either leg) but
+ 	// independent so transport tuning can diverge later (e.g. no h2 ALPN
+ 	// flags for the relay leg vs. h1-only here).
+ 	//
+ 	// InsecureTLS applies here too so local e2e with a self-signed upstream
+ 	// still handshakes. FrontPort does NOT apply — the SNI-rewrite path
+ 	// dials the browser's original port (usually 443), not the relay port.
+ 	sniFronter := &fronter.Dialer{
+ 		FrontDomain:        cfg.FrontDomain,
+ 		InsecureSkipVerify: cfg.InsecureTLSEnabled(),
+ 		DialTimeout:        10 * time.Second,
+ 		HandshakeTimeout:   10 * time.Second,
+ 	}
+ 	sniTunnel := &mitm.SNITunnel{
+ 		CA: ca,
+ 		UpstreamDial: func(ctx context.Context, network, addr string) (net.Conn, error) {
+ 			return sniFronter.Dial(ctx, network, addr)
+ 		},
+ 		UpstreamIP: cfg.GoogleIP,
+ 		Logger:     logger,
+ 	}
+ 
+ 	disp := &dispatcher.Dispatcher{
+ 		AllowList:      dispatcher.DefaultAllowList,
+ 		SNIRewriteList: dispatcher.DefaultSNIRewriteList,
+ 		Interceptor:    interceptor,
+ 		SNITunnel:      sniTunnel,
+ 		Logger:         logger,
+ 	}
+-	return &socks5.Server{Dialer: disp, Logger: logger}, nil
++	srv := &socks5.Server{Dialer: disp, Logger: logger}
++
++	// The synthetic DNS shim only makes sense in TUN mode — a legacy
++	// SOCKS client has no reason to CONNECT to 10.0.0.2:53, and
++	// wiring the shim in that mode silently drops normal-DNS UDP
++	// targets like 8.8.8.8:53 instead of replying REP=0x07 as
++	// SOCKS5 semantics prescribe (codex-review P3).
++	if cfg.TunFD > 0 {
++		dns := newDNSHandler(rel, cfg, logger)
++		disp.DNSTCP = dns
++		disp.DNSHost = cfg.dnsHost()
++		disp.DNSPort = dnsListenPort
++		srv.Datagram = dns
++	}
++	return srv, nil
+ }
+diff --git a/core/cmd/parvazd/pipeline_test.go b/core/cmd/parvazd/pipeline_test.go
+index 53eca74..0d3efd0 100644
+--- a/core/cmd/parvazd/pipeline_test.go
++++ b/core/cmd/parvazd/pipeline_test.go
+@@ -14,113 +14,139 @@ import (
+ 	"testing"
+ 	"time"
+ )
+ 
+ // TestBuildPipeline_MITMHandshake proves the full wire actually flows:
+ //
+ //	raw TCP → socks5 server → dispatcher → MITM path → interceptor's
+ //	tls.Server → leaf cert signed by a CA written under cfg.DataDir.
+ //
+ // The relay is not exercised (would require a live stub) — the TLS
+ // handshake alone is what proves every piece from flags through to the
+ // interceptor is wired correctly. A broken handshake would surface any
+ // of: missing DataDir, missing CA, dispatcher not installed, interceptor
+ // not mounted, pipe lifecycle broken, etc.
+ func TestBuildPipeline_MITMHandshake(t *testing.T) {
+ 	cfg := Config{
+ 		ScriptURLs:  []string{"https://stub.invalid/macros/s/X/exec"},
+ 		AuthKey:     "test-key",
+ 		GoogleIP:    "127.0.0.1",
+ 		FrontDomain: "www.google.com",
+ 		ListenHost:  "127.0.0.1",
+ 		ListenPort:  0,
+ 		DataDir:     t.TempDir(),
+ 	}
+ 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+ 
+ 	srv, err := buildPipeline(cfg, logger)
+ 	if err != nil {
+ 		t.Fatalf("buildPipeline: %v", err)
+ 	}
+ 
+ 	ln, err := net.Listen("tcp", "127.0.0.1:0")
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	defer ln.Close()
+ 
+ 	ctx, cancel := context.WithCancel(context.Background())
+ 	defer cancel()
+ 	go srv.Serve(ctx, ln) //nolint:errcheck
+ 
+ 	// Load the CA the pipeline just generated.
+ 	caBytes, err := os.ReadFile(filepath.Join(cfg.DataDir, "ca", "ca.crt"))
+ 	if err != nil {
+ 		t.Fatalf("read CA: %v", err)
+ 	}
+ 	roots := x509.NewCertPool()
+ 	if !roots.AppendCertsFromPEM(caBytes) {
+ 		t.Fatal("CA not PEM-parseable")
+ 	}
+ 
+ 	// SOCKS5 CONNECT to a non-Google host — forces the MITM path.
+ 	c, err := net.Dial("tcp", ln.Addr().String())
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	defer c.Close()
+ 	_ = c.SetDeadline(time.Now().Add(5 * time.Second))
+ 	socks5ConnectOrFatal(t, c, "netflic.com", 443)
+ 
+ 	// TLS handshake against the CA — the interceptor must serve a leaf
+ 	// for netflic.com signed by the CA.
+ 	tlsClient := tls.Client(c, &tls.Config{
+ 		RootCAs:    roots,
+ 		ServerName: "netflic.com",
+ 	})
+ 	defer tlsClient.Close()
+ 	if err := tlsClient.Handshake(); err != nil {
+ 		t.Fatalf("TLS handshake through the pipeline failed: %v", err)
+ 	}
+ 	state := tlsClient.ConnectionState()
+ 	if len(state.PeerCertificates) == 0 {
+ 		t.Fatal("no peer certs after handshake")
+ 	}
+ 	leaf := state.PeerCertificates[0]
+ 	if !slices.Contains(leaf.DNSNames, "netflic.com") {
+ 		t.Errorf("leaf DNSNames = %v, want netflic.com among them", leaf.DNSNames)
+ 	}
+ }
+ 
++// TestBuildPipeline_LegacySOCKS_NoDNSHandler ensures the codex-review P3
++// regression stays fixed: running parvazd without a TUN fd (the
++// pre-M15b mode still used by the apps-stub E2E) must not wire the
++// synthetic DNS handler. Otherwise UDP ASSOCIATE would succeed but then
++// silently drop packets for real DNS targets like 8.8.8.8:53, which is
++// worse than the pre-change "REP=0x07 command not supported".
++func TestBuildPipeline_LegacySOCKS_NoDNSHandler(t *testing.T) {
++	cfg := Config{
++		ScriptURLs:  []string{"https://stub.invalid/macros/s/X/exec"},
++		AuthKey:     "test-key",
++		GoogleIP:    "127.0.0.1",
++		FrontDomain: "www.google.com",
++		ListenHost:  "127.0.0.1",
++		ListenPort:  0,
++		DataDir:     t.TempDir(),
++		// TunFD deliberately 0 — legacy SOCKS mode.
++	}
++	srv, err := buildPipeline(cfg, slog.New(slog.NewTextHandler(io.Discard, nil)))
++	if err != nil {
++		t.Fatalf("buildPipeline: %v", err)
++	}
++	if srv.Datagram != nil {
++		t.Error("Datagram wired in TunFD=0 mode — DNS handler leaking into legacy SOCKS path")
++	}
++}
++
+ // socks5ConnectOrFatal performs a no-auth SOCKS5 negotiation and a CONNECT
+ // to host:port, t.Fatals on any wire-level failure. Exits when the server
+ // has written its replyOK (10 bytes starting 0x05,0x00).
+ func socks5ConnectOrFatal(t *testing.T, c net.Conn, host string, port uint16) {
+ 	t.Helper()
+ 	// [VER=5, NMETHODS=1, METHODS={0x00 no-auth}]
+ 	if _, err := c.Write([]byte{0x05, 0x01, 0x00}); err != nil {
+ 		t.Fatalf("socks5 negotiate write: %v", err)
+ 	}
+ 	negReply := make([]byte, 2)
+ 	if _, err := io.ReadFull(c, negReply); err != nil {
+ 		t.Fatalf("socks5 negotiate read: %v", err)
+ 	}
+ 	if negReply[0] != 0x05 || negReply[1] != 0x00 {
+ 		t.Fatalf("socks5 negotiate reply = %v, want [0x05 0x00]", negReply)
+ 	}
+ 	// [VER=5, CMD=CONNECT, RSV=0, ATYP=3 domain, LEN, DOMAIN, PORT]
+ 	req := []byte{0x05, 0x01, 0x00, 0x03, byte(len(host))}
+ 	req = append(req, host...)
+ 	portBuf := make([]byte, 2)
+ 	binary.BigEndian.PutUint16(portBuf, port)
+ 	req = append(req, portBuf...)
+ 	if _, err := c.Write(req); err != nil {
+ 		t.Fatalf("socks5 CONNECT write: %v", err)
+ 	}
+ 	resp := make([]byte, 10)
+ 	if _, err := io.ReadFull(c, resp); err != nil {
+ 		t.Fatalf("socks5 CONNECT read: %v", err)
+ 	}
+ 	if resp[0] != 0x05 || resp[1] != 0x00 {
+ 		t.Fatalf("socks5 CONNECT reply = %v, want VER=5 REP=0", resp)
+ 	}
+ }
+diff --git a/core/cmd/parvazd/relay_rt.go b/core/cmd/parvazd/relay_rt.go
+new file mode 100644
+index 0000000..604fbaa
+--- /dev/null
++++ b/core/cmd/parvazd/relay_rt.go
+@@ -0,0 +1,52 @@
++package main
++
++import (
++	"bytes"
++	"fmt"
++	"io"
++	"net/http"
++
++	"github.com/cocodedk/parvaz/core/protocol"
++)
++
++// relayRoundTripper translates one http.Request into one relay.Relay.Do.
++// Lets the DoH leg (or any future caller) pretend it has a normal
++// http.Client while the actual bytes ride the Apps Script envelope —
++// binary survives intact via the envelope's base64 encoding (see
++// core/protocol/encode.go).
++type relayRoundTripper struct{ relay Relayer }
++
++func (t *relayRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
++	var body []byte
++	if r.Body != nil {
++		b, err := io.ReadAll(r.Body)
++		if err != nil {
++			return nil, fmt.Errorf("relay rt: read body: %w", err)
++		}
++		body = b
++		_ = r.Body.Close()
++	}
++	resp, err := t.relay.Do(r.Context(), protocol.Request{
++		Method:      r.Method,
++		URL:         r.URL.String(),
++		Header:      r.Header.Clone(),
++		Body:        body,
++		ContentType: r.Header.Get("Content-Type"),
++	})
++	if err != nil {
++		return nil, err
++	}
++	hdr := http.Header{}
++	for k, vs := range resp.Header {
++		hdr[k] = vs
++	}
++	return &http.Response{
++		StatusCode: resp.Status,
++		Status:     fmt.Sprintf("%d", resp.Status),
++		Header:     hdr,
++		Body:       io.NopCloser(bytes.NewReader(resp.Body)),
++		Request:    r,
++		ProtoMajor: 1, ProtoMinor: 1,
++		Proto: "HTTP/1.1",
++	}, nil
++}
+diff --git a/core/dispatcher/dispatcher.go b/core/dispatcher/dispatcher.go
+index 39e69c7..694e374 100644
+--- a/core/dispatcher/dispatcher.go
++++ b/core/dispatcher/dispatcher.go
+@@ -1,173 +1,186 @@
+ // Package dispatcher decides how to serve each SOCKS5 CONNECT: pure TCP
+ // proxy for Google-owned hosts that are not DPI-blocked (Path 1 — "direct
+ // tunnel"), or MITM + Apps Script relay for everything else (Path 3 —
+ // "MITM + relay"). A third path for SNI-rewrite of Google-owned but
+ // DPI-blocked domains (YouTube, etc.) is planned as a follow-up PR.
+ //
+ // The dispatcher satisfies socks5.Dialer structurally, so it plugs into
+ // the existing SOCKS5 server without modifying that package.
+ package dispatcher
+ 
+ import (
+ 	"context"
+ 	"errors"
+ 	"log/slog"
+ 	"net"
+ 	"strconv"
+ 	"strings"
+ 	"time"
+ )
+ 
+ // Interceptor is what the dispatcher needs from mitm.Interceptor —
+ // kept as an interface so core/dispatcher doesn't import core/mitm here.
+ // *mitm.Interceptor satisfies this structurally.
+ type Interceptor interface {
+ 	Intercept(ctx context.Context, rawConn net.Conn, host string, port uint16) error
+ }
+ 
+ // SNITunneler is what the dispatcher needs from mitm.SNITunnel — the
+ // third path that rescues DPI-blocked Google-owned hosts by MITMing the
+ // browser and re-encrypting upstream with a safe SNI. *mitm.SNITunnel
+ // satisfies this structurally.
+ type SNITunneler interface {
+ 	Tunnel(ctx context.Context, rawConn net.Conn, host string, port uint16) error
+ }
+ 
+ // DefaultAllowList holds the subset of mhrv-rs's set that is safe for
+ // Path 1 today. These are Google-owned hostnames that are NOT DPI-blocked
+ // in our target region, so the browser can reach them directly without
+ // any SNI masking.
+ var DefaultAllowList = []string{
+ 	"*.google.com",
+ 	"*.googleusercontent.com",
+ 	"*.gstatic.com",
+ 	"*.googleapis.com",
+ }
+ 
+ // DefaultSNIRewriteList holds the Google-owned hostnames that ARE
+ // DPI-blocked in our target region and need SNI masking to work. The
+ // dispatcher terminates browser TLS locally, opens an upstream TLS
+ // connection to a Google edge IP with SNI rewritten to a safe value
+ // (typically www.google.com), and Google's edge routes internally by
+ // the Host header. Skips Apps Script entirely — critical for video.
+ var DefaultSNIRewriteList = []string{
+ 	"*.youtube.com",
+ 	"*.ytimg.com",
+ 	"*.ggpht.com",
+ }
+ 
+ // Dispatcher routes each SOCKS5 CONNECT to one of three paths based on
+ // the target host. Wildcard matching rules for AllowList and
+ // SNIRewriteList: exact match, or leading "*." — "*.google.com" matches
+ // "google.com", "www.google.com", and "a.b.google.com".
+ type Dispatcher struct {
+ 	// AllowList is Path 1 (direct TCP): browser talks end-to-end TLS to
+ 	// the real target. Zero Apps Script quota.
+ 	AllowList []string
+ 
+ 	// SNIRewriteList is Path 2: MITM the browser, open upstream TLS via
+ 	// SNITunnel with a safe SNI, pipe plaintext. Skips Apps Script.
+ 	SNIRewriteList []string
+ 
+ 	// Interceptor handles Path 3 (MITM + Apps Script relay) — the
+ 	// catch-all for everything that isn't in AllowList or SNIRewriteList.
+ 	// Must be non-nil.
+ 	Interceptor Interceptor
+ 
+ 	// SNITunnel executes Path 2. If nil, SNIRewriteList entries fall
+ 	// through to Path 3 (safer default than failing closed).
+ 	SNITunnel SNITunneler
+ 
++	// DNSTCP is the TCP/53 shim for CONNECTs that exactly target
++	// DNSHost:DNSPort. Wired alongside the UDP path so resolver TCP
++	// fallback for the synthetic in-TUN DNS address reaches the same
++	// DoH backend. Nil disables the route — those CONNECTs fall
++	// through to MITM (probably wrong, but matches pre-M15b-beta).
++	DNSTCP  DNSTCPHandler
++	DNSHost string // e.g. "10.0.0.2"; matched case-insensitively
++	DNSPort uint16 // e.g. 53
++
+ 	// DialContext opens the TCP connection for the direct path. If nil,
+ 	// uses (&net.Dialer{Timeout: 10s}).DialContext.
+ 	DialContext func(ctx context.Context, network, address string) (net.Conn, error)
+ 
+ 	// Logger — nil uses slog.Default().
+ 	Logger *slog.Logger
+ }
+ 
+ const defaultDialTimeout = 10 * time.Second
+ 
+ // Dial implements socks5.Dialer.
+ func (d *Dispatcher) Dial(ctx context.Context, host string, port uint16) (net.Conn, error) {
+ 	switch {
++	case d.isDNSTCPTarget(host, port):
++		d.logger().Debug("dispatcher: routing",
++			"host", host, "port", port, "path", "dns-tcp")
++		return d.dialDNSTCP(ctx)
+ 	case matchesPatternList(host, d.AllowList):
+ 		d.logger().Debug("dispatcher: routing",
+ 			"host", host, "port", port, "path", "direct")
+ 		return d.dialDirect(ctx, host, port)
+ 	case matchesPatternList(host, d.SNIRewriteList):
+ 		// Misconfig check: a non-empty SNIRewriteList with a nil SNITunnel
+ 		// is almost always a wiring mistake — silently falling back to
+ 		// MITM+relay would burn Apps Script quota on every YouTube hit
+ 		// with no signal to the operator. Fail loudly instead.
+ 		if d.SNITunnel == nil {
+ 			return nil, errors.New(
+ 				"dispatcher: host matches SNIRewriteList but SNITunnel is nil (misconfig)")
+ 		}
+ 		d.logger().Debug("dispatcher: routing",
+ 			"host", host, "port", port, "path", "sni-rewrite")
+ 		return d.dialViaSNITunnel(ctx, host, port)
+ 	default:
+ 		d.logger().Debug("dispatcher: routing",
+ 			"host", host, "port", port, "path", "mitm")
+ 		return d.dialMITM(ctx, host, port)
+ 	}
+ }
+ 
+ // matchesAllowList is retained for test readability; the underlying
+ // matcher is reused for SNIRewriteList too.
+ func (d *Dispatcher) matchesAllowList(host string) bool {
+ 	return matchesPatternList(host, d.AllowList)
+ }
+ 
+ // matchesPatternList — case-insensitive, exact-match or leading "*."
+ // wildcard suffix. Embedded substrings do not match.
+ func matchesPatternList(host string, patterns []string) bool {
+ 	h := strings.ToLower(host)
+ 	for _, pattern := range patterns {
+ 		p := strings.ToLower(pattern)
+ 		if strings.HasPrefix(p, "*.") {
+ 			suffix := p[2:]
+ 			if h == suffix || strings.HasSuffix(h, "."+suffix) {
+ 				return true
+ 			}
+ 		} else if h == p {
+ 			return true
+ 		}
+ 	}
+ 	return false
+ }
+ 
+ func (d *Dispatcher) dialDirect(ctx context.Context, host string, port uint16) (net.Conn, error) {
+ 	dial := d.DialContext
+ 	if dial == nil {
+ 		dialer := &net.Dialer{Timeout: defaultDialTimeout}
+ 		dial = dialer.DialContext
+ 	}
+ 	return dial(ctx, "tcp", net.JoinHostPort(host, strconv.Itoa(int(port))))
+ }
+ 
+ // dialMITM spawns Interceptor.Intercept on the server side of a net.Pipe
+ // and returns the client side to the caller. SOCKS5's io.Copy loop then
+ // bridges the real client conn ↔ pipeClientSide, which the interceptor
+ // sees on pipeServerSide as its "raw browser conn".
+ func (d *Dispatcher) dialMITM(ctx context.Context, host string, port uint16) (net.Conn, error) {
+ 	if d.Interceptor == nil {
+ 		return nil, errors.New("dispatcher: Interceptor not configured")
+ 	}
+ 	serverSide, clientSide := net.Pipe()
+ 	go func() {
+ 		if err := d.Interceptor.Intercept(ctx, serverSide, host, port); err != nil {
+ 			d.logger().Debug("dispatcher: interceptor ended",
+ 				"host", host, "port", port, "err", err)
+ 		}
+ 	}()
+ 	return clientSide, nil
+ }
+ 
+ // dialViaSNITunnel is Path 2 — same pipe trick as dialMITM but the
+ // goroutine runs SNITunnel.Tunnel instead of Interceptor.Intercept.
+ func (d *Dispatcher) dialViaSNITunnel(ctx context.Context, host string, port uint16) (net.Conn, error) {
+ 	serverSide, clientSide := net.Pipe()
+ 	go func() {
+ 		if err := d.SNITunnel.Tunnel(ctx, serverSide, host, port); err != nil {
+diff --git a/core/dispatcher/dns.go b/core/dispatcher/dns.go
+new file mode 100644
+index 0000000..7ee41e4
+--- /dev/null
++++ b/core/dispatcher/dns.go
+@@ -0,0 +1,32 @@
++package dispatcher
++
++import (
++	"context"
++	"net"
++	"strings"
++)
++
++// DNSTCPHandler is how the dispatcher routes TCP-fallback DNS (RFC 1035
++// §4.2.2) to the parvazd DoH shim. A CONNECT to DNSHost:DNSPort returns
++// a pipe whose other end is handed to this handler; resolver retries
++// after a truncated UDP answer land here. Without this, a TC=1 UDP
++// response would trigger TCP/53 that the MITM path can't serve.
++type DNSTCPHandler interface {
++	ServeTCP(ctx context.Context, conn net.Conn)
++}
++
++func (d *Dispatcher) isDNSTCPTarget(host string, port uint16) bool {
++	if d.DNSTCP == nil || d.DNSHost == "" {
++		return false
++	}
++	return port == d.DNSPort && strings.EqualFold(host, d.DNSHost)
++}
++
++// dialDNSTCP pipes the dispatcher's returned conn straight to the DoH
++// shim via DNSTCPHandler.ServeTCP. No MITM, no relay — the handler
++// reads length-prefixed DNS wire messages and writes the responses.
++func (d *Dispatcher) dialDNSTCP(ctx context.Context) (net.Conn, error) {
++	serverSide, clientSide := net.Pipe()
++	go d.DNSTCP.ServeTCP(ctx, serverSide)
++	return clientSide, nil
++}
+diff --git a/core/dispatcher/dns_test.go b/core/dispatcher/dns_test.go
+new file mode 100644
+index 0000000..9d1cb4a
+--- /dev/null
++++ b/core/dispatcher/dns_test.go
+@@ -0,0 +1,118 @@
++package dispatcher
++
++import (
++	"context"
++	"io"
++	"net"
++	"testing"
++	"time"
++)
++
++type fakeDNSTCP struct {
++	served chan net.Conn
++}
++
++func (f *fakeDNSTCP) ServeTCP(_ context.Context, conn net.Conn) {
++	f.served <- conn
++	// Minimal echo: read one byte, write two, close. Lets the test
++	// confirm the pipe flows both ways.
++	buf := make([]byte, 1)
++	if _, err := conn.Read(buf); err == nil {
++		_, _ = conn.Write([]byte{buf[0], buf[0]})
++	}
++	_ = conn.Close()
++}
++
++func TestDispatcher_DNSTarget_RoutesToDNSTCPHandler(t *testing.T) {
++	f := &fakeDNSTCP{served: make(chan net.Conn, 1)}
++	rec := newRecordingInterceptor()
++	d := &Dispatcher{
++		Interceptor: rec,
++		DNSTCP:      f,
++		DNSHost:     "10.0.0.2",
++		DNSPort:     53,
++	}
++
++	conn, err := d.Dial(context.Background(), "10.0.0.2", 53)
++	if err != nil {
++		t.Fatalf("Dial: %v", err)
++	}
++	defer conn.Close()
++
++	select {
++	case <-f.served:
++		// expected
++	case <-time.After(time.Second):
++		t.Fatal("DNSTCPHandler not invoked within 1s")
++	}
++
++	// Interceptor must NOT have been called.
++	select {
++	case call := <-rec.called:
++		t.Errorf("interceptor called for DNS target: %+v", call)
++	case <-time.After(50 * time.Millisecond):
++		// expected silence
++	}
++
++	// Confirm pipe carries bytes end-to-end (dispatcher's caller writes,
++	// DNSTCPHandler reads; handler writes, caller reads).
++	go conn.Write([]byte{0x42})
++	_ = conn.SetReadDeadline(time.Now().Add(time.Second))
++	got, err := io.ReadAll(conn)
++	if err != nil {
++		t.Fatalf("read: %v", err)
++	}
++	if len(got) != 2 || got[0] != 0x42 || got[1] != 0x42 {
++		t.Errorf("pipe round-trip got %v, want [42 42]", got)
++	}
++}
++
++func TestDispatcher_DNSPortOnDifferentHost_FallsThroughToMITM(t *testing.T) {
++	f := &fakeDNSTCP{served: make(chan net.Conn, 1)}
++	rec := newRecordingInterceptor()
++	d := &Dispatcher{
++		Interceptor: rec,
++		DNSTCP:      f,
++		DNSHost:     "10.0.0.2",
++		DNSPort:     53,
++	}
++
++	conn, err := d.Dial(context.Background(), "1.1.1.1", 53)
++	if err != nil {
++		t.Fatalf("Dial: %v", err)
++	}
++	defer conn.Close()
++
++	// DNSTCP must NOT have been invoked; MITM interceptor must have.
++	select {
++	case <-f.served:
++		t.Error("DNSTCP invoked for non-synthetic DNS IP")
++	case call := <-rec.called:
++		if call.host != "1.1.1.1" || call.port != 53 {
++			t.Errorf("interceptor got %s:%d, want 1.1.1.1:53", call.host, call.port)
++		}
++	case <-time.After(time.Second):
++		t.Fatal("neither path invoked within 1s")
++	}
++}
++
++func TestDispatcher_DNSTCPNilHandler_BypassesRoute(t *testing.T) {
++	rec := newRecordingInterceptor()
++	d := &Dispatcher{
++		Interceptor: rec,
++		DNSHost:     "10.0.0.2",
++		DNSPort:     53,
++		// DNSTCP intentionally nil
++	}
++	conn, err := d.Dial(context.Background(), "10.0.0.2", 53)
++	if err != nil {
++		t.Fatalf("Dial: %v", err)
++	}
++	defer conn.Close()
++	select {
++	case <-rec.called:
++		// expected — falls through to MITM when DNSTCP is unset
++	case <-time.After(time.Second):
++		t.Fatal("interceptor not called within 1s")
++	}
++}
+diff --git a/core/doh/doh.go b/core/doh/doh.go
+new file mode 100644
+index 0000000..d33b079
+--- /dev/null
++++ b/core/doh/doh.go
+@@ -0,0 +1,84 @@
++// Package doh is a minimal DNS-over-HTTPS client used by the SOCKS5
++// UDP ASSOCIATE path to answer DNS/53 queries without ever putting a
++// UDP datagram on the wire. The caller supplies the http.Client —
++// parvazd wires one on top of the fronter transport so DoH flows
++// through the Google-edge IP with SNI=www.google.com and Host=
++// dns.google, bypassing the Apps Script envelope entirely.
++//
++// RFC 8484 wire format: POST the DNS query bytes with Content-Type:
++// application/dns-message, receive the DNS response bytes as the body.
++//
++// We deliberately avoid the JSON "/resolve" API — raw wire format
++// lets us forward the exact query the browser/system resolver sent
++// and return the exact answer it expects, with no translation.
++package doh
++
++import (
++	"bytes"
++	"context"
++	"fmt"
++	"io"
++	"net/http"
++)
++
++// DefaultEndpoint is Google Public DNS's RFC 8484 endpoint. Reachable
++// over the fronter without DNS: the Google edge routes by Host header.
++const DefaultEndpoint = "https://dns.google/dns-query"
++
++// Client sends DNS-over-HTTPS queries. Zero value is not usable —
++// both HTTP and Endpoint are required.
++type Client struct {
++	HTTP     *http.Client
++	Endpoint string
++}
++
++// Query forwards one DNS wire message and returns the wire response.
++//
++// RFC 8484 §4.1: "In order to maximize HTTP cache friendliness, DoH
++// clients using media formats that include the ID field from the DNS
++// message header, such as 'application/dns-message', SHOULD use a DNS
++// ID of 0 in every DNS request." We do that on the way in and restore
++// the caller's original ID on the way out so the caller's resolver
++// still matches the response to its query.
++func (c *Client) Query(ctx context.Context, wire []byte) ([]byte, error) {
++	if len(wire) < 12 {
++		return nil, fmt.Errorf("doh: query too short (%d bytes, need at least 12)", len(wire))
++	}
++	if c.HTTP == nil {
++		return nil, fmt.Errorf("doh: HTTP client is nil")
++	}
++	endpoint := c.Endpoint
++	if endpoint == "" {
++		endpoint = DefaultEndpoint
++	}
++
++	origID := [2]byte{wire[0], wire[1]}
++	msg := make([]byte, len(wire))
++	copy(msg, wire)
++	msg[0], msg[1] = 0, 0
++
++	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(msg))
++	if err != nil {
++		return nil, fmt.Errorf("doh: new request: %w", err)
++	}
++	req.Header.Set("Content-Type", "application/dns-message")
++	req.Header.Set("Accept", "application/dns-message")
++
++	resp, err := c.HTTP.Do(req)
++	if err != nil {
++		return nil, fmt.Errorf("doh: do: %w", err)
++	}
++	defer resp.Body.Close()
++	if resp.StatusCode != http.StatusOK {
++		return nil, fmt.Errorf("doh: status %d", resp.StatusCode)
++	}
++	out, err := io.ReadAll(resp.Body)
++	if err != nil {
++		return nil, fmt.Errorf("doh: read body: %w", err)
++	}
++	if len(out) < 12 {
++		return nil, fmt.Errorf("doh: truncated response (%d bytes)", len(out))
++	}
++	out[0], out[1] = origID[0], origID[1]
++	return out, nil
++}
+diff --git a/core/doh/doh_test.go b/core/doh/doh_test.go
+new file mode 100644
+index 0000000..d5b4aa3
+--- /dev/null
++++ b/core/doh/doh_test.go
+@@ -0,0 +1,135 @@
++package doh
++
++import (
++	"context"
++	"io"
++	"net/http"
++	"net/http/httptest"
++	"strings"
++	"testing"
++)
++
++// fakeQuery builds the minimal valid DNS header + a single A query for
++// "example.com". 12-byte header + qname + qtype + qclass.
++func fakeQuery(txID byte) []byte {
++	return []byte{
++		txID, 0xCD, // ID
++		0x01, 0x00, // flags: recursion desired
++		0x00, 0x01, // QDCOUNT=1
++		0x00, 0x00, // ANCOUNT
++		0x00, 0x00, // NSCOUNT
++		0x00, 0x00, // ARCOUNT
++		// QNAME: example.com
++		0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e',
++		0x03, 'c', 'o', 'm',
++		0x00,
++		// QTYPE = A (1), QCLASS = IN (1)
++		0x00, 0x01, 0x00, 0x01,
++	}
++}
++
++// fakeResponse mirrors the query and adds a minimal A record answer.
++// We don't validate the record — only the ID handling.
++func fakeResponse(txID byte) []byte {
++	return []byte{
++		txID, 0xEE, // ID — note different low byte so we can tell request from response
++		0x81, 0x80, // flags: standard response, no error
++		0x00, 0x01, // QDCOUNT
++		0x00, 0x01, // ANCOUNT
++		0x00, 0x00, // NSCOUNT
++		0x00, 0x00, // ARCOUNT
++		// answer body doesn't matter for the test — any trailing bytes work
++		0xDE, 0xAD, 0xBE, 0xEF,
++	}
++}
++
++func TestClient_Query_ZeroesIDOnRequestAndRestoresOnResponse(t *testing.T) {
++	var seen []byte
++	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		if ct := r.Header.Get("Content-Type"); ct != "application/dns-message" {
++			t.Errorf("Content-Type = %q, want application/dns-message", ct)
++		}
++		if ac := r.Header.Get("Accept"); !strings.Contains(ac, "application/dns-message") {
++			t.Errorf("Accept = %q, want application/dns-message", ac)
++		}
++		if r.Method != http.MethodPost {
++			t.Errorf("Method = %q, want POST", r.Method)
++		}
++		b, _ := io.ReadAll(r.Body)
++		seen = b
++		w.Header().Set("Content-Type", "application/dns-message")
++		_, _ = w.Write(fakeResponse(0x00)) // server returns with ID=0 per RFC 8484
++	}))
++	defer srv.Close()
++
++	c := &Client{HTTP: srv.Client(), Endpoint: srv.URL}
++	resp, err := c.Query(context.Background(), fakeQuery(0xAB))
++	if err != nil {
++		t.Fatalf("Query: %v", err)
++	}
++	if seen[0] != 0x00 || seen[1] != 0x00 {
++		t.Errorf("request ID not zeroed: got %02x%02x", seen[0], seen[1])
++	}
++	if resp[0] != 0xAB || resp[1] != 0xCD {
++		t.Errorf("response ID not restored to caller's: got %02x%02x, want ABCD", resp[0], resp[1])
++	}
++}
++
++func TestClient_Query_RejectsTruncatedQuery(t *testing.T) {
++	c := &Client{HTTP: http.DefaultClient, Endpoint: DefaultEndpoint}
++	_, err := c.Query(context.Background(), []byte{0x00, 0x00})
++	if err == nil || !strings.Contains(err.Error(), "too short") {
++		t.Errorf("expected 'too short' error, got %v", err)
++	}
++}
++
++func TestClient_Query_PropagatesNon200(t *testing.T) {
++	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		http.Error(w, "upstream exploded", http.StatusBadGateway)
++	}))
++	defer srv.Close()
++	c := &Client{HTTP: srv.Client(), Endpoint: srv.URL}
++	_, err := c.Query(context.Background(), fakeQuery(0x01))
++	if err == nil || !strings.Contains(err.Error(), "status 502") {
++		t.Errorf("expected status-502 error, got %v", err)
++	}
++}
++
++func TestClient_Query_RejectsTruncatedResponse(t *testing.T) {
++	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		w.Header().Set("Content-Type", "application/dns-message")
++		_, _ = w.Write([]byte{0x00}) // 1 byte — too short to even have an ID
++	}))
++	defer srv.Close()
++	c := &Client{HTTP: srv.Client(), Endpoint: srv.URL}
++	_, err := c.Query(context.Background(), fakeQuery(0x02))
++	if err == nil || !strings.Contains(err.Error(), "truncated response") {
++		t.Errorf("expected truncated-response error, got %v", err)
++	}
++}
++
++func TestClient_Query_UsesDefaultEndpointWhenEmpty(t *testing.T) {
++	// We can't actually hit Google from a unit test; just assert the
++	// empty-endpoint path substitutes DefaultEndpoint. We inject a
++	// client whose transport fails fast so we observe the URL.
++	var requestedURL string
++	rt := roundTripFunc(func(req *http.Request) (*http.Response, error) {
++		requestedURL = req.URL.String()
++		return nil, errConnectRefused
++	})
++	c := &Client{HTTP: &http.Client{Transport: rt}}
++	_, _ = c.Query(context.Background(), fakeQuery(0x03))
++	if requestedURL != DefaultEndpoint {
++		t.Errorf("default endpoint not used: got %q, want %q", requestedURL, DefaultEndpoint)
++	}
++}
++
++type roundTripFunc func(*http.Request) (*http.Response, error)
++
++func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
++
++type testError string
++
++func (e testError) Error() string { return string(e) }
++
++const errConnectRefused = testError("connect refused")
+diff --git a/core/socks5/server.go b/core/socks5/server.go
+index 9bf7bf1..a2c4660 100644
+--- a/core/socks5/server.go
++++ b/core/socks5/server.go
+@@ -1,181 +1,193 @@
+-// Package socks5 implements a minimal SOCKS5 server: no authentication,
+-// CONNECT-only (no BIND, no UDP ASSOCIATE). The Dialer callback supplies
+-// the upstream TCP tunnel.
++// Package socks5 implements a minimal SOCKS5 server for parvazd:
++//   - CONNECT (CMD=0x01): Dialer callback supplies the upstream TCP tunnel.
++//   - UDP ASSOCIATE (CMD=0x03): optional via DatagramHandler (see udp.go).
++//     Used by tun2socks to forward DNS to the parvazd DoH shim.
++//   - BIND: unsupported — replies 0x07.
+ //
+ // Wire format — RFC 1928:
+ //
+ //	negotiate →  [VER=0x05, NMETHODS, METHODS...]
+ //	           ←  [VER=0x05, METHOD]            (0x00 no-auth, 0xFF no match)
+ //	request   →  [VER=0x05, CMD, RSV=0x00, ATYP, DST.ADDR, DST.PORT]
+ //	           ←  [VER=0x05, REP, RSV=0x00, ATYP, BND.ADDR, BND.PORT]
+ //
+ // REP codes used: 0x00 success, 0x01 general failure, 0x07 command not
+ // supported, 0x08 address type not supported.
+ package socks5
+ 
+ import (
+ 	"context"
+ 	"encoding/binary"
+ 	"errors"
+ 	"fmt"
+ 	"io"
+ 	"log/slog"
+ 	"net"
+ 	"time"
+ )
+ 
+ // Dialer opens the upstream tunnel for a CONNECT request.
+ type Dialer interface {
+ 	Dial(ctx context.Context, host string, port uint16) (net.Conn, error)
+ }
+ 
+ // Server accepts SOCKS5 connections and bridges CONNECTs via Dialer.
+ type Server struct {
+ 	Dialer Dialer
+ 
++	// Datagram handles UDP ASSOCIATE traffic. Nil → UDP ASSOCIATE is
++	// rejected with REP=0x07 (command not supported), preserving the
++	// pre-M15b-beta behaviour for callers that don't need UDP.
++	Datagram DatagramHandler
++
+ 	// Logger — nil uses slog.Default(). Failures log at Debug level.
+ 	Logger *slog.Logger
+ 
+ 	// HandshakeTimeout bounds the SOCKS negotiation + CONNECT request phase.
+ 	// Cleared before the tunneled copy loop, which may be long-lived.
+ 	// Zero means default (30s). Use a negative value to disable entirely.
+ 	HandshakeTimeout time.Duration
+ }
+ 
+ const defaultHandshakeTimeout = 30 * time.Second
+ 
+ func (s *Server) logger() *slog.Logger {
+ 	if s.Logger != nil {
+ 		return s.Logger
+ 	}
+ 	return slog.Default()
+ }
+ 
+ func (s *Server) handshakeDeadline() time.Duration {
+ 	switch {
+ 	case s.HandshakeTimeout < 0:
+ 		return 0
+ 	case s.HandshakeTimeout == 0:
+ 		return defaultHandshakeTimeout
+ 	default:
+ 		return s.HandshakeTimeout
+ 	}
+ }
+ 
+ // Serve blocks, accepting connections from ln until ctx is cancelled or
+ // ln.Accept returns a permanent error.
+ func (s *Server) Serve(ctx context.Context, ln net.Listener) error {
+ 	for {
+ 		conn, err := ln.Accept()
+ 		if err != nil {
+ 			if ctx.Err() != nil {
+ 				return nil
+ 			}
+ 			return err
+ 		}
+ 		go s.handle(ctx, conn)
+ 	}
+ }
+ 
+ // ServeConn drives one already-accepted connection through handshake +
+ // request. Exposed for tests; production should call Serve instead.
+ func (s *Server) ServeConn(ctx context.Context, conn net.Conn) {
+ 	s.handle(ctx, conn)
+ }
+ 
+ func (s *Server) handle(ctx context.Context, conn net.Conn) {
+ 	defer conn.Close()
+ 	if d := s.handshakeDeadline(); d > 0 {
+ 		_ = conn.SetDeadline(time.Now().Add(d))
+ 	}
+ 	if err := negotiateNoAuth(conn); err != nil {
+ 		s.logger().Debug("socks5: negotiate failed",
+ 			"remote", conn.RemoteAddr().String(), "err", err)
+ 		return
+ 	}
+ 	if err := s.doRequest(ctx, conn); err != nil {
+ 		s.logger().Debug("socks5: request failed",
+ 			"remote", conn.RemoteAddr().String(), "err", err)
+ 	}
+ }
+ 
+ func negotiateNoAuth(conn net.Conn) error {
+ 	hdr := make([]byte, 2)
+ 	if _, err := io.ReadFull(conn, hdr); err != nil {
+ 		return err
+ 	}
+ 	if hdr[0] != 0x05 {
+ 		return fmt.Errorf("unsupported SOCKS version %d", hdr[0])
+ 	}
+ 	if hdr[1] == 0 {
+ 		return errors.New("no methods offered")
+ 	}
+ 	methods := make([]byte, int(hdr[1]))
+ 	if _, err := io.ReadFull(conn, methods); err != nil {
+ 		return err
+ 	}
+ 	accept := byte(0xFF)
+ 	for _, m := range methods {
+ 		if m == 0x00 {
+ 			accept = 0x00
+ 			break
+ 		}
+ 	}
+ 	if _, err := conn.Write([]byte{0x05, accept}); err != nil {
+ 		return err
+ 	}
+ 	if accept == 0xFF {
+ 		return errors.New("no acceptable methods")
+ 	}
+ 	return nil
+ }
+ 
+ var (
+ 	replyOK      = []byte{0x05, 0x00, 0x00, 0x01, 0, 0, 0, 0, 0, 0}
+ 	replyFail    = []byte{0x05, 0x01, 0x00, 0x01, 0, 0, 0, 0, 0, 0}
+ 	replyCmdNope = []byte{0x05, 0x07, 0x00, 0x01, 0, 0, 0, 0, 0, 0}
+ 	replyAtypBad = []byte{0x05, 0x08, 0x00, 0x01, 0, 0, 0, 0, 0, 0}
+ )
+ 
+ func (s *Server) doRequest(ctx context.Context, conn net.Conn) error {
+ 	hdr := make([]byte, 4)
+ 	if _, err := io.ReadFull(conn, hdr); err != nil {
+ 		return err
+ 	}
+ 	if hdr[0] != 0x05 {
+ 		return fmt.Errorf("unsupported SOCKS version %d", hdr[0])
+ 	}
+ 	cmd, atyp := hdr[1], hdr[3]
+-	if cmd != 0x01 { // we only support CONNECT; reject BIND + UDP
++	switch cmd {
++	case 0x01:
++		// fall through to the CONNECT path below
++	case 0x03:
++		return s.handleUDPAssociate(ctx, conn, atyp)
++	default:
+ 		_, _ = conn.Write(replyCmdNope)
+ 		return fmt.Errorf("unsupported CMD %d", cmd)
+ 	}
+ 	host, err := readAddr(conn, atyp)
+ 	if err != nil {
+ 		_, _ = conn.Write(replyAtypBad)
+ 		return err
+ 	}
+ 	portBuf := make([]byte, 2)
+ 	if _, err := io.ReadFull(conn, portBuf); err != nil {
+ 		return err
+ 	}
+ 	port := binary.BigEndian.Uint16(portBuf)
+ 
+ 	target, err := s.Dialer.Dial(ctx, host, port)
+ 	if err != nil {
+ 		_, _ = conn.Write(replyFail)
+ 		return err
+ 	}
+ 	defer target.Close()
+ 
+ 	if _, err := conn.Write(replyOK); err != nil {
+ 		return err
+ 	}
+ 	_ = conn.SetDeadline(time.Time{}) // tunnel may be long-lived
+ 	errc := make(chan error, 2)
+ 	go func() { _, err := io.Copy(target, conn); errc <- err }()
+ 	go func() { _, err := io.Copy(conn, target); errc <- err }()
+ 	<-errc
+ 	return nil
+ }
+ 
+diff --git a/core/socks5/udp.go b/core/socks5/udp.go
+new file mode 100644
+index 0000000..501f61a
+--- /dev/null
++++ b/core/socks5/udp.go
+@@ -0,0 +1,122 @@
++package socks5
++
++import (
++	"context"
++	"errors"
++	"fmt"
++	"io"
++	"net"
++	"time"
++)
++
++// DatagramHandler routes a single UDP datagram arriving on the SOCKS5
++// UDP ASSOCIATE port. Returns the response payload to send back to the
++// client, or (nil, nil) to drop silently. Any non-nil error is logged
++// at Debug and the datagram is dropped.
++//
++// The server owns the SOCKS5 UDP framing — the handler sees only the
++// decoded destination + raw payload, and returns only the raw response
++// payload. The server re-encodes the SOCKS5 UDP header with the
++// original destination so xjasonlyu's symmetric-NAT check accepts it.
++type DatagramHandler interface {
++	Handle(ctx context.Context, dstHost string, dstPort uint16, payload []byte) ([]byte, error)
++}
++
++const (
++	udpMaxDatagram    = 64 * 1024
++	udpReadDeadline   = 500 * time.Millisecond
++	udpWriteDeadline  = 5 * time.Second
++	dgramHandleBudget = 10 * time.Second
++)
++
++// handleUDPAssociate fulfils RFC 1928 §4 CMD=0x03. The TCP control
++// connection's lifetime bounds the association: while it stays open
++// we accept datagrams on the bound UDP port; when it closes, we tear
++// down the PacketConn. Per codex-review: we ignore the DST.ADDR /
++// DST.PORT in the ASSOCIATE request — xjasonlyu and most clients
++// send 0.0.0.0:0 and rely on the per-datagram header being
++// authoritative.
++func (s *Server) handleUDPAssociate(ctx context.Context, tcp net.Conn, atyp byte) error {
++	if s.Datagram == nil {
++		_, _ = tcp.Write(replyCmdNope)
++		return errors.New("UDP ASSOCIATE requested but no DatagramHandler configured")
++	}
++	if _, err := readAddr(tcp, atyp); err != nil {
++		_, _ = tcp.Write(replyAtypBad)
++		return err
++	}
++	var suggestedPort [2]byte
++	if _, err := io.ReadFull(tcp, suggestedPort[:]); err != nil {
++		return err
++	}
++
++	pc, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
++	if err != nil {
++		_, _ = tcp.Write(replyFail)
++		return fmt.Errorf("listen udp: %w", err)
++	}
++	defer pc.Close()
++
++	local := pc.LocalAddr().(*net.UDPAddr)
++	if _, err := tcp.Write(buildAssociateReply(local)); err != nil {
++		return err
++	}
++	_ = tcp.SetDeadline(time.Time{})
++
++	// Any TCP read side closure tears down the association (RFC 1928 §6).
++	assocCtx, cancel := context.WithCancel(ctx)
++	defer cancel()
++	go func() {
++		_, _ = io.Copy(io.Discard, tcp)
++		cancel()
++	}()
++
++	s.pumpDatagrams(assocCtx, pc)
++	return nil
++}
++
++func (s *Server) pumpDatagrams(ctx context.Context, pc net.PacketConn) {
++	buf := make([]byte, udpMaxDatagram)
++	for {
++		if err := ctx.Err(); err != nil {
++			return
++		}
++		_ = pc.SetReadDeadline(time.Now().Add(udpReadDeadline))
++		n, src, err := pc.ReadFrom(buf)
++		if err != nil {
++			if ne, ok := err.(net.Error); ok && ne.Timeout() {
++				continue
++			}
++			return
++		}
++		payload := make([]byte, n)
++		copy(payload, buf[:n])
++		go s.handleDatagram(ctx, pc, src, payload)
++	}
++}
++
++func (s *Server) handleDatagram(ctx context.Context, pc net.PacketConn, src net.Addr, dgram []byte) {
++	dstHost, dstPort, body, ok := decodeDatagram(dgram)
++	if !ok {
++		s.logger().Debug("socks5 udp: malformed datagram", "src", src.String(), "len", len(dgram))
++		return
++	}
++	handleCtx, cancel := context.WithTimeout(ctx, dgramHandleBudget)
++	defer cancel()
++	resp, err := s.Datagram.Handle(handleCtx, dstHost, dstPort, body)
++	if err != nil {
++		s.logger().Debug("socks5 udp: handler error",
++			"dst", net.JoinHostPort(dstHost, fmt.Sprint(dstPort)), "err", err)
++		return
++	}
++	if resp == nil {
++		return
++	}
++	reply, err := encodeDatagram(dstHost, dstPort, resp)
++	if err != nil {
++		s.logger().Debug("socks5 udp: encode reply", "err", err)
++		return
++	}
++	_ = pc.SetWriteDeadline(time.Now().Add(udpWriteDeadline))
++	_, _ = pc.WriteTo(reply, src)
++}
+diff --git a/core/socks5/udp_codec.go b/core/socks5/udp_codec.go
+new file mode 100644
+index 0000000..90035af
+--- /dev/null
++++ b/core/socks5/udp_codec.go
+@@ -0,0 +1,108 @@
++package socks5
++
++import (
++	"encoding/binary"
++	"errors"
++	"fmt"
++	"net"
++	"net/netip"
++)
++
++// buildAssociateReply returns a SOCKS5 success reply with IP ATYP for
++// the given bound loopback address. Codex-review specifically flagged
++// domain ATYP as broken here because xjasonlyu's symmetric-NAT check
++// compares the decoded UDPAddr against metadata.dst — domain names
++// can't be resolved synchronously so the reply is dropped.
++func buildAssociateReply(addr *net.UDPAddr) []byte {
++	ip4 := addr.IP.To4()
++	if ip4 == nil {
++		ip4 = net.IPv4(127, 0, 0, 1).To4()
++	}
++	reply := []byte{0x05, 0x00, 0x00, 0x01, ip4[0], ip4[1], ip4[2], ip4[3], 0, 0}
++	binary.BigEndian.PutUint16(reply[8:10], uint16(addr.Port))
++	return reply
++}
++
++// decodeDatagram parses a SOCKS5 UDP request header + payload. Returns
++// ok=false on any format violation (including FRAG != 0).
++//
++// Wire format (RFC 1928 §7):
++//
++//	+----+------+------+----------+----------+----------+
++//	|RSV | FRAG | ATYP | DST.ADDR | DST.PORT |   DATA   |
++//	+----+------+------+----------+----------+----------+
++//	| 2  |  1   |  1   | variable |    2     | variable |
++//	+----+------+------+----------+----------+----------+
++func decodeDatagram(dgram []byte) (host string, port uint16, body []byte, ok bool) {
++	if len(dgram) < 5 || dgram[0] != 0 || dgram[1] != 0 {
++		return
++	}
++	if dgram[2] != 0 {
++		return // fragmentation: drop per RFC + xjasonlyu behaviour
++	}
++	atyp := dgram[3]
++	hostBytes, hostLen, err := decodeAddr(dgram[4:], atyp)
++	if err != nil || len(dgram) < 4+hostLen+2 {
++		return
++	}
++	port = binary.BigEndian.Uint16(dgram[4+hostLen : 4+hostLen+2])
++	body = dgram[4+hostLen+2:]
++	host = hostBytes
++	ok = true
++	return
++}
++
++func decodeAddr(b []byte, atyp byte) (string, int, error) {
++	switch atyp {
++	case 0x01:
++		if len(b) < 4 {
++			return "", 0, errors.New("short ipv4")
++		}
++		return net.IP(b[:4]).String(), 4, nil
++	case 0x03:
++		if len(b) < 1 {
++			return "", 0, errors.New("short domain-len")
++		}
++		n := int(b[0])
++		if len(b) < 1+n {
++			return "", 0, errors.New("short domain")
++		}
++		return string(b[1 : 1+n]), 1 + n, nil
++	case 0x04:
++		if len(b) < 16 {
++			return "", 0, errors.New("short ipv6")
++		}
++		return net.IP(b[:16]).String(), 16, nil
++	default:
++		return "", 0, fmt.Errorf("unsupported ATYP %d", atyp)
++	}
++}
++
++// encodeDatagram builds a SOCKS5 UDP reply. IP ATYP preferred; falls
++// back to domain ATYP when the host isn't a parseable IP literal.
++func encodeDatagram(host string, port uint16, body []byte) ([]byte, error) {
++	if ip, err := netip.ParseAddr(host); err == nil {
++		if ip.Is4() {
++			v4 := ip.As4()
++			out := make([]byte, 0, 4+4+2+len(body))
++			out = append(out, 0, 0, 0, 0x01)
++			out = append(out, v4[:]...)
++			out = append(out, byte(port>>8), byte(port))
++			return append(out, body...), nil
++		}
++		v16 := ip.As16()
++		out := make([]byte, 0, 4+16+2+len(body))
++		out = append(out, 0, 0, 0, 0x04)
++		out = append(out, v16[:]...)
++		out = append(out, byte(port>>8), byte(port))
++		return append(out, body...), nil
++	}
++	if len(host) > 255 {
++		return nil, fmt.Errorf("domain too long (%d)", len(host))
++	}
++	out := make([]byte, 0, 4+1+len(host)+2+len(body))
++	out = append(out, 0, 0, 0, 0x03, byte(len(host)))
++	out = append(out, host...)
++	out = append(out, byte(port>>8), byte(port))
++	return append(out, body...), nil
++}
+diff --git a/core/socks5/udp_test.go b/core/socks5/udp_test.go
+new file mode 100644
+index 0000000..d1e5250
+--- /dev/null
++++ b/core/socks5/udp_test.go
+@@ -0,0 +1,197 @@
++package socks5
++
++import (
++	"context"
++	"encoding/binary"
++	"io"
++	"log/slog"
++	"net"
++	"os"
++	"reflect"
++	"sync"
++	"testing"
++	"time"
++)
++
++// stubDatagramHandler captures every datagram and echoes a reply body.
++type stubDatagramHandler struct {
++	mu     sync.Mutex
++	seen   [][]byte
++	dstHost string
++	dstPort uint16
++	reply   []byte
++}
++
++func (h *stubDatagramHandler) Handle(ctx context.Context, host string, port uint16, payload []byte) ([]byte, error) {
++	h.mu.Lock()
++	defer h.mu.Unlock()
++	h.dstHost, h.dstPort = host, port
++	h.seen = append(h.seen, append([]byte(nil), payload...))
++	return h.reply, nil
++}
++
++func silentLogger() *slog.Logger {
++	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
++}
++
++// TestUDPAssociate_DNSRoundTrip covers the full flow a xjasonlyu client
++// would run: TCP negotiate + UDP ASSOCIATE, then a UDP datagram to the
++// returned bind addr, then reading a reply on the same socket.
++func TestUDPAssociate_DNSRoundTrip(t *testing.T) {
++	handler := &stubDatagramHandler{reply: []byte("dns-response")}
++	srv := &Server{Datagram: handler, Logger: silentLogger()}
++
++	ln, err := net.Listen("tcp", "127.0.0.1:0")
++	if err != nil {
++		t.Fatalf("listen: %v", err)
++	}
++	defer ln.Close()
++	ctx, cancel := context.WithCancel(context.Background())
++	defer cancel()
++	go srv.Serve(ctx, ln)
++
++	tcp, err := net.Dial("tcp", ln.Addr().String())
++	if err != nil {
++		t.Fatalf("dial: %v", err)
++	}
++	defer tcp.Close()
++	_ = tcp.SetDeadline(time.Now().Add(3 * time.Second))
++
++	// Negotiate no-auth.
++	if _, err := tcp.Write([]byte{0x05, 0x01, 0x00}); err != nil {
++		t.Fatalf("negotiate write: %v", err)
++	}
++	negResp := make([]byte, 2)
++	if _, err := io.ReadFull(tcp, negResp); err != nil {
++		t.Fatalf("negotiate read: %v", err)
++	}
++
++	// UDP ASSOCIATE with DST=0.0.0.0:0 (xjasonlyu-style).
++	req := []byte{0x05, 0x03, 0x00, 0x01, 0, 0, 0, 0, 0, 0}
++	if _, err := tcp.Write(req); err != nil {
++		t.Fatalf("associate write: %v", err)
++	}
++	reply := make([]byte, 10)
++	if _, err := io.ReadFull(tcp, reply); err != nil {
++		t.Fatalf("associate read: %v", err)
++	}
++	if reply[0] != 0x05 || reply[1] != 0x00 || reply[3] != 0x01 {
++		t.Fatalf("associate reply malformed: %v", reply)
++	}
++	bindIP := net.IPv4(reply[4], reply[5], reply[6], reply[7])
++	bindPort := binary.BigEndian.Uint16(reply[8:10])
++	if !bindIP.IsLoopback() {
++		t.Errorf("bind IP not loopback: %v", bindIP)
++	}
++
++	// Send a DNS-shaped datagram.
++	udp, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: bindIP, Port: int(bindPort)})
++	if err != nil {
++		t.Fatalf("dial udp: %v", err)
++	}
++	defer udp.Close()
++
++	// SOCKS5 UDP header: RSV(2)+FRAG(1)+ATYP=0x01+IPv4(4)+Port(2).
++	// Destination 10.0.0.2:53 — Parvaz's synthetic DNS.
++	dgram := []byte{0, 0, 0, 0x01, 10, 0, 0, 2, 0, 53}
++	dgram = append(dgram, []byte("dns-wire-bytes")...)
++	if _, err := udp.Write(dgram); err != nil {
++		t.Fatalf("udp write: %v", err)
++	}
++	_ = udp.SetReadDeadline(time.Now().Add(3 * time.Second))
++	buf := make([]byte, 1500)
++	n, err := udp.Read(buf)
++	if err != nil {
++		t.Fatalf("udp read: %v", err)
++	}
++
++	// Reply should carry ORIGINAL dst in the SOCKS5 UDP header (codex
++	// rule — xjasonlyu's symmetric-NAT wrapper compares the decoded
++	// UDPAddr against the metadata destination).
++	got := buf[:n]
++	host, port, body, ok := decodeDatagram(got)
++	if !ok {
++		t.Fatalf("reply malformed: %v", got)
++	}
++	if host != "10.0.0.2" || port != 53 {
++		t.Errorf("reply dst = %s:%d, want 10.0.0.2:53", host, port)
++	}
++	if string(body) != "dns-response" {
++		t.Errorf("reply body = %q, want dns-response", body)
++	}
++
++	handler.mu.Lock()
++	defer handler.mu.Unlock()
++	if got, want := handler.dstHost, "10.0.0.2"; got != want {
++		t.Errorf("handler saw dstHost = %q, want %q", got, want)
++	}
++	if handler.dstPort != 53 {
++		t.Errorf("handler saw dstPort = %d, want 53", handler.dstPort)
++	}
++	if len(handler.seen) != 1 || string(handler.seen[0]) != "dns-wire-bytes" {
++		t.Errorf("handler saw payloads = %v, want [dns-wire-bytes]", handler.seen)
++	}
++}
++
++func TestUDPAssociate_RejectsFragmented(t *testing.T) {
++	host, port, body, ok := decodeDatagram([]byte{0, 0, 0x01 /*FRAG*/, 0x01, 127, 0, 0, 1, 0, 53, 'x'})
++	if ok {
++		t.Errorf("fragmented datagram accepted: host=%s port=%d body=%q", host, port, body)
++	}
++}
++
++func TestUDPAssociate_ReturnsCmdNopeWhenHandlerAbsent(t *testing.T) {
++	srv := &Server{Logger: silentLogger()}
++	ln, err := net.Listen("tcp", "127.0.0.1:0")
++	if err != nil {
++		t.Fatalf("listen: %v", err)
++	}
++	defer ln.Close()
++	ctx, cancel := context.WithCancel(context.Background())
++	defer cancel()
++	go srv.Serve(ctx, ln)
++
++	tcp, err := net.Dial("tcp", ln.Addr().String())
++	if err != nil {
++		t.Fatalf("dial: %v", err)
++	}
++	defer tcp.Close()
++	_ = tcp.SetDeadline(time.Now().Add(3 * time.Second))
++	_, _ = tcp.Write([]byte{0x05, 0x01, 0x00})
++	neg := make([]byte, 2)
++	_, _ = io.ReadFull(tcp, neg)
++	_, _ = tcp.Write([]byte{0x05, 0x03, 0x00, 0x01, 0, 0, 0, 0, 0, 0})
++	reply := make([]byte, 10)
++	_, _ = io.ReadFull(tcp, reply)
++	if reply[1] != 0x07 {
++		t.Errorf("expected REP=0x07 (command not supported), got 0x%02x", reply[1])
++	}
++}
++
++func TestEncodeDecode_DatagramRoundTrip(t *testing.T) {
++	cases := []struct {
++		name, host string
++		port       uint16
++		body       []byte
++	}{
++		{"ipv4", "10.0.0.2", 53, []byte("hello")},
++		{"ipv6", "2001:4860:4860::8888", 443, []byte("ping")},
++		{"domain", "example.com", 80, []byte{}},
++	}
++	for _, c := range cases {
++		t.Run(c.name, func(t *testing.T) {
++			encoded, err := encodeDatagram(c.host, c.port, c.body)
++			if err != nil {
++				t.Fatalf("encode: %v", err)
++			}
++			host, port, body, ok := decodeDatagram(encoded)
++			if !ok {
++				t.Fatalf("decode rejected: %v", encoded)
++			}
++			if host != c.host || port != c.port || !reflect.DeepEqual(body, c.body) {
++				t.Errorf("round-trip mismatch: got %s:%d %q, want %s:%d %q",
++					host, port, body, c.host, c.port, c.body)
++			}
++		})
++	}
++}

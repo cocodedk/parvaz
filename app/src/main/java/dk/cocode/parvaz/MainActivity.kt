@@ -18,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import dk.cocode.parvaz.settings.Access
 import dk.cocode.parvaz.settings.AccessImport
 import dk.cocode.parvaz.settings.AccessParseException
@@ -68,7 +70,16 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ParvazTheme {
-                Scaffold(modifier = Modifier.fillMaxSize().background(Paper)) { padding ->
+                // testTagsAsResourceId exposes Compose testTag values to
+                // `uiautomator dump` as resource-id, so the e2e shell
+                // script under scripts/e2e/ can drive the onboarding
+                // flow without resorting to hardcoded coordinates.
+                Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Paper)
+                        .semantics { testTagsAsResourceId = true },
+                ) { padding ->
                     val access = activeAccess
                     val hasDeepLink = pendingParvazUrl != null || pendingParvazUrlError != null
                     val showMain = access != null && onboardingComplete && !hasDeepLink
@@ -105,6 +116,10 @@ class MainActivity : ComponentActivity() {
                             initialDeepLinkUrl = pendingParvazUrl,
                             initialDeepLinkError = pendingParvazUrlError,
                             alreadyImportedAccess = access,
+                            onLanguageChange = { newLang ->
+                                ParvazSettings(this@MainActivity).language = newLang
+                                recreate()
+                            },
                             onFinished = { finished ->
                                 ParvazSettings(this@MainActivity).isOnboardingComplete = true
                                 onboardingComplete = true

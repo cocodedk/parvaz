@@ -120,6 +120,13 @@ code { font-family: var(--mono); background: var(--paper-3); padding: 1px 6px; f
   color: var(--ink-2);
   font-weight: 800;
 }
+.brand-mark {
+  width: 96px;
+  height: 96px;
+  border-radius: 18px;
+  align-self: center;
+  flex-shrink: 0;
+}
 .brand .en-name {
   position: relative;
 }

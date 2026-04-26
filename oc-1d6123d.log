@@ -1,0 +1,10 @@
+[0m
+> build · kimi-k2.6
+[0m
+**core/cmd/parvazd/browser_socks5_test.go:39** — `reply := make([]byte, 10)` hard-codes a 10-byte read for the SOCKS5 UDP ASSOCIATE reply. RFC 1928 permits the server to reply with ATYP=0x03 (domain name, variable length) or ATYP=0x04 (IPv6, 22 bytes). If the server ever replies with non-IPv4, `io.ReadFull` will either hang waiting for the 10th byte or misparse the bound address.
+
+**core/cmd/parvazd/browser_socks5_test.go:93** — Same bug for CONNECT: `connectReply := make([]byte, 10)` assumes the server replies with ATYP=0x01 (IPv4). If the reply uses a domain name or IPv6, the test will hang, corrupt the TLS handshake (leftover bytes in TCP buffer), or extract garbage for the bind address.
+
+**core/cmd/parvazd/browser_socks5_test.go:113** — `fetchViaSOCKS5` returns `*http.Response` but never exposes the underlying `net.Conn`. The caller in `browser_live_test.go:84-85` closes `resp.Body`, but `http.ReadResponse` on a raw connection does not close the TCP socket. The TLS connection leaks.
+
+Verdict: issues-found

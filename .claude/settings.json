@@ -1,0 +1,41 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cocodedk/0-projects/claude-email/scripts/chat-session-start-hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "/home/cocodedk/0-projects/claude-email/scripts/chat-drain-inbox.py"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cocodedk/0-projects/claude-email/scripts/chat-drain-inbox.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/cocodedk/0-projects/claude-email/scripts/chat-drain-inbox.py"
+          }
+        ]
+      }
+    ]
+  }
+}

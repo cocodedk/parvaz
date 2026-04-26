@@ -1,29 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Parvaz">
-  <!-- Stamp inset (Paper) -->
-  <circle cx="50" cy="50" r="44" fill="#F1E8D4"/>
-  <!-- Oxblood stamp ring -->
-  <circle cx="50" cy="50" r="44" fill="none" stroke="#A8361C" stroke-width="3"/>
-  <!-- Perforation notches at every 30 around the ring -->
-  <g fill="#F1E8D4">
-    <circle cx="50"   cy="6"    r="2"/>
-    <circle cx="72"   cy="12"   r="2"/>
-    <circle cx="88.1" cy="28"   r="2"/>
-    <circle cx="94"   cy="50"   r="2"/>
-    <circle cx="88.1" cy="72"   r="2"/>
-    <circle cx="72"   cy="88"   r="2"/>
-    <circle cx="50"   cy="94"   r="2"/>
-    <circle cx="28"   cy="88"   r="2"/>
-    <circle cx="11.9" cy="72"   r="2"/>
-    <circle cx="6"    cy="50"   r="2"/>
-    <circle cx="11.9" cy="28"   r="2"/>
-    <circle cx="28"   cy="12"   r="2"/>
-  </g>
-  <!-- Paper-plane silhouette in oxblood, tilted up-right.
-       Geometry inherited from the original website favicon, scaled and
-       repositioned to sit inside the stamp ring with breathing room. -->
-  <g fill="#A8361C" stroke="#A8361C" stroke-width="1.5" stroke-linejoin="round">
-    <path d="M28 62 L70 32 L62 70 L48 56 Z"/>
-  </g>
-  <!-- Inner fold accent (deeper oxblood) -->
-  <path d="M48 56 L62 70" fill="none" stroke="#7A2614" stroke-width="1.5" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" role="img" aria-label="Parvaz">
+  <!-- Mirrors the app launcher icon. Geometry + colours match
+       app/src/main/res/drawable/ic_launcher_{background,foreground}.xml.
+       Rounded corners approximate Android's squircle clip on most launchers. -->
+  <rect x="0" y="0" width="108" height="108" rx="24" ry="24" fill="#F1E8D4"/>
+  <path d="M30,67 L76,35 L67,76 L52,60 Z" fill="#A8361C"/>
+  <path d="M52,60 L67,76" fill="none" stroke="#7A2614" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

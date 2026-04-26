@@ -1,0 +1,18 @@
+[0m
+> build · deepseek-v4-pro
+[0m
+[0m→ [0mRead opencode-pr37.diff[90m [offset=1334][0m
+[0m→ [0mRead opencode-pr37.diff[90m [offset=2924][0m
+**Issues found:**
+
+1. **`core/cmd/parvazd/dns.go:1515-1517`** — DoH HTTP client hardcodes a **3-second timeout** for the relay path. The companion live test (`dns_live_test.go:1671`) bumps it to 30s. Through an Apps Script round-trip (which includes Google edge latency, GAS execution, and dns.google latency), 3s will frequently SERVFAIL, stalling every page load. Either raise to 10-15s or make it configurable.
+
+2. **`core/cmd/parvazd/dnsutil.go:1961-1964`** — `synthesizeResponse` returns `nil` when `len(query) < 12`. `synthesizeEmpty` and `synthesizeSERVFAIL` propagate this nil. In `dnsHandler.answer` (both UDP via `Handle` and TCP via `ServeTCP`), a nil return means the datagram is silently dropped / the connection is torn down with no response. A resolver would time out instead of getting a proper error. Malformed queries are rare, but synthesizing a best-effort SERVFAIL with whatever bytes exist is safer than returning nil.
+
+3. **`core/cmd/parvazd/browser_live_test.go:1042`** — `TunFD: 1` is used as a magic sentinel to gate DNS-handler wiring in `buildPipeline`, with a comment noting this fd is "never dereferenced." If anyone ever moves tun2socks startup from `main.run()` into `buildPipeline`, this test would attempt a real TUN open on fd 1 (stdout) and fail cryptically. Consider adding an explicit `EnableDNS bool` field to `Config` instead.
+
+4. **`core/dispatcher/dispatcher.go:2550-2554`** — `isDNSTCPTarget` is checked *before* `AllowList`. If anyone customises the dispatcher and puts `10.0.0.2` in `AllowList`, DNS TCP would silently bypass the DoH shim and try a direct TCP dial to `10.0.0.2:53`. Low probability but the route-ordering invariant isn't documented. Add a comment or swap the check order to be defensive (DNS route last, after AllowList/SNIRewriteList, since it's the most specific path).
+
+5. **`core/tun2socks/tun2socks.go:4090`** — `engine.Insert(key)` followed by `engine.Start()` uses a global singleton. A second call to `runner.Start` (currently guarded by `cfg.TunFD > 0` in `main.go`) would silently replace the first configuration. Add a boolean guard or `sync.Once` inside `Runner` to make misuse fail loudly.
+
+**Verdict: issues-found**
