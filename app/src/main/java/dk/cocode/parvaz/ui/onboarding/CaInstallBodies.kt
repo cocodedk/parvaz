@@ -46,9 +46,11 @@ internal fun CaInstallHeader(phase: CaInstallPhase) {
 
 @Composable
 internal fun CaInstallPrimary(phase: CaInstallPhase, onClick: () -> Unit) {
-    val spinning = phase == CaInstallPhase.GENERATING ||
-        phase == CaInstallPhase.AWAITING_INSTALL ||
-        phase == CaInstallPhase.VERIFYING
+    val spinning = phase in setOf(
+        CaInstallPhase.GENERATING,
+        CaInstallPhase.AWAITING_INSTALL,
+        CaInstallPhase.VERIFYING,
+    )
     if (spinning) {
         CircularProgressIndicator(color = Ink, modifier = Modifier.testTag(TestTags.CaInstallSpinner))
         return
@@ -57,11 +59,7 @@ internal fun CaInstallPrimary(phase: CaInstallPhase, onClick: () -> Unit) {
     val ctaRes = when (phase) {
         CaInstallPhase.READY -> R.string.ca_install_cta
         CaInstallPhase.FAILED -> R.string.ca_install_retry_cta
-        CaInstallPhase.GENERATING,
-        CaInstallPhase.AWAITING_INSTALL,
-        CaInstallPhase.VERIFYING,
-        CaInstallPhase.INSTALLED,
-        CaInstallPhase.NO_SCREEN_LOCK -> return
+        else -> return
     }
     Button(
         onClick = onClick,

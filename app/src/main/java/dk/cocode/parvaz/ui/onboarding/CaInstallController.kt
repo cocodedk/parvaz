@@ -1,24 +1,17 @@
 package dk.cocode.parvaz.ui.onboarding
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import dk.cocode.parvaz.mitm.CaExporter
 import dk.cocode.parvaz.mitm.CaFingerprint
 import dk.cocode.parvaz.mitm.CaInstaller
-import dk.cocode.parvaz.mitm.SettingsLauncher
 import dk.cocode.parvaz.settings.ParvazDataDir
 import dk.cocode.parvaz.vpn.CaGenerator
 import java.io.File
 
 /**
- * Orchestration for the CA install flow. Separated from the
- * composable so the moving parts (PEM generation, Downloads export,
- * Settings hand-off, fingerprint verification) stay testable and the
- * screen itself stays under the 200-line ceiling.
- *
+ * Orchestrates the CA install flow off the composable so the moving
+ * parts stay testable and the screen stays under the 200-line ceiling.
  * No state of its own — the composable owns the state machine.
- * Controller methods are invoked from coroutines the composable owns.
  */
 class CaInstallController(
     context: Context,
@@ -51,14 +44,6 @@ class CaInstallController(
      */
     suspend fun export(caPem: ByteArray): Result<CaExporter.ExportedCa> =
         runCatching { exporter.export(caPem) }
-
-    /** Closest-available Settings landing page; resolver-fallback chain. */
-    fun buildSettingsIntent(): Intent =
-        SettingsLauncher.buildSecurityIntent(appContext.packageManager)
-
-    /** Direct ACTION_VIEW on the exported .crt's content URI. */
-    fun buildShowFileIntent(uri: Uri): Intent =
-        SettingsLauncher.buildViewCertFileIntent(uri)
 
     /**
      * After the system install flow returns, walk AndroidCAStore and

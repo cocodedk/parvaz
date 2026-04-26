@@ -15,6 +15,15 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
+/** MIME type for X.509 CA certificates — referenced by `SettingsLauncher` and tests. */
+internal const val CA_MIME_TYPE = "application/x-x509-ca-cert"
+
+/**
+ * Suffix paired with `applicationId` to form the FileProvider authority
+ * declared in `AndroidManifest.xml`. Keep the two in sync.
+ */
+internal const val FILE_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
+
 /**
  * Drops the MITM root CA on disk in a place the system file picker can
  * browse. `KeyChain.createInstallIntent()` no longer installs CA certs
@@ -56,7 +65,7 @@ class CaExporter(
         deleteExisting(resolver, displayName)
         val values = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, displayName)
-            put(MediaStore.Downloads.MIME_TYPE, MIME_CA)
+            put(MediaStore.Downloads.MIME_TYPE, CA_MIME_TYPE)
             put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
             put(MediaStore.Downloads.IS_PENDING, 1)
         }
@@ -91,7 +100,7 @@ class CaExporter(
         downloadsDir.mkdirs()
         val out = File(downloadsDir, displayName)
         out.writeBytes(pem)
-        val authority = "${appContext.packageName}.fileprovider"
+        val authority = "${appContext.packageName}$FILE_PROVIDER_AUTHORITY_SUFFIX"
         val uri = FileProvider.getUriForFile(appContext, authority, out)
         return ExportedCa(
             displayPath = "Android/data/${appContext.packageName}/files/Download/$displayName",
@@ -121,6 +130,5 @@ class CaExporter(
 
     companion object {
         const val DEFAULT_FILENAME = "parvaz-ca.crt"
-        private const val MIME_CA = "application/x-x509-ca-cert"
     }
 }

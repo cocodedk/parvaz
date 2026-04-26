@@ -44,12 +44,9 @@ enum class CaInstallPhase {
 }
 
 /**
- * Manual CA install. `KeyChain.createInstallIntent()` stopped installing
- * CA certs on Android 11+, so Parvaz exports the `.crt` to Downloads
- * and walks the user through Settings → Install from device storage.
- * Step labels mirror the real menu wording per device flavor (Samsung
- * vs AOSP). Fast-path: a still-trusted on-disk CA short-circuits
- * straight to INSTALLED on entry.
+ * Manual CA install: exports the `.crt` to Downloads and walks the user
+ * through Settings → Install from device storage. Fast-path: a
+ * still-trusted on-disk CA short-circuits to INSTALLED on entry.
  */
 @Composable
 fun CaInstallScreen(
@@ -72,7 +69,7 @@ fun CaInstallScreen(
     var phase by rememberSaveable { mutableStateOf(CaInstallPhase.GENERATING) }
     // In-memory only: a persisted latch would block onInstalled() if rotation hits during the celebrate delay.
     var notified by remember { mutableStateOf(false) }
-    var caPem by remember { mutableStateOf<ByteArray?>(controller.loadPersistedCA()) }
+    var caPem by remember { mutableStateOf<ByteArray?>(null) }
     var exportedCa by remember { mutableStateOf<CaExporter.ExportedCa?>(null) }
 
     fun verify(pem: ByteArray) = scope.launch {
@@ -91,9 +88,9 @@ fun CaInstallScreen(
     // Prefer on-disk PEM over `parvazd -gen-ca` — the Go side's
     // LoadOrCreate is idempotent, so re-running on a returning user just
     // spawns a subprocess to re-read the same files.
-    fun prepare() = scope.launch {
+    fun prepare(seed: ByteArray? = null) = scope.launch {
         phase = CaInstallPhase.GENERATING
-        val pem = controller.loadPersistedCA()
+        val pem = seed ?: controller.loadPersistedCA()
             ?: controller.materialiseCA().getOrElse { phase = CaInstallPhase.FAILED; return@launch }
         caPem = pem
         if (controller.isInstalled(pem)) { phase = CaInstallPhase.INSTALLED; return@launch }
@@ -129,7 +126,7 @@ fun CaInstallScreen(
             CaInstallPhase.INSTALLED,
             CaInstallPhase.FAILED -> caPem = caPem ?: controller.loadPersistedCA()
             CaInstallPhase.NO_SCREEN_LOCK -> Unit
-            CaInstallPhase.GENERATING -> prepare()
+            CaInstallPhase.GENERATING -> prepare(seed = caPem ?: controller.loadPersistedCA())
         }
     }
 
@@ -163,19 +160,21 @@ fun CaInstallScreen(
         when (phase) {
             CaInstallPhase.READY -> {
                 phase = CaInstallPhase.AWAITING_INSTALL
-                launcher.launch(controller.buildSettingsIntent())
+                launcher.launch(SettingsLauncher.buildSecurityIntent(context.packageManager))
             }
             CaInstallPhase.FAILED -> { prepare(); Unit }
             else -> Unit
         }
     }
     val onShowFile: (() -> Unit)? = exportedCa?.let { exp ->
-        { launcher.launch(controller.buildShowFileIntent(exp.contentUri)) }
+        { launcher.launch(SettingsLauncher.buildViewCertFileIntent(exp.contentUri)) }
     }
-    val showSteps = phase == CaInstallPhase.READY ||
-        phase == CaInstallPhase.AWAITING_INSTALL ||
-        phase == CaInstallPhase.FAILED
-    val showShowFile = phase == CaInstallPhase.READY || phase == CaInstallPhase.AWAITING_INSTALL
+    val showSteps = phase in setOf(
+        CaInstallPhase.READY,
+        CaInstallPhase.AWAITING_INSTALL,
+        CaInstallPhase.FAILED,
+    )
+    val showShowFile = phase in setOf(CaInstallPhase.READY, CaInstallPhase.AWAITING_INSTALL)
 
     Column(
         modifier = modifier

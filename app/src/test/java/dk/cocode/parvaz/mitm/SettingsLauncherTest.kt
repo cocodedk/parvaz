@@ -27,7 +27,7 @@ class SettingsLauncherTest {
         val action = SettingsLauncher.pickSecurityAction { candidate ->
             candidate != Settings.ACTION_SECURITY_SETTINGS
         }
-        assertEquals("android.settings.PRIVACY_SETTINGS", action)
+        assertEquals(Settings.ACTION_PRIVACY_SETTINGS, action)
     }
 
     @Test

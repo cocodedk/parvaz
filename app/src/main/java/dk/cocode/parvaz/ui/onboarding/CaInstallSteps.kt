@@ -13,6 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.ui.draw.drawBehind
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -72,8 +74,8 @@ fun CaInstallSteps(
             return@LaunchedEffect
         }
         while (true) {
-            kotlinx.coroutines.delay(STEP_TICK_MS)
-            activeStep = (activeStep + 1) % STEP_COUNT
+            delay(STEP_TICK_MS)
+            activeStep = (activeStep + 1) % flavor.stepLabels.size
         }
     }
     val pulse = rememberInfiniteTransition(label = "ca-step-pulse")
@@ -97,10 +99,10 @@ fun CaInstallSteps(
                 .testTag(TestTags.CaInstallSteps),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            for (index in 0 until STEP_COUNT) {
+            for (index in flavor.stepLabels.indices) {
                 StepCard(
                     iconRes = STEP_ICONS[index],
-                    label = stringResource(stepLabel(index, flavor)),
+                    label = stringResource(flavor.stepLabels[index]),
                     isActive = index == activeStep,
                     glow = glow,
                 )
@@ -128,16 +130,20 @@ private fun StepCard(
         label = "ca-step-border",
     )
     // Active-step background: Burnt at ~12% alpha, oscillating to ~3%.
-    // Inactive: flat Paper. Avoids changing the row geometry as glow
-    // animates.
+    // Painted via drawBehind so the alpha read happens at draw phase, not
+    // recomposition. Inactive: flat Paper.
     val tintAlpha = if (isActive) 0.03f + 0.09f * glow else 0f
+    val backgroundModifier = if (isActive) {
+        Modifier.drawBehind { drawRect(Burnt.copy(alpha = tintAlpha)) }
+    } else {
+        Modifier.background(Paper)
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
-            .background(Burnt.copy(alpha = tintAlpha))
-            .background(if (!isActive) Paper else Color.Transparent)
+            .then(backgroundModifier)
             .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(4.dp))
             .padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
@@ -158,33 +164,10 @@ private fun StepCard(
     }
 }
 
-private fun stepLabel(index: Int, flavor: SettingsFlavor): Int = when (flavor) {
-    SettingsFlavor.SAMSUNG -> SAMSUNG_LABELS[index]
-    SettingsFlavor.AOSP -> AOSP_LABELS[index]
-}
-
-private const val STEP_COUNT = 5
-
 private val STEP_ICONS = intArrayOf(
     R.drawable.ic_step_lock,
     R.drawable.ic_step_folder,
     R.drawable.ic_step_cert,
     R.drawable.ic_step_pick,
     R.drawable.ic_step_back,
-)
-
-private val SAMSUNG_LABELS = intArrayOf(
-    R.string.ca_step_1_samsung,
-    R.string.ca_step_2_samsung,
-    R.string.ca_step_3_samsung,
-    R.string.ca_step_4_samsung,
-    R.string.ca_step_5_samsung,
-)
-
-private val AOSP_LABELS = intArrayOf(
-    R.string.ca_step_1_aosp,
-    R.string.ca_step_2_aosp,
-    R.string.ca_step_3_aosp,
-    R.string.ca_step_4_aosp,
-    R.string.ca_step_5_aosp,
 )

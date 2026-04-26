@@ -5,22 +5,11 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import dk.cocode.parvaz.R
 
 /**
- * Builds the Intents we hand off to the system from the CA install
- * screen. Two distinct hand-offs:
- *
- *  • [buildSecurityIntent] — opens Android Settings as close as we can
- *    get to "Install certificate from file". There is no public action
- *    that deep-links directly to the install dialog (the CertInstaller
- *    activity isn't exported), so we pick the closest landing page and
- *    fall back to top-level Settings if no resolver answers.
- *  • [buildViewCertFileIntent] — direct ACTION_VIEW on the content URI
- *    of the exported `.crt`. Some launchers will offer "Open with"
- *    Files / Documents apps, helping the user confirm the file landed
- *    where we said it did.
- *
- * Pure functions — no Context, easily fakeable in unit tests by
+ * Builds the Intents handed off to system Settings from the CA install
+ * screen. Pure functions — no Context, fakeable in unit tests by
  * swapping the [PackageManager].
  */
 object SettingsLauncher {
@@ -34,7 +23,7 @@ object SettingsLauncher {
     private val SECURITY_ACTIONS = listOf(
         Settings.ACTION_SECURITY_SETTINGS,
         // Some OEMs route credential install under Privacy.
-        "android.settings.PRIVACY_SETTINGS",
+        Settings.ACTION_PRIVACY_SETTINGS,
         Settings.ACTION_SETTINGS,
     )
 
@@ -67,7 +56,7 @@ object SettingsLauncher {
      */
     fun buildViewCertFileIntent(contentUri: Uri): Intent =
         Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(contentUri, MIME_CA)
+            setDataAndType(contentUri, CA_MIME_TYPE)
             addFlags(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or
                     Intent.FLAG_ACTIVITY_NEW_TASK,
@@ -88,8 +77,6 @@ object SettingsLauncher {
         } else {
             SettingsFlavor.AOSP
         }
-
-    private const val MIME_CA = "application/x-x509-ca-cert"
 }
 
 /**
@@ -97,4 +84,19 @@ object SettingsLauncher {
  * navigation is identical on the two paths — only the menu labels
  * differ.
  */
-enum class SettingsFlavor { SAMSUNG, AOSP }
+enum class SettingsFlavor(val stepLabels: IntArray) {
+    SAMSUNG(intArrayOf(
+        R.string.ca_step_1_samsung,
+        R.string.ca_step_2_samsung,
+        R.string.ca_step_3_samsung,
+        R.string.ca_step_4_samsung,
+        R.string.ca_step_5_samsung,
+    )),
+    AOSP(intArrayOf(
+        R.string.ca_step_1_aosp,
+        R.string.ca_step_2_aosp,
+        R.string.ca_step_3_aosp,
+        R.string.ca_step_4_aosp,
+        R.string.ca_step_5_aosp,
+    )),
+}

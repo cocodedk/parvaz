@@ -90,7 +90,7 @@ class CaExporterInstrumentedTest {
         cursor.use {
             assertTrue("file visible to picker after export", it.moveToFirst())
             val mime = it.getString(it.getColumnIndexOrThrow(MediaStore.Downloads.MIME_TYPE))
-            assertEquals("application/x-x509-ca-cert", mime)
+            assertEquals(CA_MIME_TYPE, mime)
         }
     }
 
