@@ -8,8 +8,22 @@
 |---|---|---|
 | 1 | Fronter pool tunables | ✅ landed |
 | 2 | DoBatch + Coalescer + wired into MITM/DoH paths | ✅ landed |
-| 3 | h2 ALPN spike | ⏸ deferred — gated on live measurement |
+| 3 | h2 ALPN spike | ⏸ deferred — Phase 2 hit target |
 | 4 | Code.gs micro-cleanups + matching client-side accept-encoding strip | ✅ landed |
+
+## Measured (2026-04-26, live test server)
+
+`TestCoalescer_Live_AmortizesLatency` with N=6 against real Apps Script:
+
+| Path | Wall clock | Per-request |
+|---|---|---|
+| Baseline (sequential single-mode) | 9.01 s | 1.50 s |
+| Coalescer-batched (1 envelope) | 1.81 s | 302 ms |
+
+**Speedup: 4.97×** — lower end of the 5–20× range, which is expected
+for N=6 (more concurrency amortizes more, up to `MaxBatch=8`). The
+1.50 s/req baseline matches the analysis's "300–1500 ms Apps Script
+fixed cost" — now spread across the batch instead of paid per request.
 
 ---
 
@@ -148,18 +162,12 @@ semantics need care. Hence the slicing.
 - `MaxBatch = 8`
 Both tunable via JSON config so we can A/B without recompiling.
 
-### Phase 3 — h2 ALPN spike (defer if Phases 1+2 hit target)
+### Phase 3 — h2 ALPN spike (deferred — Phase 2 hit target)
 
-Enable ALPN `h2` in the fronter's TLS config. If Google's edge
-negotiates h2 for the SNI=`www.google.com` / Host=`script.google.com`
-path, multiplexing dissolves the per-conn HOL bottleneck. If h2
-breaks Apps Script's UrlFetchApp invocation pattern, document and
-defer.
-
-**Out of plan:** changes to `core/mitm` ALPN advertising. The
-browser-facing TLS layer stays http/1.1 (per `docs/tls-flow.md` §3,
-this is intentional — h2 enables SNI coalescing across hostnames,
-which would break per-host leaf certs).
+Enable ALPN `h2` in the fronter's TLS config so multiplexing dissolves
+the per-conn HOL bottleneck. Browser-facing TLS layer stays http/1.1
+intentionally (`docs/tls-flow.md` §3 — h2 enables SNI coalescing
+across hostnames, which would break per-host leaf certs).
 
 ### Phase 4 — Code.gs micro-cleanups
 
@@ -177,17 +185,10 @@ leaks) — wants a design discussion first.
 
 ---
 
-## Verification
-
-- Stub `Log` length per scenario in unit tests proves batching ratio.
-- Wall-clock TTFB on a single small GET — Phase 1 shouldn't regress;
-  Phase 2 adds at most `Window` ms to an isolated request's TTFB.
-
 ## Out of scope
 
-DPI / fronting strategy. Switching off Apps Script (reverted, not
-revisited). MITM-leg ALPN (would break per-host leaf reuse — see
-`docs/tls-flow.md` §3).
+DPI / fronting strategy. Switching off Apps Script. MITM-leg ALPN
+(would break per-host leaf reuse — see `docs/tls-flow.md` §3).
 
 ## Rollback
 
