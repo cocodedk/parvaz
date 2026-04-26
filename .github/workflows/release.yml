@@ -9,9 +9,26 @@ on:
         default: 'patch'
         type: choice
         options: [patch, minor, major]
+  push:
+    branches: [main]
+    # Don't burn a patch release on changes that can't affect the APK.
+    paths-ignore:
+      - '**/*.md'
+      - 'website/**'
+      - 'reference/**'
+      - '.githooks/**'
+      - 'LICENSE'
+      - '.gitignore'
 
 permissions:
   contents: write
+
+# Serialize releases so two merges in quick succession don't race on the
+# `git tag` push. Don't cancel an in-flight build — every merge gets its
+# own version.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -37,6 +54,10 @@ jobs:
 
       - name: Compute next version
         id: version
+        env:
+          # workflow_dispatch supplies inputs.bump; push events don't —
+          # default the auto-fire path to patch.
+          BUMP: ${{ inputs.bump || 'patch' }}
         run: |
           set -eu
           LATEST=$(git tag --list 'v*' --sort=-version:refname | head -1)
@@ -47,15 +68,16 @@ jobs:
             exit 1
           fi
           MAJOR="${BASH_REMATCH[1]}"; MINOR="${BASH_REMATCH[2]}"; PATCH="${BASH_REMATCH[3]}"
-          case "${{ inputs.bump }}" in
+          case "$BUMP" in
             major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
             minor) MINOR=$((MINOR+1)); PATCH=0 ;;
             patch) PATCH=$((PATCH+1)) ;;
+            *)     echo "Unknown bump: $BUMP" >&2; exit 1 ;;
           esac
           TAG="v$MAJOR.$MINOR.$PATCH"
           echo "version=$MAJOR.$MINOR.$PATCH" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "Next release: $TAG"
+          echo "Next release: $TAG (bump=$BUMP, from $LATEST)"
 
       - name: Build Go core for Android ABIs
         env:
