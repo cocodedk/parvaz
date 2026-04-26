@@ -1,8 +1,15 @@
 # Throughput optimization — Go side wins, Code.gs is near-optimal
 
-**Status:** plan · branch `perf-throughput` · 2026-04-26
+**Status:** Phases 1, 2, 4 landed on `perf-throughput` · 2026-04-26
 **Baseline:** ~5 KB/s through the Apps Script tunnel.
 **Target:** 5–20× gain by fixing the Go side; Code.gs only needs minor cleanups.
+
+| Phase | What | State |
+|---|---|---|
+| 1 | Fronter pool tunables | ✅ landed |
+| 2 | DoBatch + Coalescer + wired into MITM/DoH paths | ✅ landed |
+| 3 | h2 ALPN spike | ⏸ deferred — gated on live measurement |
+| 4 | Code.gs micro-cleanups + matching client-side accept-encoding strip | ✅ landed |
 
 ---
 
