@@ -9,10 +9,12 @@
 *Persian for "flight" — a flight over the filter.*
 
 A Farsi-first **Android browser tunnel** for Iranian users. A technical
-helper deploys a Google Apps Script one-file relay; a non-technical user
-installs Parvaz, scans a QR from Telegram, installs a MITM certificate
-via Android Settings (one-time), installs **Firefox Nightly** and flips
-one `about:config` flag, then taps one button. **Stock Chrome and stock
+helper deploys a Google Apps Script one-file relay and shares the
+access link over a **secure messenger (Signal or Telegram — not
+WhatsApp)**; the user installs Parvaz, scans a QR or taps the
+`parvaz://` link, installs a MITM certificate via Android Settings
+(one-time), installs **Firefox Nightly** and flips one `about:config`
+flag, then taps one button. **Stock Chrome and stock
 Firefox ignore user-installed CAs on Android 7+; Firefox Nightly + the
 flag is the only no-root browser that works (see scope below).**
 
@@ -81,9 +83,10 @@ The only no-root browser that honors them is **Firefox Nightly**:
 - **Mozilla's own F-Droid repo** (no Play Store, no Google account): [github.com/mozilla-mobile/fenix#nightly-builds](https://github.com/mozilla-mobile/fenix#nightly-builds)
 
 > If both stores are blocked on your network, ask the helper who
-> sent you the `parvaz://` link to forward the APK over Telegram.
-> After install, verify the package is `org.mozilla.fenix` (Settings
-> → Apps → Firefox Nightly).
+> sent you the `parvaz://` link to forward the APK via the same secure
+> messenger you used (Signal or Telegram — not WhatsApp). After
+> install, verify the package is `org.mozilla.fenix` (Settings → Apps
+> → Firefox Nightly).
 
 ### 3. Flip one flag in Firefox Nightly
 
@@ -120,7 +123,8 @@ deployment). One-time `Code.gs` deploy on your own Google account:
 5. Copy the deployment URL — extract the `AKfycby...` segment.
 
 Share the combined `parvaz://<deployment-id>/<access-key>` URL with
-users over Telegram (or a QR code).
+users via a **secure messenger (Signal or Telegram — not WhatsApp)** or
+a QR code.
 
 ## Build from Source
 
