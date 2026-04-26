@@ -2,6 +2,8 @@
   <img src="website/parvaz-mark.svg" alt="Parvaz" width="160"/>
 </p>
 
+<p align="center"><sub>— Welcome aboard · <strong>cocode.dk Airways</strong> —</sub></p>
+
 # Parvaz (پرواز)
 
 *Persian for "flight" — a flight over the filter.*
