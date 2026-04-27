@@ -9,4 +9,13 @@
     <external-files-path
         name="ca_export"
         path="Download/" />
+
+    <!--
+      Cache subdir for APKs downloaded by the in-app updater. Hands a
+      content URI to the system PackageInstaller via ACTION_VIEW
+      (application/vnd.android.package-archive) without WRITE_EXTERNAL_STORAGE.
+    -->
+    <cache-path
+        name="apk_update"
+        path="parvaz-update/" />
 </paths>

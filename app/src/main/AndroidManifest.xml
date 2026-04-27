@@ -21,6 +21,11 @@
          creation returns EPERM because Android gates that on the inet
          group, which is granted only when this permission is declared. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Sideload-update flow: hands a downloaded Parvaz.apk to the system
+         PackageInstaller via ACTION_VIEW. Runtime-confirmed via
+         ACTION_MANAGE_UNKNOWN_APP_SOURCES if PackageManager
+         .canRequestPackageInstalls() returns false on first attempt. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:allowBackup="true"

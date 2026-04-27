@@ -76,6 +76,28 @@
     <string name="settings_cancel_cta">Cancel</string>
     <string name="settings_close_cta">Close</string>
 
+    <string name="settings_gear_cd">Settings</string>
+    <string name="settings_url_section_label">Parvaz URL</string>
+    <string name="settings_url_input_hint">parvaz://…</string>
+    <string name="settings_url_save_cta">Save</string>
+    <string name="settings_url_saved_label">Saved</string>
+    <string name="settings_update_section_label">Update</string>
+    <string name="settings_update_current_version">Current version: %1$s</string>
+    <string name="settings_update_check_cta">Check for update</string>
+    <string name="settings_update_checking">Checking…</string>
+    <string name="settings_update_uptodate">You\'re on the latest version</string>
+    <string name="settings_update_available">New version: %1$s</string>
+    <string name="settings_update_install_cta">Install new version</string>
+    <string name="settings_update_disconnecting">Disconnecting tunnel…</string>
+    <string name="settings_update_downloading">Downloading… %1$d%%</string>
+    <string name="settings_update_verifying">Verifying signature</string>
+    <string name="settings_update_installer_handoff">Handing off to system installer…</string>
+    <string name="settings_update_error_network">Couldn\'t reach GitHub</string>
+    <string name="settings_update_error_sha">File signature invalid</string>
+    <string name="settings_update_error_no_asset">This release has no APK asset</string>
+    <string name="settings_update_error_unknown_sources">Enable "Install unknown apps" to install</string>
+    <string name="settings_update_release_notes">Release notes</string>
+
     <string name="vpn_notification_channel_name">Parvaz connection</string>
     <string name="vpn_notification_channel_description">Persistent notification while the tunnel is active</string>
     <string name="vpn_notification_title">Parvaz is running</string>
