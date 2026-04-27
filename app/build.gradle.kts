@@ -82,6 +82,9 @@ android {
     }
     buildFeatures {
         compose = true
+        // Generate BuildConfig.VERSION_NAME so the in-app updater can
+        // compare it against the GitHub Releases tag at runtime.
+        buildConfig = true
     }
 
     // ProcessBuilder needs the Go sidecar binary as a real file on disk, so
@@ -111,6 +114,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     testImplementation(libs.junit)
+    testImplementation(libs.json)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.espresso.core)

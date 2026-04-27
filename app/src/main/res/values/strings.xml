@@ -86,6 +86,29 @@
     <string name="settings_cancel_cta">انصراف</string>
     <string name="settings_close_cta">بستن</string>
 
+    <!-- Settings — global (M-settings + M-update) -->
+    <string name="settings_gear_cd">تنظیمات</string>
+    <string name="settings_url_section_label">نشانی پرواز</string>
+    <string name="settings_url_input_hint">parvaz://…</string>
+    <string name="settings_url_save_cta">ذخیره</string>
+    <string name="settings_url_saved_label">ذخیره شد</string>
+    <string name="settings_update_section_label">به‌روزرسانی</string>
+    <string name="settings_update_current_version">نسخهٔ فعلی: %1$s</string>
+    <string name="settings_update_check_cta">بررسی به‌روزرسانی</string>
+    <string name="settings_update_checking">در حال بررسی…</string>
+    <string name="settings_update_uptodate">نسخهٔ شما به‌روز است</string>
+    <string name="settings_update_available">نسخهٔ جدید: %1$s</string>
+    <string name="settings_update_install_cta">نصب نسخهٔ جدید</string>
+    <string name="settings_update_disconnecting">در حال قطع پرواز…</string>
+    <string name="settings_update_downloading">در حال دانلود… %1$d٪</string>
+    <string name="settings_update_verifying">در حال بررسی امضا</string>
+    <string name="settings_update_installer_handoff">تحویل به نصب‌کنندهٔ سیستم…</string>
+    <string name="settings_update_error_network">اتصال به GitHub برقرار نشد</string>
+    <string name="settings_update_error_sha">امضای فایل نامعتبر است</string>
+    <string name="settings_update_error_no_asset">این انتشار فایل APK ندارد</string>
+    <string name="settings_update_error_unknown_sources">برای نصب، اجازهٔ «نصب از منابع ناشناس» را روشن کنید</string>
+    <string name="settings_update_release_notes">تغییرات این نسخه</string>
+
     <!-- VPN notification (ongoing while service runs) -->
     <string name="vpn_notification_channel_name">اتصال پرواز</string>
     <string name="vpn_notification_channel_description">نوتیفیکیشن پایدار هنگام فعال بودن تونل</string>

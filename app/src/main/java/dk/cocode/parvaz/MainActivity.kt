@@ -27,10 +27,16 @@ import dk.cocode.parvaz.settings.AccessImport
 import dk.cocode.parvaz.settings.AccessParseException
 import dk.cocode.parvaz.settings.ParvazSettings
 import dk.cocode.parvaz.ui.main.MainScreen
-import dk.cocode.parvaz.ui.main.MainSettingsSheet
 import dk.cocode.parvaz.ui.main.MainViewModel
 import dk.cocode.parvaz.ui.onboarding.OnboardingHost
 import dk.cocode.parvaz.ui.onboarding.ReadinessScreen
+import dk.cocode.parvaz.ui.settings.SettingsScaffold
+import dk.cocode.parvaz.ui.settings.SettingsSheet
+import dk.cocode.parvaz.ui.settings.UpdateSection
+import dk.cocode.parvaz.update.UpdateController
+import dk.cocode.parvaz.update.Version
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue as composeGetValue
 import dk.cocode.parvaz.ui.theme.Paper
 import dk.cocode.parvaz.ui.theme.ParvazTheme
 import kotlinx.coroutines.launch
@@ -41,6 +47,7 @@ private const val KEY_PENDING_URL_ERROR = "pending_parvaz_url_error"
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
+    private val updateController: UpdateController by viewModels()
 
     private var pendingParvazUrl by mutableStateOf<String?>(null)
     private var pendingParvazUrlError by mutableStateOf<String?>(null)
@@ -104,53 +111,75 @@ class MainActivity : ComponentActivity() {
                     val hasDeepLink = pendingParvazUrl != null || pendingParvazUrlError != null
                     val showMain = access != null && onboardingComplete && !hasDeepLink
                     val checkingReadiness = access != null && !onboardingReadinessChecked && !hasDeepLink
-                    if (showMain) {
-                        val persianDigits = LocalConfiguration.current.locales.get(0)?.language == "fa"
-                        MainScreen(
-                            viewModel = mainViewModel,
-                            persianNumerals = persianDigits,
-                            onOpenSettings = { showSettingsSheet = true },
-                            modifier = Modifier.padding(padding),
-                        )
-                        if (showSettingsSheet) {
-                            MainSettingsSheet(
-                                currentLanguage = ParvazSettings(this@MainActivity).language,
+                    SettingsScaffold(
+                        onOpenSettings = { showSettingsSheet = true },
+                        modifier = Modifier.padding(padding),
+                    ) {
+                        if (showMain) {
+                            val persianDigits = LocalConfiguration.current.locales.get(0)?.language == "fa"
+                            MainScreen(
+                                viewModel = mainViewModel,
+                                persianNumerals = persianDigits,
+                                onOpenSettings = { showSettingsSheet = true },
+                            )
+                        } else if (checkingReadiness) {
+                            ReadinessScreen()
+                        } else {
+                            OnboardingHost(
+                                initialDeepLinkUrl = pendingParvazUrl,
+                                initialDeepLinkError = pendingParvazUrlError,
+                                alreadyImportedAccess = access,
                                 onLanguageChange = { newLang ->
                                     ParvazSettings(this@MainActivity).language = newLang
-                                    showSettingsSheet = false
                                     recreate()
                                 },
-                                onResetAccess = {
-                                    val s = ParvazSettings(this@MainActivity)
-                                    s.clearAccess()
-                                    s.isOnboardingComplete = false
-                                    mainViewModel.disconnect()
-                                    showSettingsSheet = false
-                                    activeAccess = null
-                                    onboardingComplete = false
+                                onFinished = { finished ->
+                                    ParvazSettings(this@MainActivity).isOnboardingComplete = true
+                                    onboardingComplete = true
+                                    activeAccess = finished
+                                    pendingParvazUrl = null
+                                    pendingParvazUrlError = null
                                 },
-                                onDismiss = { showSettingsSheet = false },
                             )
                         }
-                    } else if (checkingReadiness) {
-                        ReadinessScreen(modifier = Modifier.padding(padding))
-                    } else {
-                        OnboardingHost(
-                            initialDeepLinkUrl = pendingParvazUrl,
-                            initialDeepLinkError = pendingParvazUrlError,
-                            alreadyImportedAccess = access,
+                    }
+                    if (showSettingsSheet) {
+                        val updateState by updateController.state.collectAsStateWithLifecycle()
+                        SettingsSheet(
+                            currentLanguage = ParvazSettings(this@MainActivity).language,
+                            currentAccess = activeAccess,
+                            onboardingComplete = onboardingComplete,
                             onLanguageChange = { newLang ->
                                 ParvazSettings(this@MainActivity).language = newLang
+                                showSettingsSheet = false
                                 recreate()
                             },
-                            onFinished = { finished ->
-                                ParvazSettings(this@MainActivity).isOnboardingComplete = true
-                                onboardingComplete = true
-                                activeAccess = finished
-                                pendingParvazUrl = null
-                                pendingParvazUrlError = null
+                            onSaveAccess = { newAccess ->
+                                ParvazSettings(this@MainActivity).save(newAccess)
+                                activeAccess = newAccess
                             },
-                            modifier = Modifier.padding(padding),
+                            onResetAccess = {
+                                val s = ParvazSettings(this@MainActivity)
+                                s.clearAccess()
+                                s.isOnboardingComplete = false
+                                mainViewModel.disconnect()
+                                showSettingsSheet = false
+                                activeAccess = null
+                                onboardingComplete = false
+                            },
+                            onDismiss = { showSettingsSheet = false },
+                            updateSection = {
+                                UpdateSection(
+                                    currentVersionName = BuildConfig.VERSION_NAME,
+                                    state = updateState,
+                                    onCheck = {
+                                        val current = Version.parse(BuildConfig.VERSION_NAME)
+                                            ?: Version(0, 0, 0)
+                                        updateController.check(current)
+                                    },
+                                    onInstall = { updateController.install(stopVpn = { mainViewModel.disconnect() }) },
+                                )
+                            },
                         )
                     }
                 }

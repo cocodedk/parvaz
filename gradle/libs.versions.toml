@@ -32,6 +32,10 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 androidx-test-core = { group = "androidx.test", name = "core-ktx", version.ref = "testCore" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+# org.json is built into Android since API 1, but the unit-test JVM uses
+# the stubbed android.jar — adding the upstream implementation as a test
+# dependency lets parser tests run without a device.
+json = { group = "org.json", name = "json", version = "20231013" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
