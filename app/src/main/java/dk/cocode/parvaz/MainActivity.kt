@@ -36,7 +36,6 @@ import dk.cocode.parvaz.ui.settings.UpdateSection
 import dk.cocode.parvaz.update.UpdateController
 import dk.cocode.parvaz.update.Version
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.runtime.getValue as composeGetValue
 import dk.cocode.parvaz.ui.theme.Paper
 import dk.cocode.parvaz.ui.theme.ParvazTheme
 import kotlinx.coroutines.launch

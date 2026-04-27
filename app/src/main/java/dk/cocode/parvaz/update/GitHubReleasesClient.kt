@@ -19,6 +19,21 @@ data class ReleaseInfo(
 )
 
 /**
+ * Outcome of [GitHubReleasesClient.fetchLatest] / [GitHubReleasesClient.parseRelease].
+ * Distinguishes "no APK asset on the latest release" from "couldn't reach
+ * GitHub" so the UI can surface the right error string to the user.
+ */
+sealed interface FetchResult {
+    data class Success(val release: ReleaseInfo) : FetchResult
+    /** Release JSON parsed but Parvaz.apk / Parvaz.apk.sha256 missing or zero-sized. */
+    data object NoAsset : FetchResult
+    /** Network I/O / non-2xx / DNS / cert failure. */
+    data object NetworkError : FetchResult
+    /** Body wasn't valid release JSON. Surfaced as NetworkError to the UI today. */
+    data object Malformed : FetchResult
+}
+
+/**
  * Thin wrapper around `https://api.github.com/repos/<owner>/<repo>/releases/latest`.
  *
  * Anonymous (no auth header) — that's 60 requests per IP per hour, fine
@@ -36,25 +51,26 @@ class GitHubReleasesClient(
 ) {
 
     /**
-     * Fetches the latest release. Returns null on any network or parse
-     * failure — the UI layer translates null into a Farsi error string.
+     * Fetches the latest release. Returns a [FetchResult] — never throws
+     * for ordinary network/URL/parse errors, the UI layer maps the
+     * error variants onto Farsi strings.
      */
-    fun fetchLatest(): ReleaseInfo? {
-        val url = URL("https://api.github.com/repos/$owner/$repo/releases/latest")
-        val conn = openConnection(url)
+    fun fetchLatest(): FetchResult {
+        var conn: HttpURLConnection? = null
         return try {
+            val url = URL("https://api.github.com/repos/$owner/$repo/releases/latest")
+            conn = openConnection(url)
             conn.requestMethod = "GET"
             conn.connectTimeout = TIMEOUT_MS
             conn.readTimeout = TIMEOUT_MS
             conn.setRequestProperty("Accept", "application/vnd.github+json")
             conn.setRequestProperty("User-Agent", USER_AGENT)
-            if (conn.responseCode !in 200..299) return null
-            val raw = conn.inputStream.bufferedReader().use { it.readText() }
-            parseRelease(raw)
+            if (conn.responseCode !in 200..299) FetchResult.NetworkError
+            else parseReleaseResult(conn.inputStream.bufferedReader().use { it.readText() })
         } catch (_: Exception) {
-            null
+            FetchResult.NetworkError
         } finally {
-            conn.disconnect()
+            conn?.disconnect()
         }
     }
 
@@ -62,12 +78,28 @@ class GitHubReleasesClient(
         private const val USER_AGENT = "parvaz-app"
         private const val TIMEOUT_MS = 10_000
 
-        fun parseRelease(raw: String): ReleaseInfo? = try {
+        /**
+         * Backwards-compatible nullable parse helper. Returns the
+         * release on success and null on any failure (malformed,
+         * missing asset, zero-sized asset). Tests use this; production
+         * code should prefer [parseReleaseResult] for the granular
+         * outcome.
+         */
+        fun parseRelease(raw: String): ReleaseInfo? =
+            (parseReleaseResult(raw) as? FetchResult.Success)?.release
+
+        /**
+         * Granular variant. Treats a non-positive `size` field as a
+         * parse failure (NoAsset) so the caller's pre-flight checks
+         * don't see a "0-byte APK" and break.
+         */
+        fun parseReleaseResult(raw: String): FetchResult = try {
             val obj = JSONObject(raw)
-            val tag = obj.optString("tag_name").takeIf { it.isNotEmpty() } ?: return null
-            val version = Version.parse(tag) ?: return null
+            val tag = obj.optString("tag_name").takeIf { it.isNotEmpty() }
+                ?: return FetchResult.Malformed
+            val version = Version.parse(tag) ?: return FetchResult.Malformed
             val body = obj.optString("body", "")
-            val assets = obj.optJSONArray("assets") ?: return null
+            val assets = obj.optJSONArray("assets") ?: return FetchResult.Malformed
 
             var apkUrl: String? = null
             var apkSize: Long = 0L
@@ -84,18 +116,20 @@ class GitHubReleasesClient(
                     name == "Parvaz.apk.sha256" -> shaUrl = download
                 }
             }
-            if (apkUrl == null || shaUrl == null) return null
+            if (apkUrl == null || shaUrl == null || apkSize <= 0L) return FetchResult.NoAsset
 
-            ReleaseInfo(
-                tagName = tag,
-                version = version,
-                body = body,
-                apkUrl = apkUrl,
-                apkSizeBytes = apkSize,
-                sha256Url = shaUrl,
+            FetchResult.Success(
+                ReleaseInfo(
+                    tagName = tag,
+                    version = version,
+                    body = body,
+                    apkUrl = apkUrl,
+                    apkSizeBytes = apkSize,
+                    sha256Url = shaUrl,
+                ),
             )
         } catch (_: Exception) {
-            null
+            FetchResult.Malformed
         }
     }
 }

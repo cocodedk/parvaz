@@ -86,7 +86,7 @@ fun UpdateSection(
             }
             is UpdateState.InstallerHandoff ->
                 StatusLabel(R.string.settings_update_installer_handoff, color = Olive)
-            UpdateState.NeedsUnknownSources -> {
+            is UpdateState.NeedsUnknownSources -> {
                 StatusLabel(R.string.settings_update_error_unknown_sources, color = Oxblood)
                 InstallButton(onInstall)
             }

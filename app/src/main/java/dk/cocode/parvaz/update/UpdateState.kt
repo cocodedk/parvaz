@@ -17,7 +17,10 @@ sealed interface UpdateState {
         val totalBytes: Long,
     ) : UpdateState
     data class InstallerHandoff(val release: ReleaseInfo) : UpdateState
-    data object NeedsUnknownSources : UpdateState
+    /** Carries the [ReleaseInfo] so the user's retry tap (after they
+     *  flip "install unknown apps" in system settings) can resume the
+     *  download without going back through `check()`. */
+    data class NeedsUnknownSources(val release: ReleaseInfo) : UpdateState
     sealed interface Failure : UpdateState {
         data object Network : Failure
         data object NoAsset : Failure

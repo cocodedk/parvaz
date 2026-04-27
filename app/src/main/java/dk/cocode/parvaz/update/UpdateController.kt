@@ -52,57 +52,70 @@ class UpdateController(app: Application) : AndroidViewModel(app) {
         job?.cancel()
         job = viewModelScope.launch {
             _state.value = UpdateState.Checking
-            val release = withContext(Dispatchers.IO) { client.fetchLatest() }
-            _state.value = when {
-                release == null -> UpdateState.Failure.Network
-                !release.version.isNewerThan(currentVersion) -> UpdateState.UpToDate
-                else -> UpdateState.Available(release)
+            val result = withContext(Dispatchers.IO) { client.fetchLatest() }
+            _state.value = when (result) {
+                is FetchResult.Success ->
+                    if (result.release.version.isNewerThan(currentVersion))
+                        UpdateState.Available(result.release)
+                    else UpdateState.UpToDate
+                FetchResult.NoAsset -> UpdateState.Failure.NoAsset
+                FetchResult.NetworkError, FetchResult.Malformed -> UpdateState.Failure.Network
             }
         }
     }
 
     fun install(stopVpn: () -> Unit) {
-        val current = _state.value
-        val release = when (current) {
+        val release = when (val current = _state.value) {
             is UpdateState.Available -> current.release
-            UpdateState.NeedsUnknownSources -> (state.value as? UpdateState.NeedsUnknownSources)?.let {
-                // Re-attempt: the user just toggled "install unknown sources".
-                // We don't have the release on this branch; bail back to Available
-                // by re-checking. Caller should call check() first in that flow.
-                return
-            } ?: return
+            // User just flipped "install unknown apps" — resume with
+            // the same release we already downloaded.
+            is UpdateState.NeedsUnknownSources -> current.release
             else -> return
         }
 
         job?.cancel()
         job = viewModelScope.launch {
-            _state.value = UpdateState.Disconnecting(release)
-            withContext(Dispatchers.Main) { stopVpn() }
-            waitForVpnDisconnected()
-            bindProcessToNonVpn()
+            try {
+                _state.value = UpdateState.Disconnecting(release)
+                withContext(Dispatchers.Main) { stopVpn() }
+                waitForVpnDisconnected()
+                bindProcessToNonVpn()
 
-            _state.value = UpdateState.Downloading(release, 0L, release.apkSizeBytes)
-            val dest = installer.destinationFile()
-            val outcome = withContext(Dispatchers.IO) {
-                downloader.download(
-                    apkUrl = release.apkUrl,
-                    sha256Url = release.sha256Url,
-                    destination = dest,
-                    totalBytes = release.apkSizeBytes,
-                    onProgress = { downloaded, total ->
-                        _state.value = UpdateState.Downloading(release, downloaded, total)
-                    },
-                )
-            }
-            _state.value = when (outcome) {
-                is ApkDownloadOutcome.Success -> {
-                    when (installer.install(outcome.file)) {
-                        InstallOutcome.Launched -> UpdateState.InstallerHandoff(release)
-                        InstallOutcome.NeedsUnknownSourcesPermission -> UpdateState.NeedsUnknownSources
-                    }
+                _state.value = UpdateState.Downloading(release, 0L, release.apkSizeBytes)
+                val dest = installer.destinationFile()
+                val outcome = withContext(Dispatchers.IO) {
+                    downloader.download(
+                        apkUrl = release.apkUrl,
+                        sha256Url = release.sha256Url,
+                        destination = dest,
+                        totalBytes = release.apkSizeBytes,
+                        onProgress = { downloaded, total ->
+                            _state.value = UpdateState.Downloading(release, downloaded, total)
+                        },
+                    )
                 }
-                ApkDownloadOutcome.ShaMismatch -> UpdateState.Failure.ShaMismatch
-                is ApkDownloadOutcome.NetworkError -> UpdateState.Failure.Network
+                _state.value = when (outcome) {
+                    is ApkDownloadOutcome.Success -> {
+                        when (installer.install(outcome.file)) {
+                            // System installer takes the screen; on success
+                            // the OS replaces this process so unbinding here
+                            // is moot but harmless.
+                            InstallOutcome.Launched -> UpdateState.InstallerHandoff(release)
+                            InstallOutcome.NeedsUnknownSourcesPermission -> UpdateState.NeedsUnknownSources(release)
+                        }
+                    }
+                    ApkDownloadOutcome.ShaMismatch -> UpdateState.Failure.ShaMismatch
+                    is ApkDownloadOutcome.NetworkError -> UpdateState.Failure.Network
+                }
+            } finally {
+                // Privacy/VPN-app correctness: any non-Launched terminal
+                // state, *and* coroutine cancellation, must release the
+                // process-wide non-VPN binding. Otherwise a user who
+                // re-enables Parvaz after a failed update would silently
+                // bypass the tunnel until app process death.
+                if (_state.value !is UpdateState.InstallerHandoff) {
+                    unbindProcessNetwork()
+                }
             }
         }
     }
@@ -120,8 +133,7 @@ class UpdateController(app: Application) : AndroidViewModel(app) {
 
     private fun bindProcessToNonVpn() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
-        val cm = getApplication<Application>()
-            .getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return
+        val cm = connectivityManager() ?: return
         val networks = cm.allNetworks
         val nonVpn = networks.firstOrNull { net ->
             val caps = cm.getNetworkCapabilities(net) ?: return@firstOrNull false
@@ -130,4 +142,13 @@ class UpdateController(app: Application) : AndroidViewModel(app) {
         }
         if (nonVpn != null) cm.bindProcessToNetwork(nonVpn)
     }
+
+    private fun unbindProcessNetwork() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
+        connectivityManager()?.bindProcessToNetwork(null)
+    }
+
+    private fun connectivityManager(): ConnectivityManager? =
+        getApplication<Application>()
+            .getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
 }

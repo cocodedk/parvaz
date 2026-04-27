@@ -14,7 +14,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +43,7 @@ import dk.cocode.parvaz.ui.theme.Paper
  * Pointing at a different Apps Script deployment doesn't invalidate the
  * existing trust chain.
  *
- * Reuses [AccessImport.parse] so the URL grammar is identical to the
+ * Reuses [Access.parse] so the URL grammar is identical to the
  * onboarding Import screen.
  *
  * The "saved" feedback is local-only state — caller is expected to
@@ -56,7 +55,14 @@ fun UrlEditSection(
     onSave: (Access) -> Unit,
 ) {
     val placeholder = remember(currentAccess) { currentAccess?.let(::redact).orEmpty() }
-    var input by rememberSaveable { mutableStateOf("") }
+    // Plain `remember` (not `rememberSaveable`): a half-typed
+    // parvaz://… URL contains the same access key we deliberately
+    // store in EncryptedSharedPreferences. Persisting it into the
+    // savedInstanceState bundle (which Android can spill to disk on
+    // process death) would leak that key to plaintext storage.
+    // Trade-off: input is lost across rotation — onboarding's
+    // ImportAccessScreen accepts the same trade-off.
+    var input by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     var savedFlash by remember { mutableStateOf(false) }
 

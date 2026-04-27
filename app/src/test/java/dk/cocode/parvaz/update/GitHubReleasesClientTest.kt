@@ -48,4 +48,30 @@ class GitHubReleasesClientTest {
             .replace("\"name\":\"Parvaz.apk\"", "\"name\":\"NotApk.apk\"")
         assertNull(GitHubReleasesClient.parseRelease(raw))
     }
+
+    @Test fun parseReleaseResult_DistinguishesNoAssetFromMalformed() {
+        val malformed = GitHubReleasesClient.parseReleaseResult("not json")
+        assertEquals(FetchResult.Malformed, malformed)
+
+        val noAsset = GitHubReleasesClient.parseReleaseResult(
+            fixture("release_v0.1.4.json")
+                .replace("\"name\":\"Parvaz.apk\"", "\"name\":\"NotApk.apk\""),
+        )
+        assertEquals(FetchResult.NoAsset, noAsset)
+    }
+
+    @Test fun parseReleaseResult_TreatsZeroSizedApkAsNoAsset() {
+        // A release JSON where the Parvaz.apk asset advertises size=0 must
+        // surface as NoAsset rather than Success — otherwise downstream
+        // progress UI and pre-flight free-space checks degrade silently.
+        val raw = fixture("release_v0.1.4.json")
+            .replace("\"size\":13632771", "\"size\":0")
+        assertEquals(FetchResult.NoAsset, GitHubReleasesClient.parseReleaseResult(raw))
+    }
+
+    @Test fun parseReleaseResult_SuccessOnRealPayload() {
+        val r = GitHubReleasesClient.parseReleaseResult(fixture("release_v0.1.4.json"))
+        check(r is FetchResult.Success) { "expected Success, got $r" }
+        assertEquals("v0.1.4", r.release.tagName)
+    }
 }
