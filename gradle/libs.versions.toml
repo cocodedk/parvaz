@@ -10,7 +10,7 @@ kotlin = "2.3.21"
 composeBom = "2026.04.01"
 securityCrypto = "1.1.0-alpha06"
 testCore = "1.7.0"
-coreSplashscreen = "1.0.1"
+coreSplashscreen = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
