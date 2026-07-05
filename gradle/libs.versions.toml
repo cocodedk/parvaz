@@ -35,7 +35,7 @@ androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscree
 # org.json is built into Android since API 1, but the unit-test JVM uses
 # the stubbed android.jar — adding the upstream implementation as a test
 # dependency lets parser tests run without a device.
-json = { group = "org.json", name = "json", version = "20251224" }
+json = { group = "org.json", name = "json", version = "20260522" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
