@@ -6,7 +6,7 @@ toolchain go1.25.9
 
 require (
 	github.com/andybalholm/brotli v1.2.2
-	github.com/klauspost/compress v1.18.6
+	github.com/klauspost/compress v1.19.0
 	github.com/xjasonlyu/tun2socks/v2 v2.6.0
 )
 
