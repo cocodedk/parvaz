@@ -41,7 +41,9 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v5
         with:
-          go-version: '1.24'
+          # Exact version, not '1.24': the Go compiler is part of the APK's bytes, so F-Droid's
+          # reproducible build must use the same one (its recipe pins go@go1.24.13 to match).
+          go-version: '1.24.13'
           cache: true
           cache-dependency-path: core/go.sum
 
@@ -85,6 +87,9 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -eu
+          # -buildvcs=false keeps git state out of the binary. Otherwise it embeds a pseudo-version
+          # computed before this release's tag exists, plus a dirty flag, and no later rebuild
+          # (F-Droid's included) can reproduce the APK byte for byte.
           LDFLAGS="-s -w -X main.version=${VERSION}"
           build_abi() {
             local goarch="$1" goarm="$2" abi="$3"
@@ -98,7 +103,7 @@ jobs:
             # GOARM=7 landed in command position and bash exec'd it as the
             # command name (exit 127 "command not found").
             env GOOS=android GOARCH="$goarch" ${goarm:+GOARM="$goarm"} \
-                go build -C core -trimpath -ldflags "$LDFLAGS" \
+                go build -C core -trimpath -buildvcs=false -ldflags "$LDFLAGS" \
                 -o "../$out" ./cmd/parvazd
           }
           # arm64-v8a is the only ABI that links without cgo — gvisor /
