@@ -1,0 +1,9 @@
+Parvaz (Persian for "flight") is a Farsi-first Android app for Iranian users that tunnels browser traffic through a Google Apps Script relay deployed and controlled by a trusted technical helper.
+
+The app terminates TLS locally using a certificate the user installs once, then re-encapsulates HTTPS requests inside the relay's JSON protocol and forwards them through Google's infrastructure. Chrome and other Chromium-based browsers (Brave, Edge, Vivaldi) trust this certificate automatically; native apps, non-Chromium browsers, and non-HTTP protocols are out of scope by Android design.
+
+Because the relay operator can read all tunneled traffic in plaintext, Parvaz is intended for read-only browsing of public information rather than signing in to sensitive accounts, unless the user fully trusts the operator running the relay.
+
+Setup requires installing a certificate through Android Settings once and importing a parvaz:// access link shared by the helper. After that, one tap starts or stops the tunnel from the main screen.
+
+Throughput is limited by the underlying Apps Script quota, and WebSockets are not supported.

@@ -63,7 +63,4 @@ object SettingsTestTags {
     const val UrlSaveButton = "settings_url_save"
     const val UrlError = "settings_url_error"
     const val ResetButton = "settings_reset_button"
-    const val UpdateCheckButton = "settings_update_check"
-    const val UpdateInstallButton = "settings_update_install"
-    const val UpdateStatusText = "settings_update_status"
 }
