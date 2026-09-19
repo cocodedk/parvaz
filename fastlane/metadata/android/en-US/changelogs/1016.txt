@@ -1,0 +1,2 @@
+Maintenance release: no visible changes. Prepares the build so F-Droid can
+pick up future updates automatically.

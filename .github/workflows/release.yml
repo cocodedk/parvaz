@@ -2,13 +2,6 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      bump:
-        description: 'Version bump type'
-        required: false
-        default: 'patch'
-        type: choice
-        options: [patch, minor, major]
   push:
     branches: [main]
     # Don't burn a patch release on changes that can't affect the APK.
@@ -23,9 +16,8 @@ on:
 permissions:
   contents: write
 
-# Serialize releases so two merges in quick succession don't race on the
-# `git tag` push. Don't cancel an in-flight build — every merge gets its
-# own version.
+# Serialize rather than cancel: two concurrent runs would read the same version from
+# gradle.properties and both try to release it.
 concurrency:
   group: release
   cancel-in-progress: false
@@ -54,34 +46,34 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Compute next version
+      - name: Read the version
         id: version
         env:
-          # workflow_dispatch supplies inputs.bump; push events don't —
-          # default the auto-fire path to patch.
-          BUMP: ${{ inputs.bump || 'patch' }}
+          # A branch push re-releasing an already-tagged version is not an error — main
+          # moves on every merge, most of which don't bump the version. A manual dispatch
+          # doing the same means someone forgot to bump it, so that case should fail loud.
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          set -eu
-          LATEST=$(git tag --list 'v*' --sort=-version:refname | head -1)
-          [ -z "$LATEST" ] && LATEST="v0.0.0"
-          VERSION="${LATEST#v}"
-          if ! [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            echo "Cannot parse tag: $LATEST" >&2
+          # gradle.properties is the only place the version is set; F-Droid's checkupdates
+          # reads the same lines at each tag. Refuse to re-release a version, so a
+          # forgotten bump fails here instead of overwriting nothing and confusing later.
+          VERSION=$(sed -n 's/^VERSION_NAME=//p' gradle.properties)
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Cannot parse VERSION_NAME: '$VERSION'" >&2; exit 1; }
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            if [ "$EVENT_NAME" = push ]; then
+              echo "::notice::v$VERSION is already released; nothing to do for this push."
+              echo "release=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "v$VERSION is already released. Bump VERSION_NAME and VERSION_CODE in gradle.properties first." >&2
             exit 1
           fi
-          MAJOR="${BASH_REMATCH[1]}"; MINOR="${BASH_REMATCH[2]}"; PATCH="${BASH_REMATCH[3]}"
-          case "$BUMP" in
-            major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
-            minor) MINOR=$((MINOR+1)); PATCH=0 ;;
-            patch) PATCH=$((PATCH+1)) ;;
-            *)     echo "Unknown bump: $BUMP" >&2; exit 1 ;;
-          esac
-          TAG="v$MAJOR.$MINOR.$PATCH"
-          echo "version=$MAJOR.$MINOR.$PATCH" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "Next release: $TAG (bump=$BUMP, from $LATEST)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "release=true" >> "$GITHUB_OUTPUT"
 
       - name: Build Go core for Android ABIs
+        if: steps.version.outputs.release == 'true'
         env:
           CGO_ENABLED: '0'
           VERSION: ${{ steps.version.outputs.version }}
@@ -115,6 +107,7 @@ jobs:
           build_abi arm64 "" arm64-v8a
 
       - name: Verify signing secrets
+        if: steps.version.outputs.release == 'true'
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -134,13 +127,14 @@ jobs:
           fi
 
       - name: Decode keystore
+        if: steps.version.outputs.release == 'true'
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
 
       - name: Build signed release APK
+        if: steps.version.outputs.release == 'true'
         env:
-          VERSION_NAME: ${{ steps.version.outputs.version }}
           KEYSTORE_PATH: release.keystore
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -148,6 +142,7 @@ jobs:
         run: ./gradlew assembleRelease --no-daemon
 
       - name: Rename APK to stable filename
+        if: steps.version.outputs.release == 'true'
         run: |
           set -eu
           mkdir -p dist
@@ -155,6 +150,7 @@ jobs:
           ( cd dist && sha256sum "Parvaz.apk" > "Parvaz.apk.sha256" )
 
       - name: Tag and push
+        if: steps.version.outputs.release == 'true'
         run: |
           git config user.email "github-actions@github.com"
           git config user.name "github-actions[bot]"
@@ -162,6 +158,7 @@ jobs:
           git push origin "${{ steps.version.outputs.tag }}"
 
       - name: Create GitHub Release
+        if: steps.version.outputs.release == 'true'
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}

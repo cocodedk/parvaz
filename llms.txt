@@ -54,7 +54,7 @@ ARCHITECTURE.md.
 - `ARCHITECTURE.md` — full data path diagram and core/app boundary
 - `core/go.mod` — Go module `github.com/cocodedk/parvaz/core`
 - `apps_script/Code.gs` — the server Parvaz talks to (deploy to your own Google account)
-- `version.txt` — semantic version
+- `gradle.properties` — also holds VERSION_NAME/VERSION_CODE, the app's version
 
 ## Wire Protocol
 

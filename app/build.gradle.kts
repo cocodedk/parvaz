@@ -3,19 +3,14 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// ── Version from root version.txt (MAJOR.MINOR.PATCH) ──────────────────────
-// Gradle property first so F-Droid's reproducible build (which invokes
-// Gradle directly, not through our release workflow's env var) can pin
-// the version without relying on the environment.
-val versionNameValue = providers.gradleProperty("VERSION_NAME").orNull
-    ?: System.getenv("VERSION_NAME")
-    ?: rootProject.file("version.txt").takeIf { it.exists() }?.readText()?.trim()
-    ?: "0.1.0"
-val semverParts = versionNameValue.split(".")
-val majorV = semverParts.getOrNull(0)?.toIntOrNull() ?: 0
-val minorV = semverParts.getOrNull(1)?.toIntOrNull() ?: 1
-val patchV = semverParts.getOrNull(2)?.toIntOrNull() ?: 0
-val versionCodeValue = majorV * 1_000_000 + minorV * 1_000 + patchV
+// ── Version from gradle.properties ──────────────────────────────────────────
+// The version lives in gradle.properties, where the release workflow and
+// F-Droid's checkupdates both read it (its reproducible build invokes Gradle
+// directly, not through our release workflow, so it needs the value pinned
+// in the source rather than passed through the environment). See the comment
+// there before bumping it.
+val versionNameValue: String = providers.gradleProperty("VERSION_NAME").get()
+val versionCodeValue: Int = providers.gradleProperty("VERSION_CODE").get().toInt()
 
 // ── Signing config from env vars (release workflow) ────────────────────────
 val signingKeystorePath = System.getenv("KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
