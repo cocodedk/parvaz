@@ -93,12 +93,19 @@ android {
         compose = true
     }
 
-    // ProcessBuilder needs the Go sidecar binary as a real file on disk, so
-    // the APK must ship libparvaz.so extracted instead of memory-mapped.
-    // AGP 9 requires setting this here, not via android:extractNativeLibs.
     packaging {
         jniLibs {
+            // ProcessBuilder needs the Go sidecar binary as a real file on disk, so
+            // the APK must ship libparvaz.so extracted instead of memory-mapped.
+            // AGP 9 requires setting this here, not via android:extractNativeLibs.
             useLegacyPackaging = true
+
+            // libparvaz.so is already stripped by the Go build's own `-ldflags "-s -w"`
+            // (see release.yml), but AGP still runs it through whatever NDK strip tool
+            // it finds during packaging, so a rebuild without that exact NDK could still
+            // produce different bytes. Keeping the symbols here means AGP repackages the
+            // file exactly as the Go build wrote it, so the recipe needs no `ndk:` pin.
+            keepDebugSymbols += "**/*.so"
         }
     }
 }
