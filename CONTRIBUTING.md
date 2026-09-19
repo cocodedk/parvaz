@@ -72,12 +72,16 @@ verifies it with `keytool`, and uploads all four secrets via `gh`:
 ./scripts/setup-signing.sh
 ```
 
-Then trigger a release from the Actions tab (Release workflow → Run workflow)
-or via:
+Then bump `VERSION_NAME` and `VERSION_CODE` in `gradle.properties` through a
+PR, and trigger a release from the Actions tab (Release workflow → Run
+workflow) or via:
 
 ```sh
-gh workflow run release.yml -f bump=patch   # or minor / major
+gh workflow run release.yml
 ```
+
+It also fires on every push to main, and skips quietly if that version is
+already released.
 
 The workflow builds the Go core for 4 Android ABIs, drops the `.so` into
 `app/src/main/jniLibs/`, signs the APK, tags `v<version>`, and attaches

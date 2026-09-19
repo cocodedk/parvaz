@@ -80,6 +80,8 @@ if ! git check-ignore -q "$KEYSTORE" 2>/dev/null; then
 fi
 
 echo
-echo "Release workflow is now ready. Trigger manually:"
-echo "  gh workflow run release.yml --repo $REPO -f bump=patch"
-echo "Or via the Actions tab → Release → Run workflow."
+echo "Release workflow is now ready. To cut a release, bump VERSION_NAME and"
+echo "VERSION_CODE in gradle.properties through a PR, then trigger manually:"
+echo "  gh workflow run release.yml --repo $REPO"
+echo "Or via the Actions tab → Release → Run workflow. It also fires on every"
+echo "push to main and skips quietly if that version is already released."
