@@ -25,10 +25,9 @@ import dk.cocode.parvaz.ui.theme.Paper
 
 /**
  * Globally-reachable settings sheet — opened by the gear icon on every
- * screen. Composes four optional sections:
+ * screen. Composes three optional sections:
  *   - [UrlEditSection] — always visible. Pre-filled when an Access exists.
  *   - [LanguageSection] — always visible.
- *   - [UpdateSection]  — always visible (M-update-5).
  *   - [ResetSection]   — visible only after onboarding completes
  *     ([onboardingComplete]=true) so a user mid-CA-install can't drop
  *     themselves back to step 1 by misadventure.
@@ -46,7 +45,6 @@ fun SettingsSheet(
     onSaveAccess: (Access) -> Unit,
     onResetAccess: () -> Unit,
     onDismiss: () -> Unit,
-    updateSection: @Composable () -> Unit = {},
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -72,9 +70,6 @@ fun SettingsSheet(
             HorizontalDivider(color = InkSoft)
 
             LanguageSection(currentLanguage = currentLanguage, onLanguageChange = onLanguageChange)
-            HorizontalDivider(color = InkSoft)
-
-            updateSection()
 
             if (onboardingComplete) {
                 HorizontalDivider(color = InkSoft)

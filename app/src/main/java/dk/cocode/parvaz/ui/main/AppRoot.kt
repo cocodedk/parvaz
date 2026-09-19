@@ -5,22 +5,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dk.cocode.parvaz.BuildConfig
 import dk.cocode.parvaz.settings.Access
 import dk.cocode.parvaz.ui.onboarding.OnboardingHost
 import dk.cocode.parvaz.ui.onboarding.ReadinessScreen
 import dk.cocode.parvaz.ui.settings.SettingsScaffold
 import dk.cocode.parvaz.ui.settings.SettingsSheet
-import dk.cocode.parvaz.ui.settings.UpdateSection
 import dk.cocode.parvaz.ui.theme.Paper
-import dk.cocode.parvaz.update.UpdateController
-import dk.cocode.parvaz.update.Version
 
 /**
  * Top-level composable hoisted out of [MainActivity] so the activity
@@ -40,7 +34,6 @@ import dk.cocode.parvaz.update.Version
 @Composable
 fun AppRoot(
     mainViewModel: MainViewModel,
-    updateController: UpdateController,
     pendingParvazUrl: String?,
     pendingParvazUrlError: String?,
     activeAccess: Access?,
@@ -87,7 +80,6 @@ fun AppRoot(
             }
         }
         if (showSettingsSheet) {
-            val updateState by updateController.state.collectAsStateWithLifecycle()
             SettingsSheet(
                 currentLanguage = currentLanguage,
                 currentAccess = activeAccess,
@@ -102,20 +94,6 @@ fun AppRoot(
                     onResetAccess()
                 },
                 onDismiss = { onSettingsVisibilityChange(false) },
-                updateSection = {
-                    UpdateSection(
-                        currentVersionName = BuildConfig.VERSION_NAME,
-                        state = updateState,
-                        onCheck = {
-                            val current = Version.parse(BuildConfig.VERSION_NAME)
-                                ?: Version(0, 0, 0)
-                            updateController.check(current)
-                        },
-                        onInstall = {
-                            updateController.install(stopVpn = { mainViewModel.disconnect() })
-                        },
-                    )
-                },
             )
         }
     }

@@ -4,7 +4,11 @@ plugins {
 }
 
 // ── Version from root version.txt (MAJOR.MINOR.PATCH) ──────────────────────
-val versionNameValue = System.getenv("VERSION_NAME")
+// Gradle property first so F-Droid's reproducible build (which invokes
+// Gradle directly, not through our release workflow's env var) can pin
+// the version without relying on the environment.
+val versionNameValue = providers.gradleProperty("VERSION_NAME").orNull
+    ?: System.getenv("VERSION_NAME")
     ?: rootProject.file("version.txt").takeIf { it.exists() }?.readText()?.trim()
     ?: "0.1.0"
 val semverParts = versionNameValue.split(".")
@@ -32,6 +36,13 @@ android {
         version = release(36) {
             minorApiLevel = 1
         }
+    }
+
+    // AGP otherwise adds a Google-encrypted dependency list to the APK signing
+    // block, and F-Droid rejects any release APK that carries it.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     defaultConfig {
@@ -82,9 +93,6 @@ android {
     }
     buildFeatures {
         compose = true
-        // Generate BuildConfig.VERSION_NAME so the in-app updater can
-        // compare it against the GitHub Releases tag at runtime.
-        buildConfig = true
     }
 
     // ProcessBuilder needs the Go sidecar binary as a real file on disk, so

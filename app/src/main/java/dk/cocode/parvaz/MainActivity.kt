@@ -21,7 +21,6 @@ import dk.cocode.parvaz.settings.ParvazSettings
 import dk.cocode.parvaz.ui.main.AppRoot
 import dk.cocode.parvaz.ui.main.MainViewModel
 import dk.cocode.parvaz.ui.theme.ParvazTheme
-import dk.cocode.parvaz.update.UpdateController
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -30,7 +29,6 @@ private const val KEY_PENDING_URL_ERROR = "pending_parvaz_url_error"
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
-    private val updateController: UpdateController by viewModels()
 
     private var pendingParvazUrl by mutableStateOf<String?>(null)
     private var pendingParvazUrlError by mutableStateOf<String?>(null)
@@ -82,7 +80,6 @@ class MainActivity : ComponentActivity() {
             ParvazTheme {
                 AppRoot(
                     mainViewModel = mainViewModel,
-                    updateController = updateController,
                     pendingParvazUrl = pendingParvazUrl,
                     pendingParvazUrlError = pendingParvazUrlError,
                     activeAccess = activeAccess,
