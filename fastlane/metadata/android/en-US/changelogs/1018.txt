@@ -1,0 +1,1 @@
+The app now ships only the 64-bit ARM build, which is what every Android phone it is meant for uses. The previous release also carried an x86_64 slice that had no core engine in it, so on those rare devices the tunnel could not start.
