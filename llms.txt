@@ -85,7 +85,7 @@ directly. Same format encoded in QR codes.
 
 - Repo: https://github.com/cocodedk/parvaz
 - Releases: https://github.com/cocodedk/parvaz/releases/latest
-- Website: https://cocodedk.github.io/parvaz/
+- Website: https://parvaz.cocode.dk/
 - Related mature project: https://github.com/therealaleph/MasterHttpRelayVPN-RUST
 - Built by: [Cocode](https://cocode.dk) · [Babak Bandpey](https://linkedin.com/in/babakbandpey)
 

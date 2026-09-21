@@ -27,8 +27,8 @@ and tighter onboarding for non-technical users.
 
 ## Website
 
-- [English](https://cocodedk.github.io/parvaz/)
-- [فارسی (Persian)](https://cocodedk.github.io/parvaz/fa/)
+- [English](https://parvaz.cocode.dk/)
+- [فارسی (Persian)](https://parvaz.cocode.dk/fa/)
 
 ## Status
 
