@@ -55,7 +55,7 @@ android {
         // primary ABI on x86_64 emulators too (the emulator's ARM
         // translation layer handles execution; abilist advertises both).
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            abiFilters += listOf("arm64-v8a")
         }
     }
 
