@@ -4,13 +4,17 @@
    ===================================================================== */
 
 body.airline-deck .deck-track {
-  height: 100vh;
+  /* .deck-track is a normal-flow sibling after <cocode-head> (which is
+     itself in flow and contributes --frame-h of height); shrinking the
+     track by that amount keeps head + track = 100vh, matching body's own
+     height:100vh + overflow:hidden so nothing is clipped or scrollable. */
+  height: calc(100vh - var(--frame-h));
   overflow-y: auto;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
 }
 body.airline-deck .slide {
-  height: 100vh;
+  height: calc(100vh - var(--frame-h));
   scroll-snap-align: start;
   scroll-snap-stop: always;
   padding: calc(var(--header-h) + 24px) clamp(28px, 5vw, 64px) calc(var(--controls-h) + 24px);
