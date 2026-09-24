@@ -1,12 +1,12 @@
 module github.com/cocodedk/parvaz/core
 
-go 1.24
+go 1.25
 
 toolchain go1.25.9
 
 require (
 	github.com/andybalholm/brotli v1.2.2
-	github.com/klauspost/compress v1.19.0
+	github.com/klauspost/compress v1.20.0
 	github.com/xjasonlyu/tun2socks/v2 v2.6.0
 )
 
