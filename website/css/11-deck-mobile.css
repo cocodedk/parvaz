@@ -115,6 +115,9 @@
   body.airline-deck .deck-controls__lang { display: none; }
   body.airline-deck .deck-lang-pill { top: 8px; right: 10px; padding: 4px 10px; font-size: 11px; }
   body.airline-deck[dir="rtl"] .deck-lang-pill { left: 10px; right: auto; }
+  /* Matches .slide's own fixed 16px padding at this breakpoint (the clamp()
+     gutter above only applies above 780px). */
+  cocode-head { --cocode-gutter: 16px; }
 }
 
 /* Phone-portrait — really narrow screens (≤380px): even tighter. */

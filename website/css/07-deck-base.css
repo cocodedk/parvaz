@@ -26,6 +26,11 @@ body.airline-deck {
 
   --header-h:   140px;
   --controls-h: 64px;
+  /* Reserved space for <cocode-head> (brand.cocode.dk), a normal-flow
+     sibling placed before .deck-header. Measured empirically: exactly
+     71px, constant from 360px to 1440px and in both EN/LTR and FA/RTL —
+     see .deck-track/.slide in 08-deck-slide.css for how this is spent. */
+  --frame-h: 71px;
 
   background: var(--paper);
   background-image: none;
@@ -36,7 +41,7 @@ body.airline-deck {
 }
 
 body.airline-deck .deck-header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  position: fixed; top: var(--frame-h); left: 0; right: 0; z-index: 50;
   background: var(--paper);
   box-shadow: 0 1px 0 var(--ink), 0 6px 18px rgba(18,42,68,0.06);
 }
@@ -180,9 +185,13 @@ body.airline-deck .crop { display: none; }
 /* Re-tone shared components used inside slides */
 body.airline-deck .sec-head { margin-bottom: 18px; }
 body.airline-deck .listing { margin: 12px 0; }
-body.airline-deck .listing-body { font-size: 12px; line-height: 1.55; max-height: calc(100vh - var(--header-h) - var(--controls-h) - 200px); overflow: auto; }
-body.airline-deck .schematic-body { font-size: 11px; line-height: 1.4; max-height: calc(100vh - var(--header-h) - var(--controls-h) - 180px); overflow: auto; }
+body.airline-deck .listing-body { font-size: 12px; line-height: 1.55; max-height: calc(100vh - var(--frame-h) - var(--header-h) - var(--controls-h) - 200px); overflow: auto; }
+body.airline-deck .schematic-body { font-size: 11px; line-height: 1.4; max-height: calc(100vh - var(--frame-h) - var(--header-h) - var(--controls-h) - 180px); overflow: auto; }
 body.airline-deck .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 body.airline-deck .spec { padding: 12px 14px; }
 body.airline-deck .spec-num { color: var(--cyan); }
 body.airline-deck .notam-body { font-size: 13px; }
+
+/* .slide has no centred column — it's edge-to-edge with the same fluid
+   clamp() gutter as its own padding (mobile override in 11-deck-mobile.css). */
+cocode-head { --cocode-max: 100vw; --cocode-gutter: clamp(28px, 5vw, 64px); }

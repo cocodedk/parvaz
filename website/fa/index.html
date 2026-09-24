@@ -35,6 +35,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Redaction&family=Redaction+35&family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="../styles.css"/>
+<link rel="stylesheet" href="https://brand.cocode.dk/v1.css">
+<script type="module" src="https://brand.cocode.dk/v1.js"></script>
 
 <script type="application/ld+json">
 {
@@ -59,6 +61,18 @@
 </script>
 </head>
 <body class="airline-deck">
+
+<!-- The cocode.dk family frame. A normal-flow sibling before the deck's own
+     fixed .deck-header — see --frame-h in css/07-deck-base.css for how the
+     deck reserves its exact height. No <cocode-foot>: the deck is a
+     100vh, JS-scroll-snapped app shell with no natural document flow to
+     place a foot "below" (see the rollout report for why). The deck's own
+     language pill/controls link stay: they carry the current slide's #N
+     hash through a language switch, which the frame's own switch can't. -->
+<cocode-head project="پرواز" accent="#122a44" on-accent="#e8dfc6">
+  <a href="https://cocode.dk">cocode.dk</a>
+  <a href="../" hreflang="en">English</a>
+</cocode-head>
 
 <header class="deck-header" role="banner">
   <a href="../" class="deck-lang-pill" aria-label="English version">EN</a>
