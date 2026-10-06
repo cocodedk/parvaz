@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy | Parvaz (پرواز)</title>
+  <meta name="description" content="Privacy policy for Parvaz (dk.cocode.parvaz), a Farsi-first Android browser tunnel. Parvaz routes your browser traffic through a Google Apps Script relay you or a helper deploys; that operator and Google can read it. Parvaz itself collects no analytics." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://cocodedk.github.io/parvaz/privacy.html" />
+  <link rel="alternate" hreflang="en" href="https://cocodedk.github.io/parvaz/privacy.html" />
+  <link rel="alternate" hreflang="fa" href="https://cocodedk.github.io/parvaz/privacy.html" />
+  <link rel="icon" type="image/svg+xml" href="parvaz-mark.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Redaction&family=Redaction+35&family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --paper:   #F1E8D4; --paper-2: #EADDBF; --paper-3: #DDCDA5; --paper-4: #C9B584;
+      --ink:     #1A1410; --ink-2:   #4A3F34; --ink-3:   #7E7260;
+      --rule:    rgba(26,20,16,0.18); --grid: rgba(26,20,16,0.05);
+      --stamp:   #A8361C; --stamp-2:  #7C1F12; --burnt: #B5581A; --seal: #6B4A1A; --safe: #3A5634;
+      --mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      --display: 'Redaction', 'Times New Roman', serif;
+      --stamp-face: 'Redaction 35', 'Redaction', serif;
+      --fa:      'Vazirmatn', 'Tahoma', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+      font-family: var(--mono); font-size: 14px; line-height: 1.7; color: var(--ink);
+      background: var(--paper);
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 28px 28px, 28px 28px;
+      background-attachment: fixed, fixed;
+      min-height: 100vh;
+    }
+    a { color: var(--stamp); text-decoration: none; border-bottom: 1px dotted currentColor; }
+    a:hover { background: var(--paper-3); }
+    code { font-family: var(--mono); background: var(--paper-3); padding: 1px 6px; font-size: 0.9em; border-radius: 1px; word-break: break-word; }
+    .sheet { max-width: 940px; margin: 0 auto; padding: 40px 24px 64px; width: 100%; }
+    .back { display: inline-block; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2); border-bottom: none; margin-bottom: 26px; }
+    .back:hover { background: transparent; color: var(--stamp); }
+    .doc {
+      background: rgba(255,255,255,0.35); border: 1px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(26,20,16,0.12); padding: clamp(22px, 5vw, 48px);
+    }
+    .title-block { border-top: 4px double var(--ink); border-bottom: 1px solid var(--ink); padding: 22px 0 20px; margin-bottom: 8px; position: relative; }
+    .kicker { font-family: var(--mono); font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+    h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 6vw, 3.2rem); line-height: 0.95; color: var(--ink); letter-spacing: -0.01em; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 6px 26px; margin: 16px 0 4px; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
+    .meta-row b { color: var(--ink); }
+    .stamp {
+      display: inline-block; margin: 22px 0 6px; font-family: var(--stamp-face), var(--display);
+      color: var(--stamp-2); border: 2px solid var(--stamp-2); border-radius: 3px;
+      padding: 6px 12px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+      transform: rotate(-1.5deg); opacity: 0.92; font-weight: 700;
+    }
+    h2 { font-family: var(--display); font-weight: 400; font-size: 1.5rem; margin: 34px 0 8px; color: var(--ink); border-bottom: 1px dashed var(--rule); padding-bottom: 6px; }
+    h3 { font-family: var(--mono); font-weight: 800; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; margin: 20px 0 6px; color: var(--ink-2); }
+    p, li { color: var(--ink); }
+    p { margin: 10px 0; }
+    ul { padding-inline-start: 1.3em; margin: 8px 0; }
+    li { margin: 6px 0; }
+    strong { color: var(--stamp-2); }
+    .callout {
+      border: 1px solid var(--stamp-2); border-left: 5px solid var(--stamp-2);
+      background: rgba(168,54,28,0.06); padding: 14px 18px; margin: 20px 0;
+    }
+    .callout strong { color: var(--stamp-2); }
+    .note { border: 1px dashed var(--rule); background: rgba(26,20,16,0.03); padding: 12px 16px; margin: 18px 0; font-size: 0.92em; color: var(--ink-2); }
+    .note strong { color: var(--ink); }
+    dl.flow { margin: 10px 0; }
+    dl.flow dt { font-weight: 800; color: var(--ink); margin-top: 12px; letter-spacing: 0.03em; }
+    dl.flow dd { margin: 2px 0 0; color: var(--ink-2); }
+    .divider { display: flex; align-items: center; gap: 14px; margin: 52px 0; color: var(--ink-3); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+    section[dir="rtl"] { font-family: var(--fa); text-align: right; }
+    section[dir="rtl"] h1, section[dir="rtl"] h2 { font-family: var(--fa); font-weight: 800; }
+    section[dir="rtl"] h3 { font-family: var(--fa); font-weight: 800; }
+    section[dir="rtl"] .stamp { font-family: var(--fa); font-weight: 800; }
+    section[dir="rtl"] .callout { border-left: 1px solid var(--stamp-2); border-right: 5px solid var(--stamp-2); }
+    section[dir="rtl"] ul { padding-inline-start: 0; padding-inline-end: 1.3em; }
+    section[dir="rtl"] .meta-row { direction: rtl; }
+    footer { margin-top: 44px; padding-top: 18px; border-top: 4px double var(--ink); text-align: center; color: var(--ink-3); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
+    @media (max-width: 560px) { body { font-size: 13px; } .doc { box-shadow: 3px 3px 0 rgba(26,20,16,0.12); } }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <a class="back" href="./index.html">&larr; Parvaz · Return to briefing</a>
+    <div class="doc">
+
+      <!-- ==================== ENGLISH ==================== -->
+      <section lang="en">
+        <div class="title-block">
+          <div class="kicker">Cocode · DK &nbsp;·&nbsp; Form PVZ-PRIV</div>
+          <h1>Privacy Policy</h1>
+          <div class="meta-row">
+            <span>App: <b>Parvaz (پرواز)</b></span>
+            <span>Package: <b>dk.cocode.parvaz</b></span>
+          </div>
+          <div class="meta-row">
+            <span>Developer: <b>CoCode.dk — Babak Bandpey</b></span>
+            <span>Last updated: <b>14 July 2026</b></span>
+          </div>
+        </div>
+
+        <span class="stamp">Read this before you fly</span>
+
+        <p>Parvaz is a Farsi-first <strong>browser tunnel</strong> for Android, built to help people
+        reach the open web from networks that filter it. It is <strong>not a "no data" app</strong>.
+        To do its job it deliberately routes your browsing through a <strong>relay</strong> — a
+        Google Apps Script deployment that you, or a technical helper you trust, set up and control.</p>
+
+        <div class="callout">
+          <p><strong>The most important thing to understand:</strong> everything you browse through
+          Parvaz — the addresses you visit, the cookies and login tokens in your requests, and
+          anything you type into web forms (including passwords) — passes through your relay operator
+          and through Google in a form <strong>they can read in plaintext</strong>. This is a
+          fundamental property of how Parvaz works, not a bug and not something a future update can
+          remove. <strong>Only use Parvaz with a relay you trust 100% — and never for accounts you
+          cannot afford to lose.</strong></p>
+        </div>
+
+        <div class="note"><strong>Status:</strong> Parvaz is pre-alpha software under active
+        development. This policy describes the data flows built into the source code as published. As
+        the app evolves, this page will be updated to match.</div>
+
+        <h2>1. Who is responsible</h2>
+        <p>Parvaz is developed and published by <strong>CoCode.dk</strong> (developer: Babak Bandpey).
+        We write and release the app; we do <strong>not</strong> operate any relay for you and we
+        receive <strong>no data</strong> from your use of the tunnel. The relay that carries your
+        traffic is operated by whoever deployed it — often you yourself, or a helper who shared a
+        <code>parvaz://</code> link with you.</p>
+
+        <h2>2. How your browsing traffic is handled (the relay)</h2>
+        <p>When you tap Connect, Parvaz starts a local VPN on your device and launches a bundled
+        network component that intercepts your browser's HTTPS traffic on-device (a local
+        "man-in-the-middle", enabled by the certificate you install during setup). For each web
+        request, it wraps the request into a small JSON message and sends it to your relay at
+        <code>https://script.google.com/macros/s/&lt;deployment-id&gt;/exec</code>. To make the
+        connection harder to block, it is dialed against Google's servers using the front hostname
+        <code>www.google.com</code> while actually addressing <code>script.google.com</code>.</p>
+
+        <h3>What is sent to the relay (Google Apps Script)</h3>
+        <p>For every request you make in the browser while connected, the message sent to the relay
+        contains:</p>
+        <dl class="flow">
+          <dt>Access key</dt>
+          <dd>The secret from your <code>parvaz://</code> link, so the relay accepts the request.</dd>
+          <dt>Target URL</dt>
+          <dd>The full address you are visiting.</dd>
+          <dt>HTTP method</dt>
+          <dd>GET, POST, and so on.</dd>
+          <dt>Request headers</dt>
+          <dd><strong>Including <code>Cookie</code> and <code>Authorization</code> headers</strong> —
+          i.e. your session and login state for the sites you visit.</dd>
+          <dt>Request body</dt>
+          <dd><strong>Including form fields such as passwords</strong>, uploads, and anything else you
+          submit.</dd>
+        </dl>
+
+        <h3>What comes back from the relay</h3>
+        <p>The relay performs the request to the target site on your behalf and returns the response
+        status, the response headers (<strong>including <code>Set-Cookie</code></strong>), and the
+        response body. DNS name resolution is performed as <strong>DNS-over-HTTPS via Google Public
+        DNS</strong> (<code>dns.google</code>), carried over the same relay/Google path rather than
+        your local network's resolver.</p>
+
+        <div class="callout">
+          <p><strong>Who can see this:</strong> the operator of your relay can log every field above,
+          in plaintext, for every page you load. <strong>Google</strong>, which runs Apps Script,
+          Google's edge network, and Google Public DNS, is also technically able to observe this
+          traffic and is governed by
+          <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">Google's Privacy Policy</a>.
+          If <em>you</em> deployed the relay to your own Google account, the only third party in the
+          path is Google. If <em>someone else</em> operates it, they see your traffic too.</p>
+        </div>
+
+        <h2>3. What Parvaz itself collects</h2>
+        <ul>
+          <li><strong>No analytics, no crash reporting, no advertising, no telemetry.</strong> The app
+          contains no third-party analytics, ads, or tracking SDKs.</li>
+          <li><strong>No account, no sign-up, no advertising identifier, no device fingerprinting.</strong></li>
+          <li>CoCode.dk operates <strong>no server</strong> that receives your usage. We cannot see who
+          uses Parvaz or what they browse.</li>
+          <li>The display name in your <code>parvaz://</code> link is only a label shown in the app; it
+          never leaves your device.</li>
+        </ul>
+
+        <h2>4. Data stored on your device</h2>
+        <p>Parvaz keeps the small amount of configuration it needs locally:</p>
+        <ul>
+          <li><strong>Relay access key</strong> — stored in encrypted storage
+          (<code>EncryptedSharedPreferences</code>) protected by a key held in the Android Keystore
+          (hardware-backed where the device supports it).</li>
+          <li><strong>Relay deployment ID, display name, and UI language</strong> — stored in ordinary
+          app preferences (these are not secret on their own).</li>
+          <li><strong>The tunnel's private certificate authority (CA) key and certificate</strong>, plus
+          local tunnel state, in the app's private files. This private key never leaves the device.</li>
+          <li><strong>A copy of the public CA certificate</strong> is written to your Downloads folder
+          during setup so you can install it into Android's trust store. You may delete this file after
+          installing it.</li>
+          <li><strong>A downloaded update file</strong> (see below) may be kept temporarily in the app's
+          cache.</li>
+        </ul>
+        <p>The access key and the private CA material are <strong>excluded from Android cloud backup and
+        device-to-device transfer</strong>, so they do not leave the device through Google backup.
+        Clearing the app's data or uninstalling Parvaz removes this local data (you would then re-import
+        your <code>parvaz://</code> link and re-install the certificate).</p>
+
+        <h2>5. Software updates and installing packages</h2>
+        <p>Parvaz can check for and install its own updates:</p>
+        <ul>
+          <li><strong>Update check:</strong> an anonymous request to
+          <code>api.github.com/repos/cocodedk/parvaz/releases/latest</code> (no login, no query
+          parameters, User-Agent <code>parvaz-app</code>). GitHub, as the host, necessarily sees the
+          usual request metadata such as your IP address and the time of the request.</li>
+          <li><strong>Download:</strong> if a newer version exists and you choose to update, Parvaz
+          downloads <code>Parvaz.apk</code> and its checksum from GitHub and verifies the SHA-256 before
+          installing. The update download is deliberately performed <strong>outside</strong> the tunnel
+          (the VPN is torn down first), so it uses your normal network connection to GitHub.</li>
+          <li><strong>Install:</strong> Parvaz hands the verified file to Android's system installer. The
+          <code>REQUEST_INSTALL_PACKAGES</code> permission exists only for this. Android always shows its
+          own confirmation dialog, and if you have not allowed installing unknown apps, Parvaz sends you
+          to the relevant system settings first. <strong>Parvaz never installs anything silently, and it
+          only ever installs Parvaz itself</strong> — never arbitrary third-party apps.</li>
+        </ul>
+        <p>GitHub is a third party; its handling of request metadata is governed by
+        <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener" target="_blank">GitHub's Privacy Statement</a>.</p>
+
+        <h2>6. Permissions and why they are used</h2>
+        <ul>
+          <li><code>INTERNET</code> — send tunnelled traffic to the relay and fetch updates.</li>
+          <li><code>ACCESS_NETWORK_STATE</code> — detect whether you are online before connecting.</li>
+          <li><code>FOREGROUND_SERVICE</code> and <code>FOREGROUND_SERVICE_SPECIAL_USE</code> — keep the
+          VPN tunnel running as a foreground service while connected.</li>
+          <li><code>POST_NOTIFICATIONS</code> — show the ongoing notification that Android requires while
+          the tunnel is active. Parvaz does not use notifications for marketing.</li>
+          <li><code>REQUEST_INSTALL_PACKAGES</code> — install a Parvaz update you have chosen (see
+          section 5).</li>
+        </ul>
+        <p>Establishing the VPN also triggers Android's own system consent dialog the first time. Parvaz
+        does not request location, contacts, camera, microphone, or media access.</p>
+
+        <h2>7. Third parties</h2>
+        <ul>
+          <li><strong>Your relay operator</strong> — sees all traffic you route through the tunnel (see
+          section 2). This may be you or a helper.</li>
+          <li><strong>Google</strong> — runs the Apps Script relay platform, the edge network the tunnel
+          connects through, and the Google Public DNS resolver used for name lookups. See
+          <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">Google's Privacy Policy</a>.</li>
+          <li><strong>GitHub</strong> — hosts release downloads and the update-check endpoint. See
+          <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener" target="_blank">GitHub's Privacy Statement</a>.</li>
+          <li>The app links to the developer's site (<a href="https://cocode.dk" rel="noopener" target="_blank">cocode.dk</a>)
+          and LinkedIn; opening those uses your browser and is governed by their own policies.</li>
+        </ul>
+
+        <h2>8. Legal, risk, and trust</h2>
+        <p>Parvaz is provided for personal, research, and educational use. Because of the
+        man-in-the-middle-via-relay design, the relay operator can read your traffic; deploy and use a
+        relay only on a Google account you control, and treat any shared relay as fully able to observe
+        what you do. Google's Apps Script terms restrict this kind of use — see the project
+        documentation. Nothing here is legal advice.</p>
+
+        <h2>9. Children</h2>
+        <p>Parvaz is not directed at children and does not knowingly collect data from anyone, including
+        children.</p>
+
+        <h2>10. Changes</h2>
+        <p>If this policy changes, the updated version will be posted on this page with a new
+        "last updated" date.</p>
+
+        <h2>11. Contact</h2>
+        <p>Questions about this policy can be sent to
+        <a href="mailto:bb@cocode.dk">bb@cocode.dk</a> (CoCode.dk, developer: Babak Bandpey).</p>
+      </section>
+
+      <div class="divider">فارسی · Persian</div>
+
+      <!-- ==================== PERSIAN (فارسی) ==================== -->
+      <section lang="fa" dir="rtl">
+        <div class="title-block">
+          <div class="kicker">کوکد · دانمارک &nbsp;·&nbsp; فرم PVZ-PRIV</div>
+          <h1>سیاست حفظ حریم خصوصی</h1>
+          <div class="meta-row">
+            <span>برنامه: <b>پرواز</b></span>
+            <span>بستهٔ نرم‌افزاری: <b>dk.cocode.parvaz</b></span>
+          </div>
+          <div class="meta-row">
+            <span>توسعه‌دهنده: <b>CoCode.dk — بابک بندپی</b></span>
+            <span>آخرین به‌روزرسانی: <b>۱۴ ژوئیه ۲۰۲۶</b></span>
+          </div>
+        </div>
+
+        <span class="stamp">پیش از پرواز بخوانید</span>
+
+        <p>پرواز یک <strong>تونل مرورگر</strong> برای اندروید با اولویت زبان فارسی است که ساخته شده تا به
+        کاربران کمک کند از شبکه‌هایی که وب را فیلتر می‌کنند به اینترنت آزاد دسترسی پیدا کنند. این برنامه
+        <strong>یک برنامهٔ «بدون داده» نیست</strong>. پرواز برای انجام کارش، به‌طور عمدی مرور شما را از یک
+        <strong>رله</strong> عبور می‌دهد — یک استقرار Google Apps Script که خودتان یا یک دوست فنی مورد
+        اعتماد آن را راه‌اندازی و کنترل می‌کنید.</p>
+
+        <div class="callout">
+          <p><strong>مهم‌ترین نکته‌ای که باید بدانید:</strong> هر چیزی که از طریق پرواز مرور می‌کنید —
+          آدرس‌هایی که بازدید می‌کنید، کوکی‌ها و توکن‌های ورود در درخواست‌های شما، و هر چیزی که در فرم‌های
+          وب تایپ می‌کنید (از جمله رمزهای عبور) — از میان اپراتور رلهٔ شما و از میان گوگل عبور می‌کند، به
+          شکلی که <strong>آن‌ها می‌توانند آن را به‌صورت متن ساده بخوانند</strong>. این یک ویژگی بنیادی از
+          نحوهٔ کار پرواز است، نه یک اشکال و نه چیزی که یک به‌روزرسانی آینده بتواند حذفش کند. <strong>پرواز
+          را فقط با رله‌ای به کار ببرید که ۱۰۰٪ به آن اعتماد دارید — و هرگز برای حساب‌هایی که از دست دادنشان
+          برایتان قابل تحمل نیست.</strong></p>
+        </div>
+
+        <div class="note"><strong>وضعیت:</strong> پرواز نرم‌افزاری در مرحلهٔ پیش‌آلفا و در حال توسعهٔ فعال
+        است. این سیاست، جریان‌های دادهٔ تعبیه‌شده در کد منتشرشده را توصیف می‌کند. با تکامل برنامه، این
+        صفحه نیز به‌روزرسانی خواهد شد.</div>
+
+        <h2>۱. چه کسی مسئول است</h2>
+        <p>پرواز توسط <strong>CoCode.dk</strong> (توسعه‌دهنده: بابک بندپی) ساخته و منتشر می‌شود. ما برنامه
+        را می‌نویسیم و منتشر می‌کنیم؛ ما هیچ رله‌ای برای شما اداره <strong>نمی‌کنیم</strong> و از استفادهٔ
+        شما از تونل <strong>هیچ داده‌ای دریافت نمی‌کنیم</strong>. رله‌ای که ترافیک شما را حمل می‌کند توسط
+        کسی اداره می‌شود که آن را مستقر کرده است — اغلب خودتان، یا دوستی که یک پیوند
+        <code>parvaz://</code> با شما به اشتراک گذاشته است.</p>
+
+        <h2>۲. ترافیک مرور شما چگونه مدیریت می‌شود (رله)</h2>
+        <p>وقتی روی «اتصال» می‌زنید، پرواز یک VPN محلی روی دستگاه شما راه‌اندازی می‌کند و یک مؤلفهٔ شبکهٔ
+        همراه را اجرا می‌کند که ترافیک HTTPS مرورگر شما را روی خود دستگاه رهگیری می‌کند (یک «مرد میانی»
+        محلی که با گواهی‌ای که هنگام نصب اولیه نصب می‌کنید فعال می‌شود). برای هر درخواست وب، آن را در یک
+        پیام کوچک JSON بسته‌بندی کرده و به رلهٔ شما در نشانی
+        <code>https://script.google.com/macros/s/&lt;deployment-id&gt;/exec</code> می‌فرستد. برای آنکه
+        مسدودکردن اتصال دشوارتر شود، اتصال با نام میزبان نمای <code>www.google.com</code> به سرورهای گوگل
+        برقرار می‌شود، در حالی که در واقع <code>script.google.com</code> را هدف می‌گیرد.</p>
+
+        <h3>آنچه به رله فرستاده می‌شود (Google Apps Script)</h3>
+        <p>برای هر درخواستی که هنگام اتصال در مرورگر انجام می‌دهید، پیام ارسال‌شده به رله شامل این‌هاست:</p>
+        <dl class="flow">
+          <dt>کلید دسترسی</dt>
+          <dd>رمز موجود در پیوند <code>parvaz://</code> شما، تا رله درخواست را بپذیرد.</dd>
+          <dt>نشانی مقصد (URL)</dt>
+          <dd>آدرس کامل صفحه‌ای که بازدید می‌کنید.</dd>
+          <dt>روش HTTP</dt>
+          <dd>مانند GET یا POST.</dd>
+          <dt>سرآیندهای درخواست</dt>
+          <dd><strong>از جمله سرآیندهای <code>Cookie</code> و <code>Authorization</code></strong> — یعنی
+          وضعیت نشست و ورود شما در سایت‌هایی که بازدید می‌کنید.</dd>
+          <dt>بدنهٔ درخواست</dt>
+          <dd><strong>از جمله فیلدهای فرم مانند رمزهای عبور</strong>، فایل‌های ارسالی و هر چیز دیگری که
+          ثبت می‌کنید.</dd>
+        </dl>
+
+        <h3>آنچه از رله بازمی‌گردد</h3>
+        <p>رله درخواست را به‌جای شما به سایت مقصد انجام می‌دهد و وضعیت پاسخ، سرآیندهای پاسخ
+        (<strong>از جمله <code>Set-Cookie</code></strong>) و بدنهٔ پاسخ را بازمی‌گرداند. تبدیل نام دامنه
+        به‌صورت <strong>DNS-over-HTTPS از طریق Google Public DNS</strong> (<code>dns.google</code>)
+        انجام می‌شود که از همان مسیر رله/گوگل عبور می‌کند، نه از تبدیل‌کنندهٔ شبکهٔ محلی شما.</p>
+
+        <div class="callout">
+          <p><strong>چه کسی می‌تواند این‌ها را ببیند:</strong> اپراتور رلهٔ شما می‌تواند همهٔ فیلدهای بالا
+          را برای هر صفحه‌ای که بارگذاری می‌کنید، به‌صورت متن ساده ثبت کند. <strong>گوگل</strong> نیز که
+          Apps Script، شبکهٔ لبهٔ گوگل و Google Public DNS را اداره می‌کند، از نظر فنی می‌تواند این ترافیک
+          را مشاهده کند و تابع
+          <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">سیاست حریم خصوصی گوگل</a>
+          است. اگر <em>خودتان</em> رله را روی حساب گوگل خودتان مستقر کرده باشید، تنها شخص ثالث در مسیر،
+          گوگل است. اگر <em>شخص دیگری</em> آن را اداره کند، او نیز ترافیک شما را می‌بیند.</p>
+        </div>
+
+        <h2>۳. آنچه خودِ پرواز جمع‌آوری می‌کند</h2>
+        <ul>
+          <li><strong>بدون ابزار تحلیلی، بدون گزارش خطا، بدون تبلیغات، بدون تله‌متری.</strong> برنامه هیچ
+          کیت تحلیلی، تبلیغاتی یا ردیابی شخص ثالثی ندارد.</li>
+          <li><strong>بدون حساب کاربری، بدون ثبت‌نام، بدون شناسهٔ تبلیغاتی، بدون اثرانگشت دستگاه.</strong></li>
+          <li>CoCode.dk هیچ <strong>سروری</strong> ندارد که استفادهٔ شما را دریافت کند. ما نمی‌توانیم ببینیم
+          چه کسی از پرواز استفاده می‌کند یا چه چیزی مرور می‌کند.</li>
+          <li>نام نمایشی در پیوند <code>parvaz://</code> شما فقط برچسبی است که در برنامه نشان داده می‌شود؛
+          این نام هرگز دستگاه شما را ترک نمی‌کند.</li>
+        </ul>
+
+        <h2>۴. داده‌های ذخیره‌شده روی دستگاه شما</h2>
+        <p>پرواز مقدار کمی تنظیمات را که نیاز دارد به‌صورت محلی نگه می‌دارد:</p>
+        <ul>
+          <li><strong>کلید دسترسی رله</strong> — در حافظهٔ رمزنگاری‌شده
+          (<code>EncryptedSharedPreferences</code>) ذخیره می‌شود که با کلیدی در Android Keystore محافظت
+          می‌شود (در دستگاه‌های پشتیبان، سخت‌افزاری).</li>
+          <li><strong>شناسهٔ استقرار رله، نام نمایشی و زبان رابط</strong> — در تنظیمات معمولی برنامه ذخیره
+          می‌شوند (این‌ها به‌تنهایی محرمانه نیستند).</li>
+          <li><strong>کلید و گواهی مرجع صدور گواهی (CA) خصوصی تونل</strong> و وضعیت محلی تونل، در فایل‌های
+          خصوصی برنامه. این کلید خصوصی هرگز دستگاه را ترک نمی‌کند.</li>
+          <li><strong>یک نسخه از گواهی عمومی CA</strong> هنگام نصب اولیه در پوشهٔ Downloads شما نوشته
+          می‌شود تا بتوانید آن را در فروشگاه اعتماد اندروید نصب کنید. پس از نصب می‌توانید این فایل را حذف
+          کنید.</li>
+          <li><strong>یک فایل به‌روزرسانی دانلودشده</strong> (به پایین نگاه کنید) ممکن است موقتاً در حافظهٔ
+          نهان برنامه نگه داشته شود.</li>
+        </ul>
+        <p>کلید دسترسی و مواد خصوصی CA <strong>از پشتیبان‌گیری ابری اندروید و انتقال دستگاه‌به‌دستگاه کنار
+        گذاشته شده‌اند</strong>، بنابراین از طریق پشتیبان گوگل دستگاه را ترک نمی‌کنند. پاک‌کردن داده‌های
+        برنامه یا حذف پرواز این داده‌های محلی را از بین می‌برد (سپس باید دوباره پیوند
+        <code>parvaz://</code> را وارد و گواهی را نصب کنید).</p>
+
+        <h2>۵. به‌روزرسانی نرم‌افزار و نصب بسته‌ها</h2>
+        <p>پرواز می‌تواند به‌روزرسانی‌های خودش را بررسی و نصب کند:</p>
+        <ul>
+          <li><strong>بررسی به‌روزرسانی:</strong> یک درخواست ناشناس به
+          <code>api.github.com/repos/cocodedk/parvaz/releases/latest</code> (بدون ورود، بدون پارامتر
+          پرس‌وجو، با User-Agent برابر <code>parvaz-app</code>). گیت‌هاب به‌عنوان میزبان، ناگزیر
+          فراداده‌های معمول درخواست مانند نشانی IP و زمان درخواست شما را می‌بیند.</li>
+          <li><strong>دانلود:</strong> اگر نسخهٔ جدیدتری وجود داشته باشد و شما به‌روزرسانی را انتخاب کنید،
+          پرواز فایل <code>Parvaz.apk</code> و جمع‌آزمای آن را از گیت‌هاب دانلود کرده و پیش از نصب،
+          SHA-256 را بررسی می‌کند. دانلود به‌روزرسانی به‌طور عمدی <strong>بیرون</strong> از تونل انجام
+          می‌شود (ابتدا VPN قطع می‌شود)، پس از اتصال شبکهٔ عادی شما به گیت‌هاب استفاده می‌کند.</li>
+          <li><strong>نصب:</strong> پرواز فایل تأییدشده را به نصب‌کنندهٔ سیستم اندروید می‌سپارد. مجوز
+          <code>REQUEST_INSTALL_PACKAGES</code> فقط برای همین وجود دارد. اندروید همیشه گفت‌وگوی تأیید خودش
+          را نشان می‌دهد، و اگر اجازهٔ نصب برنامه‌های ناشناس را نداده باشید، پرواز ابتدا شما را به تنظیمات
+          مربوطهٔ سیستم می‌فرستد. <strong>پرواز هرگز چیزی را بی‌صدا نصب نمی‌کند و فقط خودِ پرواز را نصب
+          می‌کند</strong> — هرگز برنامه‌های دلخواه شخص ثالث را.</li>
+        </ul>
+        <p>گیت‌هاب یک شخص ثالث است؛ نحوهٔ مدیریت فراداده‌های درخواست توسط آن تابع
+        <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener" target="_blank">بیانیهٔ حریم خصوصی گیت‌هاب</a>
+        است.</p>
+
+        <h2>۶. مجوزها و دلیل استفاده از آن‌ها</h2>
+        <ul>
+          <li><code>INTERNET</code> — ارسال ترافیک تونل‌شده به رله و دریافت به‌روزرسانی‌ها.</li>
+          <li><code>ACCESS_NETWORK_STATE</code> — تشخیص آنلاین‌بودن پیش از اتصال.</li>
+          <li><code>FOREGROUND_SERVICE</code> و <code>FOREGROUND_SERVICE_SPECIAL_USE</code> — نگه‌داشتن
+          تونل VPN به‌عنوان یک سرویس پیش‌زمینه هنگام اتصال.</li>
+          <li><code>POST_NOTIFICATIONS</code> — نمایش اعلان جاری که اندروید هنگام فعال‌بودن تونل الزامی
+          می‌کند. پرواز از اعلان‌ها برای بازاریابی استفاده نمی‌کند.</li>
+          <li><code>REQUEST_INSTALL_PACKAGES</code> — نصب به‌روزرسانی پروازی که خودتان انتخاب کرده‌اید
+          (بخش ۵).</li>
+        </ul>
+        <p>برقراری VPN بار اول گفت‌وگوی رضایت سیستمی خود اندروید را نیز فعال می‌کند. پرواز درخواست دسترسی
+        به موقعیت مکانی، مخاطبین، دوربین، میکروفون یا رسانه نمی‌دهد.</p>
+
+        <h2>۷. اشخاص ثالث</h2>
+        <ul>
+          <li><strong>اپراتور رلهٔ شما</strong> — همهٔ ترافیکی را که از تونل عبور می‌دهید می‌بیند (بخش ۲).
+          این می‌تواند خودتان یا یک دوست باشد.</li>
+          <li><strong>گوگل</strong> — سکوی رلهٔ Apps Script، شبکهٔ لبه‌ای که تونل از آن عبور می‌کند و
+          تبدیل‌کنندهٔ Google Public DNS را اداره می‌کند. به
+          <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">سیاست حریم خصوصی گوگل</a>
+          مراجعه کنید.</li>
+          <li><strong>گیت‌هاب</strong> — میزبان دانلودهای انتشار و نقطهٔ پایانی بررسی به‌روزرسانی. به
+          <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener" target="_blank">بیانیهٔ حریم خصوصی گیت‌هاب</a>
+          مراجعه کنید.</li>
+          <li>برنامه به سایت توسعه‌دهنده (<a href="https://cocode.dk" rel="noopener" target="_blank">cocode.dk</a>)
+          و لینکدین پیوند دارد؛ بازکردن آن‌ها از مرورگر شما استفاده می‌کند و تابع سیاست‌های خودشان است.</li>
+        </ul>
+
+        <h2>۸. مسائل حقوقی، ریسک و اعتماد</h2>
+        <p>پرواز برای استفادهٔ شخصی، پژوهشی و آموزشی ارائه می‌شود. به دلیل طراحی «مرد میانی از طریق رله»،
+        اپراتور رله می‌تواند ترافیک شما را بخواند؛ رله را فقط روی حساب گوگلی که کنترل می‌کنید مستقر و
+        استفاده کنید و هر رلهٔ مشترک را کاملاً قادر به مشاهدهٔ کارهایتان در نظر بگیرید. شرایط استفادهٔ
+        Google Apps Script این‌گونه استفاده را محدود می‌کند — به مستندات پروژه مراجعه کنید. هیچ‌یک از
+        موارد اینجا مشاورهٔ حقوقی نیست.</p>
+
+        <h2>۹. کودکان</h2>
+        <p>پرواز برای کودکان طراحی نشده و آگاهانه هیچ داده‌ای را از هیچ‌کس، از جمله کودکان، جمع‌آوری
+        نمی‌کند.</p>
+
+        <h2>۱۰. تغییرات</h2>
+        <p>در صورت تغییر این سیاست، نسخهٔ به‌روزشده با تاریخ جدید «آخرین به‌روزرسانی» در همین صفحه منتشر
+        خواهد شد.</p>
+
+        <h2>۱۱. تماس</h2>
+        <p>پرسش‌های مربوط به این سیاست را می‌توانید به
+        <a href="mailto:bb@cocode.dk">bb@cocode.dk</a> (CoCode.dk، توسعه‌دهنده: بابک بندپی) ارسال کنید.</p>
+      </section>
+
+      <footer>© 2026 CoCode.dk — Babak Bandpey · Parvaz (پرواز)</footer>
+    </div>
+  </div>
+</body>
+</html>
