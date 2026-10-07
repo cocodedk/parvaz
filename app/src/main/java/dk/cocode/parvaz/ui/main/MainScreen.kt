@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dk.cocode.parvaz.R
@@ -107,12 +108,20 @@ private fun DisconnectedStamp(
             color = Oxblood,
         )
     }
+    Spacer(Modifier.height(16.dp))
+    Text(
+        text = stringResource(R.string.main_disconnected_hint),
+        style = MaterialTheme.typography.bodyMedium,
+        color = InkSoft,
+        textAlign = TextAlign.Center,
+    )
     if (failed) {
         Spacer(Modifier.height(16.dp))
         Text(
             text = stringResource(failReasonStringRes(failReason)),
             style = MaterialTheme.typography.bodyMedium,
             color = Oxblood,
+            textAlign = TextAlign.Center,
         )
     }
 }
@@ -157,5 +166,12 @@ private fun ConnectedStamp(uptimeSeconds: Long, persian: Boolean, onClick: () ->
         text = formatUptime(uptimeSeconds, persian = persian),
         style = MaterialTheme.typography.headlineMedium,
         color = Olive,
+    )
+    Spacer(Modifier.height(16.dp))
+    Text(
+        text = stringResource(R.string.main_connected_hint),
+        style = MaterialTheme.typography.bodyMedium,
+        color = InkSoft,
+        textAlign = TextAlign.Center,
     )
 }

@@ -9,14 +9,14 @@
 
     <!-- Splash / onboarding entry -->
     <string name="splash_title">پرواز</string>
-    <string name="splash_subtitle">اتصال ساده به اینترنت آزاد</string>
+    <string name="splash_subtitle">با آدرس دسترسی‌ای که یک فرد مورد اعتماد به شما می‌دهد، وب‌سایت‌های مسدودشده را باز کنید</string>
     <string name="splash_start_cta">شروع</string>
 
     <!-- Import access (parvaz:// paste + QR) -->
     <string name="import_title">آدرس دسترسی</string>
     <string name="import_subtitle">یک رابط فنی باید برای شما آدرس پرواز را فرستاده باشد</string>
     <string name="import_paste_cta">چسباندن</string>
-    <string name="import_scan_cta">اسکن QR</string>
+    <string name="import_scan_cta">اسکن QR (در دسترس نیست)</string>
     <string name="import_field_hint">parvaz://…</string>
     <string name="import_submit_cta">ادامه</string>
     <!-- Moved here from Access.kt, where these four messages were hard-coded. The Persian text is unchanged. -->
@@ -27,7 +27,7 @@
 
     <!-- CA install -->
     <string name="ca_install_title">نصب گواهی</string>
-    <string name="ca_install_body">پرواز فایل گواهی را در پوشهٔ Downloads ذخیره می‌کند. سپس مرحله‌به‌مرحله شما را راهنمایی می‌کند که آن را در تنظیمات اندروید نصب کنید</string>
+    <string name="ca_install_body">پرواز یک فایل گواهی روی گوشی شما ذخیره کرده است. گواهی فایلی کوچک است که به گوشی می‌گوید هنگام کار با اتصال‌های امن مرورگر شما، به پرواز اعتماد کند. روی «بازکردن تنظیمات» بزنید و مراحل نصب را دنبال کنید. اگر فایل را پیدا نکردید، روی «نمایش فایل» بزنید.</string>
     <string name="ca_install_cta">بازکردن تنظیمات</string>
     <string name="ca_install_show_file_cta">نمایش فایل</string>
     <string name="ca_install_done_label">نصب شد</string>
@@ -35,7 +35,7 @@
     <string name="ca_install_verifying">در حال بررسی…</string>
     <string name="ca_install_retry_cta">تلاش دوباره</string>
     <string name="ca_install_failed">نصب انجام نشد — دوباره تلاش کنید</string>
-    <string name="ca_install_failed_not_installed">گواهی هنوز نصب نشده — مرحله‌ها را دوباره دنبال کنید</string>
+    <string name="ca_install_failed_not_installed">پرواز نتوانست گواهی را آماده یا تأیید کند. روی «تلاش دوباره» بزنید و دوباره مراحل را دنبال کنید</string>
     <string name="ca_install_filename">parvaz-ca-کد.crt</string>
     <string name="ca_install_no_lock_title">قفل صفحه تنظیم نیست</string>
     <string name="ca_install_no_lock_body">اندروید برای نصب گواهی به قفل صفحه نیاز دارد — یک PIN یا الگو تنظیم کنید و دوباره تلاش کنید</string>
@@ -47,7 +47,7 @@
     <string name="ca_step_1_samsung">۱. امنیت و حریم خصوصی</string>
     <string name="ca_step_2_samsung">۲. تنظیمات امنیتی بیشتر</string>
     <string name="ca_step_3_samsung">۳. نصب از حافظهٔ دستگاه ← گواهی CA</string>
-    <string name="ca_step_4_samsung">۴. جدیدترین فایل parvaz-ca-کد.crt را از Downloads انتخاب کنید</string>
+    <string name="ca_step_4_samsung">۴. جدیدترین فایلی را انتخاب کنید که نامش با parvaz-ca شروع می‌شود و پسوندش crt است. وسط نام، یک کد ۱۲نویسه‌ای است.</string>
     <string name="ca_step_5_samsung">۵. به پرواز برگردید</string>
 
     <!-- CA install — AOSP / Pixel step labels (Farsi). Verified against
@@ -57,12 +57,12 @@
     <string name="ca_step_1_aosp">۱. امنیت و حریم خصوصی</string>
     <string name="ca_step_2_aosp">۲. امنیت و حریم خصوصی بیشتر ← رمزگذاری و گواهی‌نامه‌ها</string>
     <string name="ca_step_3_aosp">۳. نصب یک گواهی ← گواهی CA</string>
-    <string name="ca_step_4_aosp">۴. جدیدترین فایل parvaz-ca-کد.crt را از Downloads انتخاب کنید</string>
+    <string name="ca_step_4_aosp">۴. جدیدترین فایلی را انتخاب کنید که نامش با parvaz-ca شروع می‌شود و پسوندش crt است. وسط نام، یک کد ۱۲نویسه‌ای است.</string>
     <string name="ca_step_5_aosp">۵. به پرواز برگردید</string>
 
     <!-- VPN permission -->
     <string name="vpn_explain_title">اجازهٔ اتصال</string>
-    <string name="vpn_explain_body">پرواز برای تونل‌زدن ترافیک نیاز به اجازهٔ VPN دارد — این اجازه فقط برای این برنامه است</string>
+    <string name="vpn_explain_body">پرواز برای فرستادن ترافیک مرورگر شما از طریق رله به اجازهٔ VPN اندروید نیاز دارد. تا وقتی پرواز وصل است، ترافیک اینترنت برنامه‌های دیگر گوشی هم از آن می‌گذرد. برنامه‌هایی غیر از مرورگر معمولاً از این راه وصل نمی‌شوند و تا زمان قطع اتصال ممکن است کار نکنند.</string>
     <string name="vpn_explain_cta">اجازه می‌دهم</string>
     <string name="vpn_explain_waiting">در حال انتظار…</string>
     <string name="vpn_explain_granted">اجازه داده شد</string>
@@ -71,12 +71,14 @@
     <!-- Main screen -->
     <string name="main_disconnected_stamp">پرواز</string>
     <string name="main_connected_stamp">در پرواز</string>
+    <string name="main_disconnected_hint">برای اتصال، روی دکمهٔ بالا بزنید</string>
+    <string name="main_connected_hint">برای قطع اتصال، روی دکمهٔ بالا بزنید</string>
     <string name="main_connecting_label">در حال اتصال…</string>
     <string name="main_failed_label">اتصال ناموفق — دوباره تلاش کنید</string>
     <string name="main_failed_no_internet">اینترنت در دسترس نیست — اتصال را بررسی کنید</string>
-    <string name="main_failed_vpn_revoked">اجازهٔ VPN لغو شده — در تنظیمات اندروید بازگردانید</string>
+    <string name="main_failed_vpn_revoked">اندروید دیگر به پرواز اجازهٔ VPN نمی‌دهد؛ شاید برنامهٔ VPN دیگری جای آن را گرفته است. برای دادن دوباره اجازه، در تنظیمات پرواز «بازنشانی» را بزنید و مراحل راه‌اندازی را دوباره انجام دهید. آدرس دسترسی خود را دوباره لازم دارید.</string>
     <string name="main_failed_no_access">آدرس پرواز ذخیره نشده — دوباره وارد کنید</string>
-    <string name="main_failed_sidecar">راه‌اندازی هستهٔ پرواز انجام نشد — دوباره تلاش کنید</string>
+    <string name="main_failed_sidecar">پرواز نتوانست اتصال را برقرار کند — دوباره تلاش کنید</string>
 
     <!-- Main-screen hidden settings (long-press on the stamp) -->
     <string name="settings_title">تنظیمات</string>
@@ -88,7 +90,7 @@
     <string name="settings_reset_access_body">با بازنشانی، پرواز دسترسی شما را فراموش می‌کند و به مرحلهٔ نخست برمی‌گردد</string>
     <string name="settings_reset_access_cta">بازنشانی</string>
     <string name="settings_reset_confirm_title">مطمئن هستید؟</string>
-    <string name="settings_reset_confirm_body">این کار تمام تنظیمات را پاک می‌کند — باید دوباره آدرس پرواز را وارد کنید</string>
+    <string name="settings_reset_confirm_body">آدرس دسترسی ذخیره‌شده پاک می‌شود و باید دوباره آن را وارد کنید. زبان برنامه و گواهی تغییر نمی‌کنند.</string>
     <string name="settings_cancel_cta">انصراف</string>
     <string name="settings_close_cta">بستن</string>
 
@@ -130,6 +132,6 @@
     <string name="vpn_notification_channel_name">اتصال پرواز</string>
     <string name="vpn_notification_channel_description">نوتیفیکیشن پایدار هنگام فعال بودن تونل</string>
     <string name="vpn_notification_title">پرواز در حال اجراست</string>
-    <string name="vpn_notification_text">ترافیک مرورگر از طریق پرواز عبور می‌کند</string>
+    <string name="vpn_notification_text">برای دیدن وضعیت اتصال، پرواز را باز کنید، یا برای قطع اتصال «قطع» را بزنید</string>
     <string name="vpn_notification_stop_action">قطع</string>
 </resources>
