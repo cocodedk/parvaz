@@ -1,0 +1,92 @@
+<resources>
+    <!--
+      Danish translation. The app's own language setting offers only Farsi and
+      English, so the screens do not use these strings until a Danish option is
+      added to it. Text drawn from the service context (the VPN notification)
+      follows the system language and shows them on a Danish phone already.
+      res/values/strings.xml is the Farsi default.
+    -->
+
+    <string name="app_name">Parvaz</string>
+
+    <string name="splash_title">PARVAZ</string>
+    <string name="splash_subtitle">Fri bane til det åbne internet</string>
+    <string name="splash_start_cta">Start</string>
+
+    <string name="import_title">Adgangsadresse</string>
+    <string name="import_subtitle">En teknisk hjælper skulle have sendt dig en parvaz://-adresse</string>
+    <string name="import_paste_cta">Indsæt</string>
+    <string name="import_scan_cta">Scan QR</string>
+    <string name="import_field_hint">parvaz://…</string>
+    <string name="import_submit_cta">Fortsæt</string>
+
+    <string name="ca_install_title">Installér certifikat</string>
+    <string name="ca_install_body">Parvaz gemmer certifikatfilen i mappen Downloads og guider dig derefter trin for trin gennem installationen i Androids indstillinger</string>
+    <string name="ca_install_cta">Åbn Indstillinger</string>
+    <string name="ca_install_show_file_cta">Vis fil</string>
+    <string name="ca_install_done_label">Installeret</string>
+    <string name="ca_install_generating">Klargør certifikat…</string>
+    <string name="ca_install_verifying">Kontrollerer…</string>
+    <string name="ca_install_retry_cta">Prøv igen</string>
+    <string name="ca_install_failed">Installationen blev ikke gennemført. Prøv igen</string>
+    <string name="ca_install_failed_not_installed">Certifikatet er ikke installeret endnu. Følg trinene igen</string>
+    <string name="ca_install_filename">parvaz-ca-kode.crt</string>
+    <string name="ca_install_no_lock_title">Ingen skærmlås</string>
+    <string name="ca_install_no_lock_body">Android kræver en skærmlås, før certifikater kan installeres. Indstil en pinkode eller et mønster, og prøv igen</string>
+    <string name="ca_install_steps_fallback">Kan du ikke finde denne sti, så søg efter "CA-certifikat" i Indstillinger</string>
+
+    <!-- CA install: Samsung OneUI 6 step labels (Danish). Translated from the
+         English labels; check them against a Danish-language Samsung phone. -->
+    <string name="ca_step_1_samsung">1. Sikkerhed og privatliv</string>
+    <string name="ca_step_2_samsung">2. Flere sikkerhedsindstillinger</string>
+    <string name="ca_step_3_samsung">3. Installér fra enhedslager → CA-certifikat</string>
+    <string name="ca_step_4_samsung">4. Vælg den nyeste parvaz-ca-kode.crt i Downloads</string>
+    <string name="ca_step_5_samsung">5. Gå tilbage til Parvaz</string>
+
+    <!-- CA install: AOSP / Pixel step labels (Danish). Same caveat as above. -->
+    <string name="ca_step_1_aosp">1. Sikkerhed og privatliv</string>
+    <string name="ca_step_2_aosp">2. Flere indstillinger for sikkerhed og privatliv → Kryptering og loginoplysninger</string>
+    <string name="ca_step_3_aosp">3. Installér et certifikat → CA-certifikat</string>
+    <string name="ca_step_4_aosp">4. Vælg den nyeste parvaz-ca-kode.crt i Downloads</string>
+    <string name="ca_step_5_aosp">5. Gå tilbage til Parvaz</string>
+
+    <string name="vpn_explain_title">VPN-tilladelse</string>
+    <string name="vpn_explain_body">Parvaz skal bruge Androids VPN-tilladelse for at sende browsertrafik gennem tunnelen. Tilladelsen gælder kun for denne app.</string>
+    <string name="vpn_explain_cta">Tillad</string>
+    <string name="vpn_explain_waiting">Venter…</string>
+    <string name="vpn_explain_granted">Tilladelsen er givet</string>
+    <string name="vpn_explain_denied">VPN-tilladelsen blev afvist. Prøv igen</string>
+
+    <string name="main_disconnected_stamp">PARVAZ</string>
+    <string name="main_connected_stamp">I LUFTEN</string>
+    <string name="main_connecting_label">Forbinder…</string>
+    <string name="main_failed_label">Forbindelsen mislykkedes. Prøv igen</string>
+    <string name="main_failed_no_internet">Intet internet. Tjek din forbindelse</string>
+    <string name="main_failed_vpn_revoked">VPN-tilladelsen er trukket tilbage. Giv den igen i Androids indstillinger</string>
+    <string name="main_failed_no_access">Ingen adgangsadresse er gemt. Importér en først</string>
+    <string name="main_failed_sidecar">Kernen kunne ikke starte. Prøv igen</string>
+
+    <string name="settings_title">Indstillinger</string>
+    <string name="settings_language_label">Sprog</string>
+    <string name="settings_language_fa">فارسی</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_reset_access_label">Nulstil adgang</string>
+    <string name="settings_reset_access_body">Parvaz glemmer din adgangsadresse og går tilbage til første trin i opsætningen</string>
+    <string name="settings_reset_access_cta">Nulstil</string>
+    <string name="settings_reset_confirm_title">Er du sikker?</string>
+    <string name="settings_reset_confirm_body">Alle indstillinger bliver slettet, og du skal indtaste parvaz://-adressen igen</string>
+    <string name="settings_cancel_cta">Annullér</string>
+    <string name="settings_close_cta">Luk</string>
+
+    <string name="settings_gear_cd">Indstillinger</string>
+    <string name="settings_url_section_label">Parvaz-adresse</string>
+    <string name="settings_url_input_hint">parvaz://…</string>
+    <string name="settings_url_save_cta">Gem</string>
+    <string name="settings_url_saved_label">Gemt</string>
+
+    <string name="vpn_notification_channel_name">Parvaz-forbindelse</string>
+    <string name="vpn_notification_channel_description">Fast notifikation, mens tunnelen er aktiv</string>
+    <string name="vpn_notification_title">Parvaz kører</string>
+    <string name="vpn_notification_text">Browsertrafik går gennem Parvaz</string>
+    <string name="vpn_notification_stop_action">Stop</string>
+</resources>

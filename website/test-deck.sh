@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke-test the airline-deck navigation on EN + FA pages.
+# Smoke-test the airline-deck navigation on EN + FA + DA pages.
 # Drives headless Chrome with a virtual-time budget large enough for
 # defer'd script.js to run and mutate the DOM, then greps the dumped
 # DOM for the markers we expect (slides, JS-generated dots, deck
@@ -13,6 +13,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PORT="${PORT:-18080}"
 URL_EN="http://127.0.0.1:${PORT}/"
 URL_FA="http://127.0.0.1:${PORT}/fa/"
+URL_DA="http://127.0.0.1:${PORT}/da/"
 
 python3 -m http.server "$PORT" --directory "$DIR" >/dev/null 2>&1 &
 SERVER_PID=$!
@@ -90,6 +91,8 @@ echo "=== EN ==="
 run_suite "en" "$URL_EN"
 echo "=== FA ==="
 run_suite "fa" "$URL_FA"
+echo "=== DA ==="
+run_suite "da" "$URL_DA"
 
 echo "=== nav interactivity (?test=nav) ==="
 nav_check() {
@@ -110,6 +113,7 @@ nav_check() {
 }
 nav_check "en" "$URL_EN"
 nav_check "fa" "$URL_FA"
+nav_check "da" "$URL_DA"
 
 echo "=== stylesheet manifest ==="
 css_manifest=$(curl -s "http://127.0.0.1:${PORT}/styles.css")
@@ -157,6 +161,27 @@ parity "boarding-pass tabs"   'class="bp-tab' 1
 parity "deck-controls cells"  'class="deck-controls__'
 parity "slide heads"          'class="slide__head"'
 parity "trust alert blocks"   'class="deck-alert"'
+
+echo "=== EN ↔ DA parity ==="
+parity_da() {
+    local name="$1" pattern="$2"
+    local en=$(grep -c -- "$pattern" /tmp/parvaz-deck-en.html)
+    local da=$(grep -c -- "$pattern" /tmp/parvaz-deck-da.html)
+    if [[ "$en" -eq "$da" ]]; then
+        echo "  [parity] ✓ $name  (EN=$en DA=$da)"
+        PASS=$((PASS+1))
+    else
+        echo "  [parity] ✗ $name  (EN=$en DA=$da)" >&2
+        FAIL=$((FAIL+1))
+    fi
+}
+parity_da "slide count"          'data-slide='
+parity_da "solari cells"         'class="solari-board__cell"'
+parity_da "boarding-pass tabs"   'class="bp-tab'
+parity_da "deck-controls cells"  'class="deck-controls__'
+parity_da "slide heads"          'class="slide__head"'
+parity_da "trust alert blocks"   'class="deck-alert"'
+parity_da "shared install block" 'class="install"'
 
 echo
 echo "passed: $PASS · failed: $FAIL"
