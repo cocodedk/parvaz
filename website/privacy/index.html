@@ -61,7 +61,7 @@
       </ul>
       A few headers about the connection itself, such as <code>Host</code> and <code>Connection</code>, are left out.</li>
     <li><strong>Your access key.</strong> This is the secret part of your <code>parvaz://</code> link. Parvaz sends it with every request so the relay accepts the request.</li>
-    <li><strong>Your name lookups.</strong> A DNS lookup is your phone asking which address belongs to a website's name. While Parvaz is connected, every DNS lookup from any app on your phone goes to the relay. The relay asks Google Public DNS, a service run by Google. Lookups for IPv6 addresses (the newer kind of internet address) are answered with an empty answer on the phone and are not sent.</li>
+    <li><strong>Your name lookups.</strong> A DNS lookup is your phone asking which address belongs to a website's name. While Parvaz is connected, Android is told to send DNS lookups to a server that exists only inside the tunnel, and Parvaz sends each lookup that reaches that server on to the relay. A lookup an app addresses to any other DNS server is not forwarded. The relay asks Google Public DNS, a service run by Google. Lookups for IPv6 addresses (the newer kind of internet address) are answered with an empty answer on the phone and are not sent.</li>
     <li><strong>What comes back.</strong> The relay sends back the website's reply: its status, headers (including <code>Set-Cookie</code>) and body. Parvaz passes the reply to your browser and does not save it.</li>
   </ul>
   <p>The app has no permission to read your location, contacts, files, camera or microphone. It saves no list of the addresses you visit.</p>
@@ -113,7 +113,7 @@
     <li><strong>Network state</strong> (<code>ACCESS_NETWORK_STATE</code>) lets Parvaz check that your phone is online before it starts the tunnel.</li>
     <li><strong>Foreground service</strong> (<code>FOREGROUND_SERVICE</code>, <code>FOREGROUND_SERVICE_SPECIAL_USE</code>) keeps the tunnel running while the app is in the background.</li>
     <li><strong>Notifications</strong> (<code>POST_NOTIFICATIONS</code>) lets Parvaz show a notification, with a Stop button, while the tunnel is up.</li>
-    <li><strong>VPN.</strong> Android asks you to allow this the first time you set the app up. It does not apply only to your browser. The tunnel receives the IPv4 traffic of every app on your phone, except Parvaz itself. (IPv4 is the older kind of internet address. Parvaz does not carry IPv6.) Only secure requests from apps that accept Parvaz's certificate reach the relay. These are mostly Chromium browsers such as Chrome. Other connections fail, but the name lookups of every app still go through the relay.</li>
+    <li><strong>VPN.</strong> Android asks you to allow this the first time you set the app up. It does not apply only to your browser. The tunnel receives the IPv4 traffic of every app on your phone, except Parvaz itself. (IPv4 is the older kind of internet address. Parvaz does not carry IPv6.) Only secure requests from apps that accept Parvaz's certificate reach the relay. These are mostly Chromium browsers such as Chrome. Other connections fail, but the name lookups that apps send to Parvaz's own DNS server still go through the relay.</li>
   </ul>
   <p>The app asks for nothing else: no location, contacts, camera, microphone or storage. It does not install other apps.</p>
 
