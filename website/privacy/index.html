@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy policy: Parvaz</title>
+<meta name="description" content="Privacy policy for Parvaz, an Android browser tunnel. Your web traffic goes through a Google Apps Script relay, and the relay's operator and Google can read it. Cocode runs no server for the app and receives nothing from it.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://parvaz.cocode.dk/privacy/">
+<link rel="alternate" hreflang="en" href="https://parvaz.cocode.dk/privacy/">
+<link rel="alternate" hreflang="da" href="https://parvaz.cocode.dk/da/privacy/">
+<link rel="alternate" hreflang="x-default" href="https://parvaz.cocode.dk/privacy/">
+<link rel="icon" type="image/svg+xml" href="../parvaz-mark.svg">
+<link rel="stylesheet" href="../css/01-base-doc.css">
+<link rel="stylesheet" href="../css/privacy.css">
+<link rel="stylesheet" href="https://brand.cocode.dk/v1.css">
+<script type="module" src="https://brand.cocode.dk/v1.js"></script>
+</head>
+<body>
+<cocode-head project="Parvaz" accent="#122a44" on-accent="#e8dfc6">
+  <a href="https://cocode.dk">cocode.dk</a>
+  <a href="/da/privacy/" hreflang="da" lang="da">Dansk</a>
+</cocode-head>
+
+<div class="cocode-menu">
+<!-- cocode-apps:nav:start -->
+<link rel="stylesheet" href="/css/cocode-nav.css">
+<a class="skip" href="#main">Skip to content</a>
+<nav class="cocode-nav" aria-label="Parvaz">
+  <a class="brand" href="/" data-nav="home"><img src="/img/icon.png" alt="" width="32" height="32">Parvaz</a>
+  <a href="/#how" data-nav="how">How it works</a>
+  <a href="/#install" data-nav="install">Install</a>
+  <a href="https://cocode.dk/" data-nav="more">More apps</a>
+</nav>
+<!-- cocode-apps:nav:end -->
+</div>
+
+<main id="main" class="policy" tabindex="-1">
+  <h1>Privacy policy</h1>
+  <p class="meta">Parvaz (<code>dk.cocode.parvaz</code>) · Effective 7 October 2026</p>
+
+  <h2>Summary</h2>
+  <p>Parvaz is a tunnel for your web browser. It sends your web traffic through a relay: a Google Apps Script project that you, or a helper you trust, set up on a Google account. Parvaz is not a "no data" app. The relay's operator and Google can read what passes through the relay.</p>
+  <div class="callout"><p><strong>Use Parvaz only with a relay you trust completely, and not for accounts you cannot afford to lose.</strong> The addresses you visit, your login cookies and what you type into forms, passwords included, all pass through the relay as readable text.</p></div>
+  <p>Cocode, who make Parvaz, run no server for the app and receive nothing from it. The app has no account, no analytics, no ads and no crash reporting. It keeps a few settings and a certificate on your phone.</p>
+
+  <h2>What is collected</h2>
+  <p>Cocode collects nothing. What the app handles is your web traffic, and it passes that on to the relay.</p>
+  <ul>
+    <li><strong>Your web requests.</strong> For every HTTPS request your browser makes through the tunnel: the full address, including anything after the <code>?</code>; the method (GET, POST and so on); the request headers; and the body. The headers include <code>Cookie</code> and <code>Authorization</code> when the browser sends them. The body includes anything you submit in a form, such as a password. Only a few headers about the connection itself, such as <code>Host</code> and <code>Connection</code>, are left out.</li>
+    <li><strong>Your access key.</strong> It is sent with every request so the relay accepts it.</li>
+    <li><strong>Your name lookups.</strong> Every DNS lookup your phone makes while the tunnel is up goes to the relay, which asks Google Public DNS. Lookups for IPv6 addresses are answered with an empty answer on the phone and are not sent.</li>
+    <li><strong>What comes back.</strong> The relay returns the website's reply: status, headers (including <code>Set-Cookie</code>) and body. Parvaz hands it to your browser and does not save it.</li>
+  </ul>
+  <p>The app has no permission to read your location, contacts, files, camera or microphone, and it saves no list of the addresses you visit.</p>
+
+  <h2>Servers the app contacts</h2>
+  <p>While connected, the app contacts the servers below and no others. It contacts none of them while disconnected.</p>
+  <h3>Your relay: script.google.com</h3>
+  <p>The app builds the relay's address from the <code>parvaz://</code> link you pasted: <code>https://script.google.com/macros/s/&lt;deployment ID&gt;/exec</code>. Each request goes there as a small JSON message holding the access key, the address, the method, the headers and the body. The relay fetches the website for you, which is why it has to see all of it.</p>
+  <h3>How the connection is made</h3>
+  <p>The phone does not look up script.google.com. It connects straight to a Google IP address, <code>216.239.38.120</code>, and the TLS handshake names <code>www.google.com</code>. The name script.google.com appears only inside the encrypted connection. The app verifies Google's certificate. Someone watching your network sees a connection to Google and the name www.google.com, together with how much data moves and when. They do not see the relay's address or what is inside.</p>
+  <h3>Name lookups: dns.google</h3>
+  <p>While connected, Android is told to use a DNS server at <code>10.0.0.2</code> that exists only inside the tunnel. Parvaz answers every lookup sent to it by asking Google Public DNS (<code>https://dns.google/dns-query</code>) through the relay. The phone never contacts dns.google itself. Lookups addressed to any other DNS server are not forwarded.</p>
+  <h3>The websites you visit</h3>
+  <p>The relay, not your phone, requests the page from the website (with Apps Script's <code>UrlFetchApp</code>). The website sees a request from Google's servers, and it receives the headers your browser sent, cookies included.</p>
+  <h3>Google's own sites</h3>
+  <p>The code has two shortcuts that skip the relay: google.com, googleapis.com, gstatic.com and googleusercontent.com are meant to be reached directly, and youtube.com, ytimg.com and ggpht.com through a Google address. A shortcut is chosen by the site's name, but the tunnel hands Parvaz IP addresses, not names. Assume these sites go through the relay like any other.</p>
+  <h3>Who sees what</h3>
+  <dl class="who">
+    <dt>Your network</dt>
+    <dd>For what goes through the tunnel: a connection to Google, the name www.google.com, and how much data moves and when. Parvaz does not carry IPv6 traffic, so it does not cover it.</dd>
+    <dt>Google</dt>
+    <dd>Your phone's IP address and everything sent to the relay: the access key, addresses, cookies, form data, the replies and your name lookups. What Google keeps is governed by its own terms, and the app cannot see it.</dd>
+    <dt>The relay's operator</dt>
+    <dd>The owner of the Google account that deployed the relay. The script receives every request in plain text, and its owner can change it to keep a copy. The <code>Code.gs</code> that comes with Parvaz contains no code that logs or stores requests. If you deployed the relay yourself, this is you.</dd>
+    <dt>The websites</dt>
+    <dd>A request from Google's servers, with your browser's headers and cookies.</dd>
+    <dt>Cocode</dt>
+    <dd>Nothing.</dd>
+  </dl>
+  <h3>Nothing else</h3>
+  <p>The app has no other web address in it. It does not check for updates, report crashes or measure use.</p>
+
+  <h2>Permissions</h2>
+  <ul>
+    <li><strong>Internet</strong> (<code>INTERNET</code>): to reach Google. Android also requires it for the app's own local connections.</li>
+    <li><strong>Network state</strong> (<code>ACCESS_NETWORK_STATE</code>): to check that the phone is online before the tunnel starts.</li>
+    <li><strong>Foreground service</strong> (<code>FOREGROUND_SERVICE</code>, <code>FOREGROUND_SERVICE_SPECIAL_USE</code>): to keep the tunnel running while the app is in the background.</li>
+    <li><strong>Notifications</strong> (<code>POST_NOTIFICATIONS</code>): for the ongoing notification, with a Stop button, shown while the tunnel is up.</li>
+    <li><strong>VPN</strong>: Android asks you to allow it the first time you set the app up. It is not limited to your browser. The tunnel receives the IPv4 traffic of every app on the phone except Parvaz itself. Only HTTPS requests from apps that accept Parvaz's certificate, mostly Chromium browsers, reach the relay. Other connections fail, but the name lookups of every app still go through the relay.</li>
+  </ul>
+  <p>The app asks for nothing else: no location, contacts, camera, microphone or storage. It does not install other apps.</p>
+
+  <h2>What stays on the phone</h2>
+  <ul>
+    <li><strong>Your access key</strong> is kept in encrypted storage whose key is held in the Android Keystore.</li>
+    <li><strong>The relay's deployment ID, the label after the <code>#</code> in your link, the app language and whether setup is finished</strong> are kept in ordinary app preferences.</li>
+    <li><strong>Parvaz's own certificate authority</strong>, a certificate and its private key, is created on your phone and stored in the app's private files. The key is never exported. The tunnel makes a certificate for each site you visit and keeps it in memory only.</li>
+    <li><strong>A copy of the certificate</strong> (never the key) is written to your Downloads folder as <code>parvaz-ca-&hellip;.crt</code> so you can install it in Android. Parvaz deletes older copies first. You can delete the file once the certificate is installed.</li>
+    <li><strong>The device log.</strong> While connected, the tunnel library can write the IP address and port of a connection that failed to open to Android's system log on the phone.</li>
+  </ul>
+  <p>Android's backup is allowed for the app. The access key's file and the certificate authority's files are excluded from cloud backup and from phone-to-phone transfer. The ordinary preferences are not, so the deployment ID, label and language can be copied to your Google backup if you have backup turned on.</p>
+  <p>To forget your relay, use Reset in the app's settings. It removes the access key, deployment ID and label, but leaves the certificate authority. To delete everything Parvaz stored, clear the app's storage or uninstall it in Android's settings. The certificate you installed in Android's trust store stays until you remove it there, and your phone keeps trusting it until you do. Parvaz cannot remove it for you.</p>
+
+  <h2>Third parties</h2>
+  <ul>
+    <li><strong>Google</strong> runs the relay platform, the servers the phone connects to and Google Public DNS. See <a href="https://policies.google.com/privacy" rel="noopener">Google's privacy policy</a>. If Android backup is on, Google also holds that backup.</li>
+    <li><strong>The relay's operator</strong>, as described above.</li>
+    <li><strong>The websites you visit</strong>, under their own policies.</li>
+    <li><strong>Libraries in the app.</strong> The tunnel uses the open-source tun2socks library, and the app uses Android's standard libraries. The app has no analytics, advertising or crash-reporting library and no Google Play services. The tunnel library's own control interface is not switched on.</li>
+    <li><strong>Where you download the app</strong> (GitHub or F-Droid) sees your download under its own policy. The app itself contacts neither.</li>
+    <li><strong>This page</strong> loads its style from this site and the shared Cocode header from brand.cocode.dk and cocode.dk. It loads nothing from Google. Other pages on this site may load fonts from Google Fonts.</li>
+  </ul>
+
+  <h2>Your rights</h2>
+  <p>Under the General Data Protection Regulation (GDPR) you have the right to access, correct and delete data about you, and to complain. Cocode holds no data about you, so there is nothing to look up or delete on our side. What the relay's operator and Google hold is theirs to answer for, and the app cannot see it. Ask them. On your phone you decide: reset the app, clear its storage or uninstall it. You can complain to the Danish Data Protection Agency, <a href="https://www.datatilsynet.dk/english" rel="noopener">Datatilsynet</a>.</p>
+
+  <h2>Contact</h2>
+  <p>Cocode (Babak Bandpey), <a href="mailto:bb@cocode.dk">bb@cocode.dk</a>. Questions and bugs can also go to the <a href="https://github.com/cocodedk/parvaz/issues" rel="noopener">issues page on GitHub</a>. To report a security problem, follow the project's <a href="https://github.com/cocodedk/parvaz/security/policy" rel="noopener">security policy</a> rather than opening a public issue.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes, the date at the top changes and the change is described here. Older versions are in the project's history on <a href="https://github.com/cocodedk/parvaz" rel="noopener">GitHub</a>.</p>
+  <p><strong>7 October 2026:</strong> the first version of this policy on this site.</p>
+</main>
+
+<div class="foot">
+<!-- cocode-apps:footer:start -->
+<footer class="cocode-footer">
+  <a href="https://github.com/cocodedk/parvaz">Source code</a> ·
+  License: MIT ·
+  <a href="https://cocode.dk/">Made by Cocode (cocode.dk)</a>
+</footer>
+<!-- cocode-apps:footer:end -->
+</div>
+</body>
+</html>

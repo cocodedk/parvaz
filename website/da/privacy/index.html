@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privatlivspolitik: Parvaz</title>
+<meta name="description" content="Privatlivspolitik for Parvaz, en Android-tunnel til browseren. Din webtrafik går gennem et Google Apps Script-relæ, og relæets ejer og Google kan læse den. Cocode driver ingen server til appen og modtager intet fra den.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://parvaz.cocode.dk/da/privacy/">
+<link rel="alternate" hreflang="en" href="https://parvaz.cocode.dk/privacy/">
+<link rel="alternate" hreflang="da" href="https://parvaz.cocode.dk/da/privacy/">
+<link rel="alternate" hreflang="x-default" href="https://parvaz.cocode.dk/privacy/">
+<link rel="icon" type="image/svg+xml" href="../../parvaz-mark.svg">
+<link rel="stylesheet" href="../../css/01-base-doc.css">
+<link rel="stylesheet" href="../../css/privacy.css">
+<link rel="stylesheet" href="https://brand.cocode.dk/v1.css">
+<script type="module" src="https://brand.cocode.dk/v1.js"></script>
+</head>
+<body>
+<cocode-head project="Parvaz" accent="#122a44" on-accent="#e8dfc6">
+  <a href="https://cocode.dk">cocode.dk</a>
+  <a href="/privacy/" hreflang="en" lang="en">English</a>
+</cocode-head>
+
+<div class="cocode-menu">
+<!-- cocode-apps:nav:start -->
+<link rel="stylesheet" href="/css/cocode-nav.css">
+<a class="skip" href="#main">Spring til indhold</a>
+<nav class="cocode-nav" aria-label="Parvaz">
+  <a class="brand" href="/da/" data-nav="home"><img src="/img/icon.png" alt="" width="32" height="32">Parvaz</a>
+  <a href="/da/#how" data-nav="how">Sådan virker det</a>
+  <a href="/da/#install" data-nav="install">Installér</a>
+  <a href="https://cocode.dk/" data-nav="more">Flere apps</a>
+</nav>
+<!-- cocode-apps:nav:end -->
+</div>
+
+<main id="main" class="policy" tabindex="-1">
+  <h1>Privatlivspolitik</h1>
+  <p class="meta">Parvaz (<code>dk.cocode.parvaz</code>) · Gælder fra 7. oktober 2026</p>
+
+  <h2>Resumé</h2>
+  <p>Parvaz er en tunnel til din browser. Den sender din webtrafik gennem et relæ: et Google Apps Script-projekt, som du eller en hjælper, du stoler på, har sat op på en Google-konto. Parvaz er ikke en app uden data. Relæets ejer og Google kan læse det, der løber gennem relæet.</p>
+  <div class="callout"><p><strong>Brug kun Parvaz sammen med et relæ, du har fuld tillid til, og ikke til konti, du ikke kan tåle at miste.</strong> De adresser, du besøger, dine login-cookies og det, du skriver i formularer, adgangskoder med, løber alt sammen gennem relæet som læselig tekst.</p></div>
+  <p>Cocode, der laver Parvaz, driver ingen server til appen og modtager intet fra den. Appen har ingen konto, ingen statistik, ingen reklamer og ingen fejlrapportering. Den gemmer nogle få indstillinger og et certifikat på din telefon.</p>
+
+  <h2>Hvad der indsamles</h2>
+  <p>Cocode indsamler ingenting. Det, appen håndterer, er din webtrafik, og den sender den videre til relæet.</p>
+  <ul>
+    <li><strong>Dine webforespørgsler.</strong> For hver HTTPS-forespørgsel, som din browser sender gennem tunnelen: den fulde adresse, også det, der står efter <code>?</code>; metoden (GET, POST og så videre); forespørgslens headere; og indholdet. Headerne omfatter <code>Cookie</code> og <code>Authorization</code>, når browseren sender dem. Indholdet omfatter alt, du sender i en formular, for eksempel en adgangskode. Kun nogle få headere om selve forbindelsen, som <code>Host</code> og <code>Connection</code>, udelades.</li>
+    <li><strong>Din adgangsnøgle.</strong> Den følger med hver forespørgsel, så relæet accepterer den.</li>
+    <li><strong>Dine navneopslag.</strong> Hvert DNS-opslag, din telefon laver, mens tunnelen er oppe, går til relæet, som spørger Google Public DNS. Opslag efter IPv6-adresser får et tomt svar på telefonen og bliver ikke sendt.</li>
+    <li><strong>Det, der kommer tilbage.</strong> Relæet sender hjemmesidens svar tilbage: status, headere (også <code>Set-Cookie</code>) og indhold. Parvaz giver det videre til din browser og gemmer det ikke.</li>
+  </ul>
+  <p>Appen har ingen tilladelse til at læse din placering, dine kontakter, dine filer, dit kamera eller din mikrofon, og den gemmer ingen liste over de adresser, du besøger.</p>
+
+  <h2>Servere appen kontakter</h2>
+  <p>Mens appen er forbundet, kontakter den serverne nedenfor og ingen andre. Når den ikke er forbundet, kontakter den ingen af dem.</p>
+  <h3>Dit relæ: script.google.com</h3>
+  <p>Appen bygger relæets adresse ud fra det <code>parvaz://</code>-link, du har indsat: <code>https://script.google.com/macros/s/&lt;implementerings-id&gt;/exec</code>. Hver forespørgsel sendes dertil som en lille JSON-besked med adgangsnøglen, adressen, metoden, headerne og indholdet. Relæet henter hjemmesiden for dig, og derfor skal det kunne se det hele.</p>
+  <h3>Sådan oprettes forbindelsen</h3>
+  <p>Telefonen slår ikke script.google.com op. Den forbinder direkte til en Google-IP-adresse, <code>216.239.38.120</code>, og TLS-håndtrykket nævner <code>www.google.com</code>. Navnet script.google.com står kun inde i den krypterede forbindelse. Appen kontrollerer Googles certifikat. Den, der holder øje med dit netværk, ser en forbindelse til Google og navnet www.google.com, og hvor meget data der flyttes, og hvornår. Relæets adresse og indholdet ser vedkommende ikke.</p>
+  <h3>Navneopslag: dns.google</h3>
+  <p>Mens appen er forbundet, får Android besked om at bruge en DNS-server på <code>10.0.0.2</code>, som kun findes inde i tunnelen. Parvaz besvarer hvert opslag, der sendes dertil, ved at spørge Google Public DNS (<code>https://dns.google/dns-query</code>) gennem relæet. Telefonen kontakter aldrig dns.google selv. Opslag, der er stilet til en anden DNS-server, bliver ikke sendt videre.</p>
+  <h3>Hjemmesiderne du besøger</h3>
+  <p>Det er relæet, ikke din telefon, der henter siden fra hjemmesiden (med Apps Scripts <code>UrlFetchApp</code>). Hjemmesiden ser en forespørgsel fra Googles servere, og den får de headere, din browser sendte, cookies med.</p>
+  <h3>Googles egne sider</h3>
+  <p>Koden har to genveje, der springer relæet over: google.com, googleapis.com, gstatic.com og googleusercontent.com skal nås direkte, og youtube.com, ytimg.com og ggpht.com gennem en Google-adresse. En genvej vælges ud fra sidens navn, men tunnelen giver Parvaz IP-adresser, ikke navne. Gå ud fra, at disse sider også går gennem relæet, som alle andre.</p>
+  <h3>Hvem ser hvad</h3>
+  <dl class="who">
+    <dt>Dit netværk</dt>
+    <dd>For det, der går gennem tunnelen: en forbindelse til Google, navnet www.google.com, og hvor meget data der flyttes, og hvornår. Parvaz bærer ikke IPv6-trafik og dækker den derfor ikke.</dd>
+    <dt>Google</dt>
+    <dd>Din telefons IP-adresse og alt, der sendes til relæet: adgangsnøglen, adresser, cookies, formulardata, svarene og dine navneopslag. Hvad Google gemmer, afgøres af Googles egne vilkår, og appen kan ikke se det.</dd>
+    <dt>Relæets ejer</dt>
+    <dd>Ejeren af den Google-konto, der har sat relæet op. Scriptet modtager hver forespørgsel som ren tekst, og ejeren kan ændre det, så det gemmer en kopi. Den <code>Code.gs</code>, der følger med Parvaz, indeholder ingen kode, der logger eller gemmer forespørgsler. Har du selv sat relæet op, er det dig.</dd>
+    <dt>Hjemmesiderne</dt>
+    <dd>En forespørgsel fra Googles servere med din browsers headere og cookies.</dd>
+    <dt>Cocode</dt>
+    <dd>Intet.</dd>
+  </dl>
+  <h3>Intet andet</h3>
+  <p>Appen har ingen andre webadresser i sig. Den leder ikke efter opdateringer, sender ingen nedbrudsrapporter og måler ikke brug.</p>
+
+  <h2>Tilladelser</h2>
+  <ul>
+    <li><strong>Internet</strong> (<code>INTERNET</code>): for at nå Google. Android kræver den også til appens egne lokale forbindelser.</li>
+    <li><strong>Netværksstatus</strong> (<code>ACCESS_NETWORK_STATE</code>): for at tjekke, at telefonen er online, før tunnelen starter.</li>
+    <li><strong>Forgrundstjeneste</strong> (<code>FOREGROUND_SERVICE</code>, <code>FOREGROUND_SERVICE_SPECIAL_USE</code>): for at holde tunnelen kørende, mens appen er i baggrunden.</li>
+    <li><strong>Notifikationer</strong> (<code>POST_NOTIFICATIONS</code>): til den vedvarende notifikation med en Stop-knap, som vises, mens tunnelen er oppe.</li>
+    <li><strong>VPN</strong>: Android beder dig give tilladelsen, første gang du sætter appen op. Den er ikke begrænset til din browser. Tunnelen modtager IPv4-trafikken fra alle apps på telefonen undtagen Parvaz selv. Kun HTTPS-forespørgsler fra apps, der accepterer Parvaz' certifikat, mest Chromium-baserede browsere, når frem til relæet. Andre forbindelser mislykkes, men alle apps' navneopslag går stadig gennem relæet.</li>
+  </ul>
+  <p>Appen beder ikke om andet: ingen placering, kontakter, kamera, mikrofon eller lager. Den installerer ikke andre apps.</p>
+
+  <h2>Hvad der bliver på telefonen</h2>
+  <ul>
+    <li><strong>Din adgangsnøgle</strong> gemmes i krypteret lager, og nøglen til det ligger i Android Keystore.</li>
+    <li><strong>Relæets implementerings-id, teksten efter <code>#</code> i dit link, appens sprog og om opsætningen er færdig</strong> gemmes i appens almindelige indstillinger.</li>
+    <li><strong>Parvaz' egen certifikatudsteder</strong>, et certifikat og dets private nøgle, oprettes på din telefon og ligger i appens private filer. Nøglen bliver aldrig eksporteret. Tunnelen laver et certifikat til hver side, du besøger, og beholder det kun i hukommelsen.</li>
+    <li><strong>En kopi af certifikatet</strong> (aldrig nøglen) lægges i din Downloads-mappe som <code>parvaz-ca-&hellip;.crt</code>, så du kan installere det i Android. Parvaz sletter ældre kopier først. Du kan slette filen, når certifikatet er installeret.</li>
+    <li><strong>Enhedens log.</strong> Mens appen er forbundet, kan tunnelbiblioteket skrive IP-adressen og porten på en forbindelse, der ikke kunne åbnes, til Androids systemlog på telefonen.</li>
+  </ul>
+  <p>Androids sikkerhedskopiering er tilladt for appen. Filen med adgangsnøglen og certifikatudstederens filer er holdt uden for skybackup og overførsel fra telefon til telefon. De almindelige indstillinger er ikke, så implementerings-id, tekst og sprog kan blive kopieret til din Google-backup, hvis du har backup slået til.</p>
+  <p>Vil du glemme dit relæ, så brug Nulstil i appens indstillinger. Den fjerner adgangsnøglen, implementerings-id og teksten, men lader certifikatudstederen stå. Vil du slette alt, hvad Parvaz har gemt, så ryd appens lager eller afinstaller den i Androids indstillinger. Det certifikat, du har installeret i Androids tillidslager, bliver liggende, indtil du fjerner det dér, og din telefon stoler på det, indtil du gør det. Det kan Parvaz ikke fjerne for dig.</p>
+
+  <h2>Tredjeparter</h2>
+  <ul>
+    <li><strong>Google</strong> driver relæplatformen, de servere telefonen forbinder til, og Google Public DNS. Se <a href="https://policies.google.com/privacy" rel="noopener">Googles privatlivspolitik</a>. Hvis Android-backup er slået til, har Google også den backup.</li>
+    <li><strong>Relæets ejer</strong>, som beskrevet ovenfor.</li>
+    <li><strong>Hjemmesiderne du besøger</strong>, under deres egne politikker.</li>
+    <li><strong>Biblioteker i appen.</strong> Tunnelen bruger det åbne bibliotek tun2socks, og appen bruger Androids standardbiblioteker. Appen har intet bibliotek til statistik, reklamer eller fejlrapportering og ingen Google Play-tjenester. Tunnelbibliotekets egen kontrolgrænseflade er ikke slået til.</li>
+    <li><strong>Stedet, du henter appen fra</strong> (GitHub eller F-Droid), ser din download under sin egen politik. Selve appen kontakter ingen af dem.</li>
+    <li><strong>Denne side</strong> henter sin stil fra dette websted og den fælles Cocode-header fra brand.cocode.dk og cocode.dk. Den henter intet fra Google. Andre sider på webstedet kan hente skrifttyper fra Google Fonts.</li>
+  </ul>
+
+  <h2>Dine rettigheder</h2>
+  <p>Efter databeskyttelsesforordningen (GDPR) har du ret til indsigt i, rettelse af og sletning af data om dig, og til at klage. Cocode har ingen data om dig, så der er intet at slå op eller slette hos os. Det, relæets ejer og Google har, er de selv ansvarlige for, og appen kan ikke se det. Spørg dem. På din telefon bestemmer du selv: nulstil appen, ryd dens lager eller afinstaller den. Du kan klage til <a href="https://www.datatilsynet.dk/" rel="noopener">Datatilsynet</a>.</p>
+
+  <h2>Kontakt</h2>
+  <p>Cocode (Babak Bandpey), <a href="mailto:bb@cocode.dk">bb@cocode.dk</a>. Spørgsmål og fejl kan også sendes til <a href="https://github.com/cocodedk/parvaz/issues" rel="noopener">problemsiden på GitHub</a>. Skal du melde et sikkerhedsproblem, så følg projektets <a href="https://github.com/cocodedk/parvaz/security/policy" rel="noopener">sikkerhedspolitik</a> i stedet for at åbne en offentlig sag.</p>
+
+  <h2>Ændringer</h2>
+  <p>Hvis politikken ændres, ændres datoen øverst, og ændringen beskrives her. Ældre versioner kan ses i projektets historik på <a href="https://github.com/cocodedk/parvaz" rel="noopener">GitHub</a>.</p>
+  <p><strong>7. oktober 2026:</strong> første version af politikken på dette websted.</p>
+</main>
+
+<div class="foot">
+<!-- cocode-apps:footer:start -->
+<footer class="cocode-footer">
+  <a href="https://github.com/cocodedk/parvaz">Kildekode</a> ·
+  Licens: MIT ·
+  <a href="https://cocode.dk/">Lavet af Cocode (cocode.dk)</a>
+</footer>
+<!-- cocode-apps:footer:end -->
+</div>
+</body>
+</html>
