@@ -61,7 +61,7 @@
       </ul>
       Kun nogle få headere om selve forbindelsen, som <code>Host</code> og <code>Connection</code>, udelades.</li>
     <li><strong>Din adgangsnøgle.</strong> Det er den hemmelige del af dit <code>parvaz://</code>-link. Parvaz sender den med hver forespørgsel, så relayet accepterer forespørgslen.</li>
-    <li><strong>Dine navneopslag.</strong> Et DNS-opslag er din telefon, der spørger, hvilken adresse et hjemmesidenavn hører til. Mens Parvaz er forbundet, går hvert DNS-opslag fra en hvilken som helst app på din telefon til relayet. Relayet spørger Google Public DNS, en tjeneste fra Google. Opslag efter IPv6-adresser (den nyere slags internetadresser) får et tomt svar på telefonen og bliver ikke sendt.</li>
+    <li><strong>Dine navneopslag.</strong> Et DNS-opslag er din telefon, der spørger, hvilken adresse et hjemmesidenavn hører til. Mens Parvaz er forbundet, får Android besked om at sende DNS-opslag til en server, der kun findes inde i tunnelen, og Parvaz sender hvert opslag, der når den server, videre til relayet. Et opslag, som en app stiler til en anden DNS-server, bliver ikke sendt videre. Relayet spørger Google Public DNS, en tjeneste fra Google. Opslag efter IPv6-adresser (den nyere slags internetadresser) får et tomt svar på telefonen og bliver ikke sendt.</li>
     <li><strong>Det, der kommer tilbage.</strong> Relayet sender hjemmesidens svar tilbage: status, headere (også <code>Set-Cookie</code>) og indhold. Parvaz giver svaret videre til din browser og gemmer det ikke.</li>
   </ul>
   <p>Appen har ingen tilladelse til at læse din placering, dine kontakter, dine filer, dit kamera eller din mikrofon. Den gemmer ingen liste over de adresser, du besøger.</p>
@@ -113,7 +113,7 @@
     <li><strong>Netværksstatus</strong> (<code>ACCESS_NETWORK_STATE</code>) lader Parvaz tjekke, at telefonen er online, før tunnelen starter.</li>
     <li><strong>Forgrundstjeneste</strong> (<code>FOREGROUND_SERVICE</code>, <code>FOREGROUND_SERVICE_SPECIAL_USE</code>) holder tunnelen kørende, mens appen er i baggrunden.</li>
     <li><strong>Notifikationer</strong> (<code>POST_NOTIFICATIONS</code>) lader Parvaz vise en notifikation med en Stop-knap, mens tunnelen er oppe.</li>
-    <li><strong>VPN.</strong> Android beder dig give denne tilladelse, første gang du sætter appen op. Den gælder ikke kun din browser. Tunnelen modtager IPv4-trafikken fra alle apps på din telefon undtagen Parvaz selv. (IPv4 er den ældre slags internetadresser. Parvaz bærer ikke IPv6.) Kun sikre forespørgsler fra apps, der accepterer Parvaz' certifikat, når frem til relayet. Det er mest Chromium-baserede browsere som Chrome. Andre forbindelser mislykkes, men alle apps' navneopslag går stadig gennem relayet.</li>
+    <li><strong>VPN.</strong> Android beder dig give denne tilladelse, første gang du sætter appen op. Den gælder ikke kun din browser. Tunnelen modtager IPv4-trafikken fra alle apps på din telefon undtagen Parvaz selv. (IPv4 er den ældre slags internetadresser. Parvaz bærer ikke IPv6.) Kun sikre forespørgsler fra apps, der accepterer Parvaz' certifikat, når frem til relayet. Det er mest Chromium-baserede browsere som Chrome. Andre forbindelser mislykkes, men de navneopslag, som apps sender til Parvaz' egen DNS-server, går stadig gennem relayet.</li>
   </ul>
   <p>Appen beder ikke om andet: ingen placering, kontakter, kamera, mikrofon eller lager. Den installerer ikke andre apps.</p>
 
