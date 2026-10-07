@@ -107,7 +107,7 @@
     <string name="about_website">Åbn hjemmesiden</string>
     <string name="about_source">Se kildekoden på GitHub</string>
     <string name="about_report_hint">Indlæg på GitHub er offentlige. Skriv ikke dit parvaz://-link eller din adgangsnøgle i et.</string>
-    <string name="about_report">Meld et problem på GitHub</string>
+    <string name="about_report">Meld en fejl på GitHub</string>
     <string name="about_no_browser">Ingen app på telefonen kan åbne linket. Installér en webbrowser, og prøv igen.</string>
     <string name="about_credits_title">Tak og licenser</string>
     <string name="about_license">Parvaz er fri software. Du må bruge, læse, ændre og dele den under MIT-licensen.</string>
