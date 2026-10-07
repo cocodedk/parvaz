@@ -1,0 +1,98 @@
+/* =====================================================================
+   AIRLINE DECK · the cocode-apps blocks in the deck's paper-and-ink look
+   - .cocode-menu: shared menu, in flow right below <cocode-head>; script.js
+     adds its measured height to --frame-h (the values here are the
+     no-JS fallback: one row on wide screens, two on phones)
+   - .install: shared install block, in the last slide's call to action
+   - .cocode-footer: shared footer, the last block of the last slide
+   Shared skip-link and 44px touch-target rules come from css/cocode-nav.css.
+   ===================================================================== */
+
+body.airline-deck { --nav-h: 45px; --nav-gutter: clamp(28px, 5vw, 64px); }
+body.airline-deck:has(> .cocode-menu) { --frame-h: calc(71px + var(--nav-h)); }
+
+body.airline-deck .cocode-menu {
+  box-sizing: border-box;
+  padding: 0 var(--nav-gutter);
+  background: var(--paper);
+  border-bottom: 1px solid var(--ink);
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink);
+}
+body.airline-deck .cocode-menu .cocode-nav a { text-decoration: none; border-bottom: 0; padding: 0 2px; }
+body.airline-deck .cocode-menu .cocode-nav a:hover { color: var(--stamp); background: transparent; }
+/* The page's own .brand is the big hero wordmark: undo its size, spacing and wrapping here. */
+body.airline-deck .cocode-menu .cocode-nav .brand {
+  font-family: var(--display);
+  font-size: 18px; font-weight: 400; line-height: 1.2;
+  letter-spacing: 0; text-transform: none;
+  gap: 0.5rem; margin-bottom: 0; flex-wrap: nowrap;
+}
+body.airline-deck .cocode-menu .brand img { border-radius: 8px; }
+body.airline-deck .cocode-menu .skip:focus {
+  background: var(--ink); color: var(--paper);
+  font-family: var(--mono); letter-spacing: 0.1em;
+}
+body.airline-deck #main:focus { outline: none; }
+
+body.airline-deck .depart__cta .install {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+body.airline-deck .depart__cta .install li { margin: 0; }
+body.airline-deck .depart__cta .install a,
+body.airline-deck .depart__cta .install .fdroid-soon {
+  display: flex; align-items: center; box-sizing: border-box;
+  min-height: 44px; padding: 6px 18px;
+  border: 1.5px solid var(--ink);
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.4;
+  text-decoration: none;
+}
+body.airline-deck .depart__cta .install a {
+  background: var(--paper-3); color: var(--ink);
+  box-shadow: 2px 3px 0 rgba(18,42,68,0.18);
+  transition: transform .18s, box-shadow .18s, color .18s;
+}
+body.airline-deck .depart__cta .install a:hover {
+  background: var(--paper-3); color: var(--stamp);
+  transform: translate(1px, 1px); box-shadow: 1px 2px 0 rgba(18,42,68,0.18);
+}
+/* Once the app is live on F-Droid the first item is the official badge, not a button. */
+body.airline-deck .depart__cta .install a.fdroid {
+  display: inline-block; min-height: 0; padding: 0;
+  border: 0; background: none; box-shadow: none;
+}
+body.airline-deck .depart__cta .install a.fdroid:hover { background: none; transform: none; box-shadow: none; }
+body.airline-deck .depart__cta .install a.fdroid img { display: block; max-width: 100%; height: auto; }
+body.airline-deck .depart__cta .install .fdroid-soon {
+  border-style: dashed; border-color: var(--ink-3);
+  color: var(--ink-3); background: transparent;
+}
+
+/* The last slide now carries the install block and the footer: where a short window
+   cannot show them all, the slide scrolls (as every slide already does on phones). */
+body.airline-deck .slide--depart { grid-template-rows: auto 1fr auto; overflow-y: auto; }
+body.airline-deck .deck-foot { align-self: end; margin-top: 12px; }
+/* Resets the page's old document footer (04-panels.css) and keeps its double rule. */
+body.airline-deck .cocode-footer {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px;
+  margin: 0; padding: 4px 0 0;
+  border-top: 4px double var(--ink);
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-2);
+}
+body.airline-deck .cocode-footer a {
+  color: var(--ink); border-bottom: 0; padding: 0 2px;
+  text-decoration: underline dotted var(--ink-3); text-underline-offset: 4px;
+}
+body.airline-deck .cocode-footer a:hover { color: var(--stamp); background: transparent; text-decoration-color: var(--stamp); }
+
+@media (max-width: 780px) {
+  body.airline-deck { --nav-h: 93px; --nav-gutter: 16px; }
+  body.airline-deck .cocode-menu { font-size: 10px; letter-spacing: 0.12em; }
+  body.airline-deck .cocode-footer { letter-spacing: 0.1em; }
+}

@@ -1,0 +1,49 @@
+/* cocode-apps shared navigation and footer. Site-neutral: links inherit colour and font. */
+.skip {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+}
+
+.skip:focus {
+  left: 0;
+  z-index: 1000;
+  padding: 0.5rem 1rem;
+}
+
+.cocode-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+}
+
+.cocode-nav .brand {
+  flex: 1 0 100%;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+/* Wide screens: one row, the name on the left and the links after it. */
+@media (min-width: 48em) {
+  .cocode-nav .brand {
+    flex: 0 1 auto;
+    margin-right: auto;
+  }
+}
+
+.cocode-nav a,
+.cocode-footer a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  color: inherit;
+}
+
+.cocode-nav a:focus-visible,
+.cocode-footer a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

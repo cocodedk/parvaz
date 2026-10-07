@@ -15,7 +15,7 @@
   const totalEl   = document.getElementById('deck-total');
   const prevBtn   = document.getElementById('deck-prev');
   const nextBtn   = document.getElementById('deck-next');
-  const track     = document.getElementById('deck-track');
+  const track     = document.querySelector('.deck-track');
 
   // Persian-digit awareness: if the existing total reads in Persian
   // numerals, format the current counter the same way.
@@ -95,10 +95,15 @@
     });
   };
 
+  // "#7" names slide 7; "#how" or "#install" names the slide holding that id
+  // (the shared menu links to them); any other hash leaves the deck where it is.
   const idxFromHash = () => {
-    const m = (location.hash || '').match(/^#(\d+)$/);
-    if (!m) return 0;
-    return Math.max(0, Math.min(slides.length - 1, parseInt(m[1], 10) - 1));
+    const h = (location.hash || '').slice(1);
+    const m = h.match(/^(\d+)$/);
+    if (m) return Math.max(0, Math.min(slides.length - 1, parseInt(m[1], 10) - 1));
+    const target = h ? document.getElementById(h) : null;
+    const i = target ? slides.findIndex((s) => s.contains(target)) : -1;
+    return i === -1 ? currentIdx : i;
   };
 
   const io = new IntersectionObserver((entries) => {
@@ -109,6 +114,25 @@
     });
   }, { root: track || null, threshold: [0.5] });
   slides.forEach((s) => io.observe(s));
+
+  // The deck is exactly one viewport tall, so whatever sits above it in flow
+  // (the cocode.dk frame and the shared menu) is subtracted via --frame-h.
+  // Measure it, so a menu that wraps to more rows on a narrow phone still fits.
+  const menu = document.querySelector('.cocode-menu');
+  if (menu) {
+    const setFrame = () => {
+      document.body.style.setProperty('--frame-h', Math.ceil(menu.getBoundingClientRect().bottom) + 'px');
+    };
+    setFrame();
+    if (typeof ResizeObserver === 'function') {
+      const ro = new ResizeObserver(setFrame);
+      ro.observe(menu);
+      const head = document.querySelector('cocode-head');
+      if (head) ro.observe(head);
+    } else {
+      window.addEventListener('resize', setFrame);
+    }
+  }
 
   // Land on the slide named by the URL hash (or slide 1 by default).
   // Use 'auto' (instant) on initial load — animating from slide 1 to
