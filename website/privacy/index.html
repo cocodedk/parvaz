@@ -126,8 +126,8 @@
     <li><strong>The device log.</strong> While Parvaz is connected, the tunnel software can write the IP address and port of a connection that failed to open to Android's system log on your phone.</li>
   </ul>
   <p>Android's backup is allowed for the app. Backup copies app data to your Google account so a new phone can restore it. Two things are left out of cloud backup and phone-to-phone transfer: the file that holds your access key, and Parvaz's CA files. The ordinary settings are not left out. So the deployment ID, label and language can be copied to your Google backup if you have backup turned on.</p>
-  <p>To make Parvaz forget your relay, open Settings in the app, go to Reset access and tap Reset, then confirm. These are the English labels. Reset removes the access key, deployment ID and label. It leaves Parvaz's CA on your phone. To delete everything Parvaz stored, clear the app's storage or uninstall it in Android's settings.</p>
-  <p>One thing stays either way: the CA certificate you installed in Android's trust store. Your phone keeps trusting it until you remove it in Android's settings. Parvaz cannot remove it for you.</p>
+  <p>To make Parvaz forget your relay, open Settings in the app, go to Reset access and tap Reset, then confirm. These are the English labels. Reset removes the access key, deployment ID and label. It leaves Parvaz's CA on your phone. To delete everything Parvaz stored, clear the app's storage or uninstall it in Android's settings. On Android 10 and later that does not delete the copy of the certificate in your Downloads folder, so delete that file yourself, for example in a file manager.</p>
+  <p>The CA certificate you installed in Android's trust store also stays, whatever you do. Your phone keeps trusting it until you remove it in Android's settings. Parvaz cannot remove it for you.</p>
 
   <h2>Third parties</h2>
   <ul>
