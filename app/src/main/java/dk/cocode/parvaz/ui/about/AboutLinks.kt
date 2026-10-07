@@ -7,16 +7,18 @@ private const val APPLICATION_ID = "dk.cocode.parvaz"
 private const val REPO = "https://github.com/cocodedk/parvaz"
 private const val SITE = "https://parvaz.cocode.dk/"
 
-/**
- * Languages the site has both a home page and a privacy page for, at `<site>/<code>/` and
- * `<site>/<code>/privacy/`. Persian has a home page (`/fa/`) but no privacy page of its own, so
- * Persian stays on the English pages; add "fa" here once `/fa/privacy/` exists.
- */
-private val SITE_LANGUAGES = setOf("da")
+/** Languages the site has a home page for, at `<site>/<code>/`. */
+private val HOME_LANGUAGES = setOf("da", "fa")
 
-/** [url] on the site in [language], or [url] itself when the site has no pages in that language. */
-private fun inLanguage(url: String, language: String): String =
-    if (language in SITE_LANGUAGES && url.startsWith(SITE)) "$SITE$language/${url.removePrefix(SITE)}" else url
+/**
+ * Languages the site has a privacy page for, at `<site>/<code>/privacy/`. Persian has none yet, so a
+ * Persian user gets the English privacy page; add "fa" here once `/fa/privacy/` exists.
+ */
+private val PRIVACY_LANGUAGES = setOf("da")
+
+/** [url] on the site in [language] when [language] is in [available], otherwise [url] itself. */
+private fun inLanguage(url: String, language: String, available: Set<String>): String =
+    if (language in available && url.startsWith(SITE)) "$SITE$language/${url.removePrefix(SITE)}" else url
 
 /**
  * True once Parvaz is on F-Droid. apps.yml says `fdroid: mr:49559`, a merge request that is still
@@ -34,8 +36,8 @@ val PRIVACY_URL: String? = "https://parvaz.cocode.dk/privacy/"
 /**
  * Where an About-page button leads, or null when there is nothing to open (only the privacy link,
  * and only when [privacyUrl] is null). The website and privacy links follow [language] (the app's
- * own language setting, a code such as "da") and open the English pages when the site has none in
- * that language. The app itself never checks for updates over the network: the update button only
+ * own language setting, a code such as "da"); each opens the English page when the site has no such
+ * page in that language. The app itself never checks for updates over the network: the update button only
  * opens a page in the browser.
  */
 fun aboutUrl(
@@ -46,8 +48,8 @@ fun aboutUrl(
 ): String? = when (link) {
     AboutLink.Updates ->
         if (fdroidLive) "https://f-droid.org/packages/$APPLICATION_ID/" else "$REPO/releases/latest"
-    AboutLink.Privacy -> privacyUrl?.let { inLanguage(it, language) }
-    AboutLink.Website -> inLanguage(SITE, language)
+    AboutLink.Privacy -> privacyUrl?.let { inLanguage(it, language, PRIVACY_LANGUAGES) }
+    AboutLink.Website -> inLanguage(SITE, language, HOME_LANGUAGES)
     AboutLink.Source -> REPO
     AboutLink.Issues -> "$REPO/issues"
 }

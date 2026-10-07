@@ -62,12 +62,16 @@ class AboutLinksTest {
     }
 
     @Test
+    fun persianOpensThePersianWebsiteAndTheEnglishPrivacyPage() {
+        // The site has /fa/ but no /fa/privacy/ yet.
+        assertEquals("https://parvaz.cocode.dk/fa/", aboutUrl(AboutLink.Website, "fa"))
+        assertEquals("https://parvaz.cocode.dk/privacy/", aboutUrl(AboutLink.Privacy, "fa"))
+    }
+
+    @Test
     fun aLanguageTheSiteLacksFallsBackToTheEnglishPages() {
-        // Persian has /fa/ but no /fa/privacy/, so it stays on English; "fr" has no pages at all.
-        for (language in listOf("fa", "fr")) {
-            assertEquals("https://parvaz.cocode.dk/", aboutUrl(AboutLink.Website, language))
-            assertEquals("https://parvaz.cocode.dk/privacy/", aboutUrl(AboutLink.Privacy, language))
-        }
+        assertEquals("https://parvaz.cocode.dk/", aboutUrl(AboutLink.Website, "fr"))
+        assertEquals("https://parvaz.cocode.dk/privacy/", aboutUrl(AboutLink.Privacy, "fr"))
     }
 
     @Test
