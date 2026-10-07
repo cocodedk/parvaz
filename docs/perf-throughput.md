@@ -175,26 +175,10 @@ The landed defaults are fixed constants in `core/cmd/parvazd/pipeline.go`
 (10 ms window, 8 requests per batch). They are not read from the JSON
 config, so changing them requires recompiling.
 
-### Phase 3 — h2 ALPN spike (deferred — Phase 2 hit target)
+### Phases 3 and 4 — h2 ALPN spike (deferred) and Code.gs micro-cleanups (landed)
 
-Enable ALPN `h2` in the fronter's TLS config so multiplexing dissolves
-the per-conn HOL bottleneck. Browser-facing TLS layer stays http/1.1
-intentionally (`docs/tls-flow.md` §3 — h2 enables SNI coalescing
-across hostnames, which would break per-host leaf certs).
-
-### Phase 4 — Code.gs micro-cleanups
-
-Pure noise reduction, no perf impact:
-- Drop `validateHttpsCertificates: true` (default).
-- Drop `escaping: false` (default).
-- Drop the `getHeaders()` fallback in `_respHeaders` — modern
-  UrlFetchApp always exposes `getAllHeaders`.
-- Add `accept-encoding` to `SKIP_HEADERS` — saves a few bytes
-  upstream; the Google frontend handles encoding negotiation.
-
-**Deferred:** `CacheService.getScriptCache()` for idempotent GETs of
-static assets. Real win, but changes semantics (staleness, cookie
-leaks) — wants a design discussion first.
+Phase 3 enables ALPN `h2` on the fronted leg only; Phase 4 removes redundant Code.gs options.
+Details: [perf-throughput-phases-3-4.md](perf-throughput-phases-3-4.md).
 
 ---
 
