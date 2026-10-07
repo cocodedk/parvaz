@@ -229,9 +229,9 @@ Concrete example (based on the values above):
 parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY3pQ8xV2nR5tL1aB4cE6gH9jM=#my-relay
 ```
 
-The `#display-name` fragment is just a label the user will see in the Parvaz UI. It is not
-sent to the relay, but it is stored in the app's ordinary settings, which Android may copy in
-an app backup or a phone-to-phone transfer.
+The `#display-name` fragment is just a label for the link. Parvaz stores it but does not show it
+anywhere in the app. It is not sent to the relay, but it is stored in the app's ordinary
+settings, which Android may copy in an app backup or a phone-to-phone transfer.
 
 ### 6. Share the link via a SECURE messenger ONLY
 

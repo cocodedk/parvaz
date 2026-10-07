@@ -20,10 +20,10 @@
     <string name="import_field_hint">parvaz://…</string>
     <string name="import_submit_cta">ادامه</string>
     <!-- Moved here from Access.kt, where these four messages were hard-coded. The Persian text is unchanged. -->
-    <string name="import_error_not_parvaz_url">آدرس باید با parvaz:// شروع شود</string>
-    <string name="import_error_no_key">آدرس باید شامل کلید دسترسی باشد</string>
-    <string name="import_error_empty_id">شناسهٔ دسترسی خالی است</string>
-    <string name="import_error_empty_key">کلید دسترسی خالی است</string>
+    <string name="import_error_not_parvaz_url">آدرس باید با parvaz:// شروع شود. همهٔ آدرسی را که آشنای فنی‌تان فرستاده بچسبانید.</string>
+    <string name="import_error_no_key">آدرس باید شامل کلید دسترسی باشد. از آشنای فنی‌تان بخواهید همهٔ آدرس را دوباره بفرستد.</string>
+    <string name="import_error_empty_id">شناسهٔ دسترسی خالی است. از آشنای فنی‌تان بخواهید همهٔ آدرس را دوباره بفرستد.</string>
+    <string name="import_error_empty_key">کلید دسترسی خالی است. از آشنای فنی‌تان بخواهید همهٔ آدرس را دوباره بفرستد.</string>
 
     <!-- CA install -->
     <string name="ca_install_title">نصب گواهی</string>
