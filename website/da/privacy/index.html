@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privatlivspolitik: Parvaz</title>
+<meta name="description" content="Privatlivspolitik for Parvaz, en Android-app, der sender din webtrafik gennem et relay på en Google-konto. Relayets ejer og Google kan læse trafikken. Cocode driver ingen server til appen og modtager intet fra den.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://parvaz.cocode.dk/da/privacy/">
+<link rel="alternate" hreflang="en" href="https://parvaz.cocode.dk/privacy/">
+<link rel="alternate" hreflang="da" href="https://parvaz.cocode.dk/da/privacy/">
+<link rel="alternate" hreflang="x-default" href="https://parvaz.cocode.dk/privacy/">
+<link rel="icon" type="image/svg+xml" href="../../parvaz-mark.svg">
+<link rel="stylesheet" href="../../css/01-base-doc.css">
+<link rel="stylesheet" href="../../css/privacy.css">
+<link rel="stylesheet" href="https://brand.cocode.dk/v1.css">
+<script type="module" src="https://brand.cocode.dk/v1.js"></script>
+</head>
+<body>
+<cocode-head project="Parvaz" accent="#122a44" on-accent="#e8dfc6">
+  <a href="https://cocode.dk">cocode.dk</a>
+  <a href="/privacy/" hreflang="en" lang="en">English</a>
+</cocode-head>
+
+<div class="cocode-menu">
+<!-- cocode-apps:nav:start -->
+<link rel="stylesheet" href="/css/cocode-nav.css">
+<a class="skip" href="#main">Spring til indhold</a>
+<nav class="cocode-nav" aria-label="Parvaz">
+  <a class="brand" href="/da/" data-nav="home"><img src="/img/icon.png" alt="" width="32" height="32">Parvaz</a>
+  <a href="/da/#how" data-nav="how">Sådan virker det</a>
+  <a href="/da/#install" data-nav="install">Installér</a>
+  <a href="https://cocode.dk/" data-nav="more">Flere apps</a>
+</nav>
+<!-- cocode-apps:nav:end -->
+</div>
+
+<main id="main" class="policy" tabindex="-1">
+  <h1>Privatlivspolitik</h1>
+  <p class="meta">Parvaz (<code>dk.cocode.parvaz</code>) · Gælder fra 7. oktober 2026</p>
+
+  <h2>Resumé</h2>
+  <p>Parvaz er en Android-app, der hjælper dig med at åbne hjemmesider, som dit netværk blokerer. Appen sender først din webtrafik til et <strong>relay</strong>. Et relay er et lille program, et Google Apps Script-projekt, der kører på en Google-konto. Du eller en hjælper, du stoler på, har sat det op. Relayet henter derefter hjemmesiderne for dig.</p>
+  <p>Derfor er Parvaz ikke en app uden data. Den, der driver relayet, og Google kan læse det, der løber gennem relayet.</p>
+  <div class="callout"><p><strong>Brug kun Parvaz sammen med et relay, du har fuld tillid til. Brug det ikke til konti, du ikke kan tåle at miste.</strong> De adresser, du besøger, dine login-cookies og det, du skriver i formularer, adgangskoder med, løber alt sammen gennem relayet som læselig tekst.</p></div>
+  <p>Cocode laver Parvaz. Cocode driver ingen server til appen og modtager intet fra den. Appen har ingen konto, ingen statistik, ingen reklamer og ingen fejlrapportering. Den gemmer nogle få indstillinger og et certifikat på din telefon.</p>
+
+  <h2>Hvad der indsamles</h2>
+  <p>Mens Parvaz er forbundet, kører der en <strong>tunnel</strong> på din telefon. Tunnelen bruger Androids VPN-funktion, som lader en app modtage telefonens internettrafik. Parvaz modtager trafikken og sender dine webforespørgsler videre til relayet.</p>
+  <p>Parvaz åbner også din browsers sikre forbindelser inde på telefonen, så appen kan læse hver forespørgsel og give den videre til relayet. For at din browser vil acceptere det, installerer du et CA-certifikat under opsætningen. Et CA-certifikat (CA står for certifikatudsteder) fortæller din telefon, at den skal stole på certifikater, som Parvaz har underskrevet.</p>
+  <p>Cocode indsamler ingenting, og appen sender intet til Cocode. Det her sendes til relayet:</p>
+  <ul>
+    <li><strong>Dine webforespørgsler.</strong> En forespørgsel er din browser, der beder en hjemmeside om en side eller sender den oplysninger. For hver sikker (HTTPS) forespørgsel, som din browser sender gennem Parvaz, får relayet:
+      <ul>
+        <li>den fulde webadresse, også det, der står efter <code>?</code>;</li>
+        <li>metoden, for eksempel GET (hent en side) eller POST (send en formular);</li>
+        <li>headerne, som er oplysninger, din browser lægger til. De omfatter <code>Cookie</code> og <code>Authorization</code>, når browseren sender dem, og de kan holde dig logget ind;</li>
+        <li>indholdet, altså alt det, du sender i en formular, for eksempel en adgangskode.</li>
+      </ul>
+      Kun nogle få headere om selve forbindelsen, som <code>Host</code> og <code>Connection</code>, udelades.</li>
+    <li><strong>Din adgangsnøgle.</strong> Det er den hemmelige del af dit <code>parvaz://</code>-link. Parvaz sender den med hver forespørgsel, så relayet accepterer forespørgslen.</li>
+    <li><strong>Dine navneopslag.</strong> Et DNS-opslag er din telefon, der spørger, hvilken adresse et hjemmesidenavn hører til. Mens Parvaz er forbundet, går hvert DNS-opslag fra en hvilken som helst app på din telefon til relayet. Relayet spørger Google Public DNS, en tjeneste fra Google. Opslag efter IPv6-adresser (den nyere slags internetadresser) får et tomt svar på telefonen og bliver ikke sendt.</li>
+    <li><strong>Det, der kommer tilbage.</strong> Relayet sender hjemmesidens svar tilbage: status, headere (også <code>Set-Cookie</code>) og indhold. Parvaz giver svaret videre til din browser og gemmer det ikke.</li>
+  </ul>
+  <p>Appen har ingen tilladelse til at læse din placering, dine kontakter, dine filer, dit kamera eller din mikrofon. Den gemmer ingen liste over de adresser, du besøger.</p>
+
+  <h2>Servere appen kontakter</h2>
+  <p>Mens Parvaz er forbundet, kontakter appen serverne nedenfor og ingen andre. Når den ikke er forbundet, kontakter den ingen af dem. Det eneste andet, appen kan sætte i gang, er at åbne en webside i din browser, når du trykker på en knap i skærmen Om. Det er beskrevet under "Websider, du åbner fra Om" nedenfor.</p>
+  <h3>Dit relay: script.google.com</h3>
+  <p>Parvaz bygger relayets adresse ud fra det <code>parvaz://</code>-link, du indsatte under opsætningen: <code>https://script.google.com/macros/s/&lt;implementerings-id&gt;/exec</code>. Implementerings-id'et er den del af dit link, der peger på dit relay. Hver forespørgsel sendes dertil som en lille besked i JSON, et tekstformat til data. Beskeden indeholder adgangsnøglen, adressen, metoden, headerne og indholdet. Relayet henter hjemmesiden for dig, så det skal kunne se alt det her.</p>
+  <h3>Sådan oprettes forbindelsen</h3>
+  <p>Parvaz bruger en teknik, der hedder domain fronting. Telefonen slår ikke script.google.com op. Den forbinder direkte til en Google-IP-adresse, <code>216.239.38.120</code>. Når den sikre forbindelse (TLS) starter, siger telefonen, at den vil til <code>www.google.com</code>. Det rigtige navn, script.google.com, står kun inde i den krypterede forbindelse.</p>
+  <p>Appen kontrollerer Googles certifikat, en digital legitimation, der viser, hvem forbindelsen går til. Den, der holder øje med dit netværk, ser en forbindelse til Google og navnet www.google.com, og hvor meget data der flyttes, og hvornår. Relayets adresse og indholdet ser vedkommende ikke.</p>
+  <h3>Navneopslag: dns.google</h3>
+  <p>Mens Parvaz er forbundet, får Android besked om at sende DNS-opslag til en server på <code>10.0.0.2</code>. Den server findes kun inde i tunnelen. Parvaz besvarer hvert opslag ved at spørge Google Public DNS (<code>https://dns.google/dns-query</code>) gennem relayet. Din telefon kontakter aldrig dns.google selv. Opslag, der er stilet til en anden DNS-server, bliver ikke sendt videre.</p>
+  <h3>Hjemmesiderne du besøger</h3>
+  <p>Det er relayet, ikke din telefon, der beder hjemmesiden om siden (med Apps Scripts <code>UrlFetchApp</code>). Hjemmesiden ser derfor en forespørgsel fra Googles servere. Den får de headere, din browser sendte, cookies med.</p>
+  <h3>Googles egne sider</h3>
+  <p>Parvaz' kode har genveje, der springer relayet over for nogle Google-sider. Domænerne google.com, googleapis.com, gstatic.com og googleusercontent.com skal nås direkte. Domænerne youtube.com, ytimg.com og ggpht.com skal nås gennem en Google-adresse. En genvej vælges ud fra sidens navn, men tunnelen giver Parvaz IP-adresser (tal), ikke navne. Gå derfor ud fra, at disse sider også går gennem relayet, som alle andre sider.</p>
+  <h3>Websider, du åbner fra Om</h3>
+  <p>Skærmen Om har knapper, der åbner websider. Du finder den ved at trykke på indstillingsknappen (tandhjulet) og så på <strong>Om Parvaz</strong>. Knapperne er:</p>
+  <ul>
+    <li><strong>Se den nyeste version</strong> åbner den nyeste udgave på GitHub (github.com/cocodedk/parvaz/releases/latest).</li>
+    <li><strong>Læs privatlivspolitikken</strong> åbner den engelske udgave af denne side (parvaz.cocode.dk/privacy/).</li>
+    <li><strong>Åbn hjemmesiden</strong> åbner parvaz.cocode.dk.</li>
+    <li><strong>Se kildekoden på GitHub</strong> åbner github.com/cocodedk/parvaz.</li>
+    <li><strong>Meld et problem på GitHub</strong> åbner github.com/cocodedk/parvaz/issues.</li>
+  </ul>
+  <p>Parvaz selv opretter ikke forbindelse til disse adresser. Der sker intet, før du trykker på en knap. Så giver Parvaz adressen videre til din telefon, og telefonen åbner den i din webbrowser eller i en anden app, der åbner webadresser. Den app opretter forbindelsen, og siden ser besøget som ethvert andet besøg. Parvaz sender ikke noget til siden. Kan ingen app åbne adressen, viser Parvaz en besked, og der sker ikke mere. Er Parvaz forbundet, når du trykker, går din browsers sikre trafik gennem relayet som på enhver anden side, så relayets ejer og Google kan også se det besøg.</p>
+  <h3>Hvem ser hvad</h3>
+  <dl class="who">
+    <dt>Dit netværk</dt>
+    <dd>For trafik, der går gennem tunnelen: en forbindelse til Google, navnet www.google.com, og hvor meget data der flyttes, og hvornår. Parvaz bærer ikke IPv6-trafik og dækker den derfor ikke.</dd>
+    <dt>Google</dt>
+    <dd>Din telefons IP-adresse og alt, der sendes til relayet: adgangsnøglen, adresser, cookies, formulardata, svarene og dine navneopslag. Hvad Google gemmer, afgøres af Googles egne vilkår. Appen kan ikke se det.</dd>
+    <dt>Relayets ejer</dt>
+    <dd>Ejeren af den Google-konto, der kører relayet. Scriptet modtager hver forespørgsel som læselig tekst, og ejeren kan ændre det, så det gemmer en kopi. Filen <code>Code.gs</code>, der følger med Parvaz, indeholder ingen kode, der logger eller gemmer forespørgsler. Har du selv sat relayet op, er det dig.</dd>
+    <dt>Hjemmesiderne</dt>
+    <dd>En forespørgsel fra Googles servere med din browsers headere og cookies.</dd>
+    <dt>Cocode</dt>
+    <dd>Intet fra appen.</dd>
+    <dt>Sider, du åbner fra Om</dt>
+    <dd>GitHub eller parvaz.cocode.dk ser dit besøg gennem din browser, som ethvert websted. Stedet følger sin egen politik. Appen sender det ikke noget.</dd>
+  </dl>
+  <h3>Intet andet</h3>
+  <p>De eneste andre webadresser i Parvaz er de fem bag knapperne i Om, som beskrevet ovenfor, og Parvaz bruger dem kun til at give dem videre til din browser, når du trykker. Appen leder ikke efter opdateringer, sender ingen nedbrudsrapporter og måler ikke, hvordan du bruger den.</p>
+
+  <h2>Tilladelser</h2>
+  <ul>
+    <li><strong>Internet</strong> (<code>INTERNET</code>) lader Parvaz nå Google. Android kræver den også til appens egne forbindelser inde på telefonen.</li>
+    <li><strong>Netværksstatus</strong> (<code>ACCESS_NETWORK_STATE</code>) lader Parvaz tjekke, at telefonen er online, før tunnelen starter.</li>
+    <li><strong>Forgrundstjeneste</strong> (<code>FOREGROUND_SERVICE</code>, <code>FOREGROUND_SERVICE_SPECIAL_USE</code>) holder tunnelen kørende, mens appen er i baggrunden.</li>
+    <li><strong>Notifikationer</strong> (<code>POST_NOTIFICATIONS</code>) lader Parvaz vise en notifikation med en Stop-knap, mens tunnelen er oppe.</li>
+    <li><strong>VPN.</strong> Android beder dig give denne tilladelse, første gang du sætter appen op. Den gælder ikke kun din browser. Tunnelen modtager IPv4-trafikken fra alle apps på din telefon undtagen Parvaz selv. (IPv4 er den ældre slags internetadresser. Parvaz bærer ikke IPv6.) Kun sikre forespørgsler fra apps, der accepterer Parvaz' certifikat, når frem til relayet. Det er mest Chromium-baserede browsere som Chrome. Andre forbindelser mislykkes, men alle apps' navneopslag går stadig gennem relayet.</li>
+  </ul>
+  <p>Appen beder ikke om andet: ingen placering, kontakter, kamera, mikrofon eller lager. Den installerer ikke andre apps.</p>
+
+  <h2>Hvad der bliver på telefonen</h2>
+  <ul>
+    <li><strong>Din adgangsnøgle</strong> gemmes i krypteret lager. Nøglen, der låser det op, ligger i Android Keystore, den del af Android, der opbevarer krypteringsnøgler.</li>
+    <li><strong>Relayets implementerings-id, teksten efter <code>#</code> i dit link, appens sprog og om opsætningen er færdig</strong> gemmes i appens almindelige indstillinger.</li>
+    <li><strong>Parvaz' egen CA</strong> er et certifikat og dets private nøgle. Appen opretter dem på din telefon og gemmer dem i sine private filer. Den, der havde den private nøgle, kunne lave certifikater, som din telefon stoler på, så Parvaz eksporterer den aldrig. Til hver side, du besøger, laver tunnelen et certifikat og beholder det kun i hukommelsen.</li>
+    <li><strong>En kopi af CA-certifikatet</strong> (aldrig nøglen) lægges i din Downloads-mappe som <code>parvaz-ca-&hellip;.crt</code>. Du vælger filen i Androids indstillinger for at installere den. Parvaz sletter ældre kopier først. Du kan slette filen, når certifikatet er installeret.</li>
+    <li><strong>Enhedens log.</strong> Mens Parvaz er forbundet, kan tunnelsoftwaren skrive IP-adressen og porten på en forbindelse, der ikke kunne åbnes, til Androids systemlog på din telefon.</li>
+  </ul>
+  <p>Androids sikkerhedskopiering er tilladt for appen. Sikkerhedskopiering kopierer appens data til din Google-konto, så en ny telefon kan gendanne dem. To ting er holdt uden for skybackup og overførsel fra telefon til telefon: filen med din adgangsnøgle og Parvaz' CA-filer. De almindelige indstillinger er ikke holdt uden for. Derfor kan implementerings-id, tekst og sprog blive kopieret til din Google-backup, hvis du har backup slået til.</p>
+  <p>Vil du have Parvaz til at glemme dit relay, så åbn Indstillinger i appen, gå til Nulstil adgang, tryk på Nulstil, og bekræft. Det er tekster fra appens danske sprog. Reset fjerner adgangsnøglen, implementerings-id'et og teksten. Parvaz' CA bliver liggende på din telefon. Vil du slette alt, hvad Parvaz har gemt, så ryd appens lager eller afinstaller den i Androids indstillinger.</p>
+  <p>Én ting bliver liggende uanset hvad: det CA-certifikat, du har installeret i Androids tillidslager. Din telefon stoler på det, indtil du fjerner det i Androids indstillinger. Det kan Parvaz ikke fjerne for dig.</p>
+
+  <h2>Tredjeparter</h2>
+  <ul>
+    <li><strong>Google</strong> driver relayplatformen, de servere, din telefon forbinder til, og Google Public DNS. Se <a href="https://policies.google.com/privacy" rel="noopener">Googles privatlivspolitik</a>. Hvis Android-backup er slået til, har Google også den backup.</li>
+    <li><strong>Relayets ejer</strong> er beskrevet under "Hvem ser hvad" ovenfor.</li>
+    <li><strong>Hjemmesiderne du besøger</strong> følger deres egne politikker.</li>
+    <li><strong>Software i appen.</strong> Tunnelen bruger tun2socks, et åbent bibliotek (delt kode), der flytter din telefons trafik ind i appen. Appen bruger også Androids standardbiblioteker. Den har intet bibliotek til statistik, reklamer eller fejlrapportering og ingen Google Play-tjenester. Tunnelbiblioteket har en indbygget kontrolgrænseflade, og Parvaz slår den ikke til.</li>
+    <li><strong>Stedet, du henter Parvaz fra</strong> (GitHub eller F-Droid), ser din download under sin egen politik. Selve appen kontakter aldrig nogen af dem. Skærmen Om kan åbne deres sider i din browser, når du trykker på en knap.</li>
+    <li><strong>Denne side</strong> henter sin stil fra dette websted og den fælles Cocode-header fra brand.cocode.dk og cocode.dk. Den henter intet fra Google. Andre sider på webstedet kan hente skrifttyper fra Google Fonts.</li>
+  </ul>
+
+  <h2>Dine rettigheder</h2>
+  <p>GDPR, den europæiske databeskyttelseslov, giver dig ret til at se, rette og slette data om dig og til at klage. Cocode har ingen data om dig, så der er intet at slå op eller slette hos os. Relayets ejer og Google har det, de har. De svarer for det, og appen kan ikke se det, så spørg dem. På din telefon bestemmer du selv: nulstil appen, ryd dens lager eller afinstaller den. Du kan klage til <a href="https://www.datatilsynet.dk/" rel="noopener">Datatilsynet</a>.</p>
+
+  <h2>Kontakt</h2>
+  <p>Skriv til Cocode (Babak Bandpey) på <a href="mailto:bb@cocode.dk">bb@cocode.dk</a>. Du kan også stille spørgsmål eller melde fejl på <a href="https://github.com/cocodedk/parvaz/issues" rel="noopener">problemsiden på GitHub</a>. Skal du melde et sikkerhedsproblem, så følg projektets <a href="https://github.com/cocodedk/parvaz/security/policy" rel="noopener">sikkerhedspolitik</a>. En offentlig sag kan alle se.</p>
+
+  <h2>Ændringer</h2>
+  <p>Hvis politikken ændres, ændres datoen øverst, og ændringen beskrives her. Ældre versioner kan ses i projektets historik på <a href="https://github.com/cocodedk/parvaz" rel="noopener">GitHub</a>.</p>
+  <p><strong>7. oktober 2026:</strong> første version af politikken på dette websted.</p>
+</main>
+
+<div class="foot">
+<!-- cocode-apps:footer:start -->
+<footer class="cocode-footer">
+  <a href="https://github.com/cocodedk/parvaz">Kildekode</a> ·
+  Licens: MIT ·
+  <a href="https://cocode.dk/">Lavet af Cocode (cocode.dk)</a>
+</footer>
+<!-- cocode-apps:footer:end -->
+</div>
+</body>
+</html>

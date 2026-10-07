@@ -1,9 +1,9 @@
-Parvaz (persisk for "flyvning") er en Android-app for iranske brugere, hvor persisk er standardsproget. Den sender browsertrafik gennem et Google Apps Script-relay, som en teknisk hjælper, brugeren stoler på, har sat op og styrer.
+Parvaz (persisk for "flyvning") hjælper dig med at åbne websteder, som dit netværk blokerer. Appen sender din browsers trafik gennem et relay: et lille Google Apps Script-program på en Google-konto, som du eller en teknisk hjælper, du stoler på, har sat op.
 
-Appen afslutter TLS lokalt med et certifikat, som brugeren installerer én gang. Derefter pakker den HTTPS-forespørgslerne ind i relayets JSON-protokol og sender dem videre gennem Googles infrastruktur. Chrome og andre Chromium-baserede browsere (Brave, Edge, Vivaldi) stoler automatisk på certifikatet. Native apps, browsere uden Chromium og andre protokoller end HTTP understøttes ikke, fordi Android er bygget sådan.
+For at komme i gang skal du have et adgangslink fra din hjælper. Det begynder med parvaz://. Tryk på linket eller indsæt det, installér ét certifikat i Androids indstillinger, og tryk på knappen PARVAZ. Certifikatet får din telefon til at stole på Parvaz, når din browser laver sikre forbindelser. Chrome accepterer det, og Brave, Edge og Vivaldi skulle gøre det samme. Parvaz åbner på persisk, med engelsk og dansk i indstillingerne.
 
-Fordi relay-operatøren kan læse al trafik gennem tunnelen i klartekst, er Parvaz tænkt til at læse offentlige oplysninger og ikke til at logge ind på følsomme konti, medmindre brugeren har fuld tillid til den, der driver relayet.
+Den, der driver dit relay, og Google kan læse alt, der går igennem det, også cookies og adgangskoder. Brug Parvaz til at læse offentlige sider. Log ikke ind på konti, du ikke kan undvære, medmindre du stoler fuldstændigt på relayets ejer.
 
-Opsætningen kræver, at du installerer et certifikat i Androids indstillinger én gang og importerer et parvaz://-adgangslink, som hjælperen har delt med dig. Derefter starter eller stopper et enkelt tryk tunnelen fra hovedskærmen.
+Parvaz kræver Android 11 eller nyere og en 64-bit ARM-telefon. Appen kan installeres på Android 7 til 10, men kan ikke oprette forbindelse der.
 
-Gennemløbet er begrænset af Apps Scripts kvote, og WebSockets understøttes ikke.
+Det virker ikke: andre apps end browsere, som bank-, besked- og streamingapps, accepterer ikke certifikatet. Firefox er ikke testet. Sider åbner langsomt, daglige kvoter begrænser brugen, og WebSockets understøttes ikke.

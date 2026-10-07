@@ -82,7 +82,10 @@ run_suite() {
     assert "$label" "websockets caveat visible" 'WebSocket'            "$f"
 
     # Script-generated DOM (proves JS executed and dot-gen + IO ran)
-    assert "$label" "JS generated 13 dots"      'aria-label="Slide 13"' "$f"
+    # The dots are named in the page language (Persian digits on the Persian page).
+    local dot13='aria-label="Slide 13"'
+    [[ "$label" == "fa" ]] && dot13='aria-label="اسلاید ۱۳"'
+    assert "$label" "JS generated 13 dots"      "$dot13" "$f"
     assert "$label" "current count populated"   'id="deck-current"'    "$f"
     assert "$label" "current mirror populated"  'id="deck-current-mirror"' "$f"
 }

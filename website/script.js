@@ -1,6 +1,6 @@
 /* Slide-deck navigation — vanilla JS, no deps.
    scroll-snap inside .deck-track + dots + prev/next + keyboard.
-   Loaded by both EN and FA index.html via <script src="..." defer>.
+   Loaded by the EN, FA and DA index.html via <script src="..." defer>.
    Counter is zero-padded ("01 / 13") and mirrored to two slots:
    one in the fixed boarding-pass header, one in the bottom controls.
    URL hash carries the active slide so EN↔FA lang-switch lands on
@@ -28,11 +28,17 @@
 
   if (totalEl) totalEl.textContent = pad(slides.length);
 
+  // The accessible name of each dot follows the page language: "Slide 1",
+  // "اسلاید ۱" (Persian digits) or "Slide 1" (Danish uses the same word).
+  const pageLang = (document.documentElement.lang || 'en').slice(0, 2);
+  const faDigits = (n) => String(n).replace(/\d/g, (d) => FA_DIGITS[+d]);
+  const slideLabel = (n) => (pageLang === 'fa' ? `اسلاید ${faDigits(n)}` : `Slide ${n}`);
+
   if (dotsEl) {
     slides.forEach((s, i) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.setAttribute('aria-label', `Slide ${i + 1}`);
+      b.setAttribute('aria-label', slideLabel(i + 1));
       b.addEventListener('click', () => goTo(i));
       dotsEl.appendChild(b);
     });

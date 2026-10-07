@@ -31,15 +31,19 @@ fixed cost" — now spread across the batch instead of paid per request.
 
 The bottleneck is **not Code.gs** — it's the Go relay stack. Code.gs
 already exposes a batch endpoint (`UrlFetchApp.fetchAll` in parallel
-inside one Apps Script invocation), but the runtime never calls it. On
-top of that, the fronted HTTP/1.1 client uses Go's default
-`MaxIdleConnsPerHost = 2`, so even single-mode requests serialize
-through 2 sockets. Three phases land independently; each can be merged
-on its own.
+inside one Apps Script invocation), but before these changes the runtime
+never called it: every request went out on its own. On top of that, the
+fronted HTTP/1.1 client used Go's default `MaxIdleConnsPerHost = 2`,
+which keeps only 2 idle connections per host, so bursts kept paying
+fresh TLS handshakes. Three phases land independently; each can be
+merged on its own. The current runtime batches requests (Phase 2) and
+uses the larger pool limits from `core/fronter/client.go` (Phase 1).
 
 ---
 
 ## What was inspected
+
+State of the code **before** Phases 1 and 2 landed:
 
 - `core/protocol/encode.go` — `EncodeBatch` exists, fully tested.
 - `core/protocol/decode.go` — `DecodeBatchResponse` exists, fully tested.
@@ -62,19 +66,24 @@ just never sends a batch envelope.**
 ### 1. Apps Script per-invocation fixed cost (~300–1500 ms)
 
 V8 cold-start + Apps Script auth/quota overhead + Google edge RTT.
-Structural — can't be removed, only amortized. Today every browser
-HTTP request pays this in full.
+Structural — can't be removed, only amortized. Before batching, every
+browser HTTP request paid this in full.
 
 **Mitigation:** batch N small requests into one envelope. With N≈8 and
 fixed cost ≈800 ms, per-request cost drops from ~800 ms to ~100 ms.
 This is the biggest lever.
 
-### 2. HTTP/1.1 head-of-line blocking on 2 sockets
+### 2. Idle-connection pool of 2 on the fronted leg
 
-`core/fronter/client.go:23` builds an `http.Transport` with no
+`core/fronter/client.go` built an `http.Transport` with no
 connection-pool tunables. `net/http` defaults to
-`MaxIdleConnsPerHost = 2` — every fronted POST to
-`216.239.38.120:443` queues behind at most 2 in-flight TLS sockets.
+`MaxIdleConnsPerHost = 2`, which limits how many idle keep-alive
+connections are retained per host, not how many requests may run at
+once (`MaxConnsPerHost` is the total connection limit; zero means no
+limit). Every fronted POST goes to one host (`216.239.38.120:443`), so
+a burst of more than 2 concurrent requests opened extra sockets that
+were closed again when they went idle, and the next burst paid new TLS
+handshakes.
 
 **Mitigation:** raise `MaxIdleConnsPerHost` (e.g. 16) and set
 `MaxConnsPerHost` to a sane upper bound. This is a one-file change
@@ -82,7 +91,7 @@ with one assertion test.
 
 ### 3. base64 inflation (~33 %)
 
-`Utilities.base64Encode(resp.getContent())` in Code.gs:53 is forced —
+`Utilities.base64Encode(resp.getContent())` in Code.gs is forced —
 `ContentService` cannot return binary. No workaround at the
 Apps Script layer.
 
@@ -101,12 +110,14 @@ fresh TLS handshake to a fronted IP with measurable RTT.
 
 ### Phase 1 — Fronter pool tunables (low risk, high reward)
 
-**Slice:** raise `MaxIdleConnsPerHost`, set `MaxConnsPerHost`, expose
-both as `NewHTTPClient` options with sane defaults.
+**Slice:** raise `MaxIdleConnsPerHost`, set `MaxConnsPerHost`, with
+sane defaults. Landed as package constants in `core/fronter/client.go`
+(16 idle, 32 total per host); they are not exposed as `NewHTTPClient`
+options.
 
 **TDD:**
 1. Red: `TestNewHTTPClient_TransportPoolDefaults` asserts the
-   transport's `MaxIdleConnsPerHost` ≥ 8 (today: 0 → defaults to 2).
+   transport's `MaxIdleConnsPerHost` ≥ 8 (before the change: 0 → defaults to 2).
 2. Implement: set the fields on the constructed `http.Transport`.
 3. Existing four `client_test.go` tests must stay green.
 
@@ -160,7 +171,9 @@ semantics need care. Hence the slicing.
 **Defaults to start with:**
 - `Window = 10 * time.Millisecond`
 - `MaxBatch = 8`
-Both tunable via JSON config so we can A/B without recompiling.
+The landed defaults are fixed constants in `core/cmd/parvazd/pipeline.go`
+(10 ms window, 8 requests per batch). They are not read from the JSON
+config, so changing them requires recompiling.
 
 ### Phase 3 — h2 ALPN spike (deferred — Phase 2 hit target)
 

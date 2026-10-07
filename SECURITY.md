@@ -18,7 +18,7 @@ In scope:
 - **Android app** (`app/`) — VpnService subclass, tun2socks wrapper, sidecar launcher, MITM CA install flow, UI, settings storage (EncryptedSharedPreferences)
 - **Build and release pipelines** — GitHub Actions workflows, signing, APK integrity
 - **Git hooks and release artifacts** — pre-commit, commit-msg, keystore handling
-- **Access URL format** — `parvaz://` scheme, QR encoding, clipboard handoff
+- **Access URL format** — `parvaz://` scheme, clipboard handoff (the app cannot scan QR codes yet)
 
 Out of scope:
 - The upstream Apps Script server (`apps_script/Code.gs`) — report upstream
@@ -32,7 +32,7 @@ Parvaz is a **circumvention aid**, not an anonymity system.
 
 - **On-device MITM**: the app generates a CA on first launch and asks
   the user to install it in Android's user-CA store. The private key
-  stays in app-private storage (`/data/data/dk.cocode.parvaz/ca/ca.key`).
+  stays in app-private storage (`/data/data/dk.cocode.parvaz/files/parvaz-data/ca/ca.key`).
   **Anyone who gains code execution as the Parvaz app** — root, debuggable
   build, ADB access with shell — can use the key to forge certs for any
   site the user's browser trusts via that CA. Uninstalling Parvaz deletes
@@ -42,9 +42,10 @@ Parvaz is a **circumvention aid**, not an anonymity system.
 - **Google sees plaintext HTTP inside the relay** — `UrlFetchApp.fetch`
   reads the request in Apps Script. A compromised deployment exposes all
   tunneled traffic.
-- **VpnService captures all phone traffic** while connected. Non-browser
-  apps' handshakes fail (by design — see README scope) but the packets
-  still route through Parvaz to the point of TLS termination.
+- **The VPN captures other apps' IPv4 traffic** while connected; Parvaz's own
+  traffic is exempt. TCP connections enter the local proxy, where non-browser
+  apps' TLS handshakes fail (by design; see the README scope). DNS lookups go to
+  the relay. Other UDP traffic is dropped.
 - **Domain fronting resists DPI, not endpoint correlation.** An observer
   sees `www.google.com` traffic; volume/timing still correlate with user
   behaviour.

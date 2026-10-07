@@ -13,7 +13,7 @@ onboarding.
 ║                            ANDROID PHONE                                      ║
 ║                                                                               ║
 ║  ┌─────────────────┐  ┌─────────────────┐                                     ║
-║  │  Chrome (or any Chromium browser) — browser traffic    │                   ║
+║  │  Chrome (or another browser that trusts the Parvaz CA) │                   ║
 ║  └────────┬────────┘  └────────┬────────┘                                     ║
 ║           │ TCP packets — captured transparently via VpnService               ║
 ║           └───────────────────┬┴────────────────────┘                         ║
@@ -39,12 +39,12 @@ onboarding.
 ║  ║  ║  socks5/    → accepts CONNECT host:port                       ║    ║   ║
 ║  ║  ║        │                                                      ║    ║   ║
 ║  ║  ║        ▼                                                      ║    ║   ║
-║  ║  ║  dispatcher/  ──────┬── *.google.com / *.youtube.com etc. ──► ║    ║   ║
+║  ║  ║  dispatcher/  ──────┬── hostname: *.google.com, *.youtube.com ║    ║   ║
+║  ║  ║                     │    *.google.com: direct TCP, no MITM    ║    ║   ║
+║  ║  ║                     │    *.youtube.com etc.: SNI-rewrite,     ║    ║   ║
+║  ║  ║                     │    local TLS MITM, no Apps Script       ║    ║   ║
 ║  ║  ║                     │                                         ║    ║   ║
-║  ║  ║                     │    SNI-rewrite tunnel (no MITM, no      ║    ║   ║
-║  ║  ║                     │    relay; direct TCP via fronter)       ║    ║   ║
-║  ║  ║                     │                                         ║    ║   ║
-║  ║  ║                     └── anything else:                        ║    ║   ║
+║  ║  ║                     └── anything else, incl. every IP target: ║    ║   ║
 ║  ║  ║                                                               ║    ║   ║
 ║  ║  ║  mitm/      → TLS server presents a leaf cert signed by our   ║    ║   ║
 ║  ║  ║               on-device CA. Client (Chrome) accepts (because  ║    ║   ║
@@ -65,9 +65,9 @@ onboarding.
 ║                                   │                                           ║
 ╚═══════════════════════════════════╪═══════════════════════════════════════════╝
                                     │
-                                    │ HTTPS. DPI sees www.google.com — same IP,
-                                    │ SNI, TLS fingerprint as a real google.com
-                                    │ session.
+                                    │ HTTPS. DPI sees a Google IP and SNI
+                                    │ www.google.com; the TLS fingerprint is
+                                    │ Go's own, not a browser's.
                                     ▼
             ╔════════════════════════════════════════════════════╗
             ║         GOOGLE EDGE FRONTEND (:443)                ║
@@ -86,7 +86,7 @@ onboarding.
             ║                                                    ║
             ║   Apps Script calls the real target from inside    ║
             ║   Google's datacenter — the origin sees a Google   ║
-            ║   IP + `Google-Apps-Script` User-Agent.            ║
+            ║   IP, plus the request headers Code.gs forwards.   ║
             ╚═══════════════════════╤════════════════════════════╝
                                     ▼
                           ┌───────────────────┐
@@ -98,6 +98,11 @@ onboarding.
                             with the leaf cert, Chrome sees
                             a "normal" HTTPS response)
 ```
+
+The dispatcher matches **hostnames**. On Android, tun2socks hands the
+sidecar IP addresses, not hostnames, so the Google lists in the diagram
+only apply when a SOCKS5 client sends a hostname; every other flow, IP
+targets included, takes the MITM + Apps Script path.
 
 ## Why browsers only — the MITM honesty
 
@@ -111,12 +116,11 @@ browsers (Brave, Edge, Vivaldi) follow the same path and behave
 identically. This is the recommended browser story.
 
 **Firefox is the outlier.** Firefox Android uses NSS, not the system
-trust store, and only honors user CAs after flipping
-`security.enterprise_roots.enabled` in `about:config`. Stock Firefox /
-Beta / Focus hide `about:config`, so they cannot be configured at all.
-Firefox Nightly exposes `about:config` but [resets the flag to
-`false` on every restart](https://github.com/mozilla-mobile/fenix/issues/18990)
-— a Mozilla bug open since 2021. We do not recommend Firefox.
+trust store. It has a *Use third party CA certificates* option in Secret
+Settings ([Mozilla bug 1894053](https://bugzilla.mozilla.org/show_bug.cgi?id=1894053)),
+and older advice was to flip `security.enterprise_roots.enabled` in
+`about:config`, which stock builds hide. Parvaz's compatibility with
+either route is unverified, so we do not recommend Firefox.
 
 **DuckDuckGo's browser** is Chromium-based but configured more strictly
 and rejects the Parvaz CA. Confirmed broken — do not use.
@@ -128,29 +132,31 @@ deliberate Google policy decision (Android 7, API 24+ default) and there
 is no workaround short of rooting the device.
 
 So Parvaz's honest scope is: **Chromium browser traffic, plus
-Google-owned domains via SNI-rewrite** (which needs no MITM). Exactly
-what MasterHttpRelayVPN-RUST ships.
+Google-owned domains via SNI-rewrite** (which still terminates TLS
+locally, so the CA is needed there too). Exactly what
+MasterHttpRelayVPN-RUST ships.
 
 ## Who writes what
 
 | Layer | Location | Language | Who |
 |---|---|---|---|
-| Farsi-first UI | `app/presentation/` | Kotlin + Compose | **Us** |
-| `VpnService` + TUN routing | `app/vpn/` | Kotlin | **Us** |
-| MITM CA install UI + fingerprint verify | `app/mitm/` | Kotlin | **Us** |
+| Farsi-first UI | `app/src/main/java/dk/cocode/parvaz/ui/` | Kotlin + Compose | **Us** |
+| `VpnService` + TUN routing | `app/src/main/java/dk/cocode/parvaz/vpn/` | Kotlin | **Us** |
+| MITM CA install UI + fingerprint verify | `app/src/main/java/dk/cocode/parvaz/mitm/` (UI in `ui/onboarding/`) | Kotlin | **Us** |
 | `tun2socks` (IP → SOCKS5) | bundled | Go (OSS) | existing |
 | **Parvaz sidecar** (socks5 + dispatcher + mitm + relay + fronter) | `core/` | Go | **Us** |
-| `Code.gs` (Apps Script server) | user's Google account | JS (Apps Script) | Upstream MasterHttpRelayVPN — unchanged |
+| `Code.gs` (Apps Script server) | user's Google account | JS (Apps Script) | Based on upstream MasterHttpRelayVPN, with Parvaz modifications |
 
 ## Core ↔ App boundary
 
-Go sidecar cross-compiled per ABI into `app/src/main/jniLibs/<abi>/libparvaz.so`.
+Go sidecar cross-compiled for arm64-v8a into `app/src/main/jniLibs/arm64-v8a/libparvaz.so`.
 AGP needs `packaging.jniLibs.useLegacyPackaging = true` so the `.so`
 hits disk (needed for `ProcessBuilder` to exec it). Kotlin launcher:
 
 1. `ApplicationInfo.nativeLibraryDir + "/libparvaz.so"`.
-2. `ProcessBuilder(path).redirectErrorStream(true).start()`.
-3. Pipe JSON config on stdin (deployment URL, access key, CA key paths, listen port).
+2. `ProcessBuilder(path, "-stdin").redirectErrorStream(false).start()`;
+   drain stderr separately so only `READY` is read from stdout.
+3. Pipe JSON config on stdin (deployment URL, access key, data dir (the CA lives there), listen port).
 4. Read `READY` on stdout.
 5. Sidecar is now a SOCKS5 server on `127.0.0.1:<port>`.
 

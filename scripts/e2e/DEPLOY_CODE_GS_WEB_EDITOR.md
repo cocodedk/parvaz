@@ -26,7 +26,7 @@ or don't want to install Node + clasp. Recommendation stays with clasp
    Apps Script UI without editing the project again.
 
 5. Save the project (Ctrl+S). Name it `parvaz-relay` (or similar —
-   you'll see this in the script.google.com URL).
+   this is the name you'll see in the Apps Script dashboard).
 6. **Deploy → New deployment**:
     - Type: **Web app**
     - Description: `parvaz relay vN` (increment for future redeploys)

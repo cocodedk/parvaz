@@ -54,14 +54,14 @@ Go core, Android app, integration.
 - [x] Real dispatcher wired; `stubDialer` removed. End-to-end TLS
       handshake through socks5 → dispatcher → interceptor is unit-tested.
 
-## Milestone M-mitm · (NEXT, NEW)
+## Milestone M-mitm · DONE
 
 **Target**: `core/mitm/{ca.go, leaf.go, interceptor.go}` + tests. Turns a
 SOCKS5 CONNECT into an inspectable HTTP request the relay re-encodes as a
 JSON envelope.
 
 Design:
-- CA at `<data-dir>/ca/ca.{crt,key}`; generated on first launch; Android reads PEM and triggers system CA-install intent.
+- CA at `<data-dir>/ca/ca.{crt,key}`; generated on first launch; Android exports the PEM and opens the system Security settings.
 - `interceptor.Intercept(ctx, rawConn, host, port)` replies SOCKS5 success then TLS-handshakes the client with a CA-signed leaf for `host`.
 - Plaintext HTTP flows: each `http.Request` → `relay.Do` → response back through the TLS server conn.
 
@@ -136,8 +136,8 @@ Replace AGP-default icon + white system splash with NOTAM identity.
 Farsi strings default (`res/values/`); English override (`res/values-en/`).
 
 1. [x] M12.1 — `SplashScreen` — `پرواز` + `شروع` rubber-stamp button.
-2. [x] M12.2 — `ImportAccessScreen` — single field + `چسباندن` + `اسکن QR`. Auto-detects clipboard `parvaz://` on appear.
-3. [x] M12.3 — `CaInstallScreen` — Farsi walkthrough. `parvazd -gen-ca` writes the PEM under `filesDir/parvaz-data/ca/`; the screen pre-checks screen-lock via `KeyguardManager`, fires `ACTION_MANAGE_CA_CERTIFICATES`, then walks `AndroidCAStore` by SHA-256 fingerprint. State machine (GENERATING → READY → AWAITING_INSTALL → VERIFYING → INSTALLED/FAILED/NO_SCREEN_LOCK) survives rotation + process death via `rememberSaveable`.
+2. [x] M12.2 — `ImportAccessScreen` — single field + `چسباندن` (reads the clipboard only when tapped) + `اسکن QR` (shown disabled, "not available": QR scanning is not implemented). No automatic clipboard detection.
+3. [x] M12.3 — `CaInstallScreen` — Farsi walkthrough. `parvazd -gen-ca` writes the PEM under `filesDir/parvaz-data/ca/`; the screen pre-checks screen-lock via `KeyguardManager`, opens Android Security settings, then walks `AndroidCAStore` by SHA-256 fingerprint. State machine (GENERATING → READY → AWAITING_INSTALL → VERIFYING → INSTALLED/FAILED/NO_SCREEN_LOCK) survives rotation + process death via `rememberSaveable`.
 4. [x] M12.4 — `VpnPermissionScreen` — Farsi explainer BEFORE Android's system VPN consent dialog. State machine (IDLE → AWAITING_SYSTEM_PROMPT → GRANTED/DENIED) rotation-safe via `rememberSaveable`. `Lifecycle.ON_RESUME` observer recovers from stuck AWAITING after process death / user-returned-without-responding.
 
 ## Milestone 13 — Main screen
@@ -153,14 +153,15 @@ Farsi strings default (`res/values/`); English override (`res/values-en/`).
 
 ## Milestone 14 — URL scheme handler + QR scanner
 
-`parvaz://` intent-filter already lands on MainActivity; QR scanner via
-`androidx.camera` + MLKit. Both paths feed `ImportAccessScreen.onImport`.
+`parvaz://` intent-filter already lands on MainActivity. QR scanner (planned,
+via `androidx.camera` + MLKit) is not built; the Scan button is disabled.
 
 ## Milestone 15 — VpnService + tun2socks + sidecar
 
 - [x] **M15a** — VpnService + CoreLauncher.
 - [x] **M15b-alpha** — `xjasonlyu/tun2socks/v2` in parvazd. Kotlin
-      FD_CLOEXEC-clears (API 30+) and passes raw TUN fd via stdin.
+      (API 30+) sends the raw TUN fd to the sidecar over an abstract Unix
+      socket with SCM_RIGHTS (`TunFdSender`); stdin carries only the JSON config.
       MITM uses `GetCertificate` so leaf matches browser SNI even on
       bare-IP targets. Own package in VpnService's disallowed-list.
 - [x] **M15b-beta** — UDP/DNS. `core/socks5` speaks UDP ASSOCIATE;
@@ -186,7 +187,7 @@ installed, VPN permission denied. Copy lives in `res/values/strings.xml`.
 
 - Deploy `apps_script/Code.gs` to a test Google account.
 - Smoke: install APK on device, paste `parvaz://...`, install CA, Connect, load google.com + a non-Google site in Chrome.
-- Optional gated test: `PARVAZ_E2E=1 go test -C core ./relay/...`.
+- Optional gated live test: `PARVAZ_LIVE_DEPLOYMENT_ID=<id> PARVAZ_LIVE_AUTH_KEY=<key> go test -C core -v -run TestRelay_Live ./relay/...`.
 
 ## Out of scope (explicit non-goals)
 

@@ -75,10 +75,10 @@ curl -sk https://127.0.0.1:18443/macros/s/X/exec \
 
 ## Remaining Work (tracked in PLAN.md)
 
-1. **parvazd flags** — `-front-port <int>` and `-insecure-tls` so the
-   sidecar can be pointed at `10.0.2.2:8443` with a self-signed cert.
-   Production code stays at `:443` + strict verify; the new flags are
-   opt-in.
+1. **parvazd flags** — done: `-front-port <int>` and `-insecure-tls`
+   exist, so the sidecar can be pointed at `10.0.2.2:8443` (the local
+   TLS stub) with a self-signed cert. Production code stays at `:443` +
+   strict verify; the flags are opt-in.
 2. **Emulator orchestration in `run.sh`** — start stub on host
    (port 8443), `adb push` parvazd + CA to emulator, `adb shell` the
    sidecar with the e2e config, `adb forward tcp:1080`, run curl on

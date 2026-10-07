@@ -194,11 +194,11 @@ Firefox معمولا certificate store جداگانه دارد:
 
 ### وابستگی‌های اختیاری
 
-همه وابستگی‌های [`requirements.txt`](requirements.txt) اختیاری هستند — در حالت پایه بدون هیچ‌کدام کار می‌کند، ولی با نصب آن‌ها امکانات بیشتری در دسترس است:
+بسته `cryptography` برای اجرای این نسخه ضروری است، چون `main.py` در شروع اجرا ماژول MITM را import می‌کند و این ماژول به `cryptography` نیاز دارد؛ بدون آن برنامه اجرا نمی‌شود. بقیهٔ بسته‌های [`requirements.txt`](requirements.txt) اختیاری‌اند و نصب‌شان امکانات جدول زیر را اضافه می‌کند:
 
 | بسته | کاربرد |
 |------|---------|
-| `cryptography` | رمزگشایی MITM برای HTTPS (در حالت `apps_script` لازم است) |
+| `cryptography` | رمزگشایی MITM برای HTTPS (ضروری؛ بدون آن برنامه اجرا نمی‌شود) |
 | `h2` | ارتباط HTTP/2 با رله Apps Script (به‌طور محسوسی سریع‌تر) |
 | `brotli` | پشتیبانی از فشرده‌سازی `Content-Encoding: br` |
 | `zstandard` | پشتیبانی از فشرده‌سازی `Content-Encoding: zstd` |
@@ -221,7 +221,7 @@ Firefox معمولا certificate store جداگانه دارد:
 
 ## به‌روزرسانی `Code.gs`
 
-اگر فایل `Code.gs` را تغییر دادید، باید دوباره **Deploy -> New deployment** بزنید و `script_id` جدید را داخل `config.json` قرار دهید. صرفا ذخیره کردن کد، نسخه فعال را عوض نمی‌کند.
+اگر فایل `Code.gs` را تغییر دادید، باید نسخهٔ جدیدی از همان deployment منتشر کنید: در **Deploy -> Manage deployments** روی Edit (آیکن مداد) بزنید، در Version گزینهٔ **New version** را انتخاب کنید و Deploy کنید. شناسهٔ deployment عوض نمی‌شود و `script_id` در `config.json` همان می‌ماند. صرفاً ذخیره کردن کد، نسخهٔ فعال را عوض نمی‌کند.
 
 ---
 
@@ -259,7 +259,7 @@ python3 main.py --no-cert-check       # رد شدن از بررسی خودکار
 MasterHttpRelayVPN/
 ├── main.py                    # نقطه شروع: پراکسی را راه‌اندازی می‌کند
 ├── config.example.json        # نمونه کانفیگ (به config.json کپی شود)
-├── requirements.txt           # وابستگی‌های اختیاری پایتون
+├── requirements.txt           # وابستگی‌های پایتون (cryptography ضروری، بقیه اختیاری)
 ├── apps_script/
 │   └── Code.gs                # اسکریپت رله روی Google Apps Script
 ├── ca/                        # گواهی MITM (هرگز به اشتراک نگذارید)
@@ -289,9 +289,9 @@ MasterHttpRelayVPN/
 | خطای `unauthorized` | مقدار `auth_key` و `AUTH_KEY` باید یکسان باشند |
 | timeout | IP دیگری برای Google امتحان کنید |
 | سرعت کم | از چند `script_id` برای load balancing استفاده کنید |
-| خطای `502 Bad JSON` | Google به‌جای JSON پاسخ HTML برگردانده (مثلاً صفحه quota یا 404). دلایل: `script_id` اشتباه، تجاوز از سهمیه روزانه Apps Script، یا عدم ایجاد deployment جدید پس از ویرایش `Code.gs`. `script_id` را بررسی کنید و یک **deployment جدید** بسازید. |
-| تلگرام روی HTTP proxy کار می‌کند ولی روی SOCKS5 نه | **طبیعی است.** کلاینت SOCKS5 نام دامنه را روی سیستم خودش resolve می‌کند و مستقیم به IP وصل می‌شود، پس بایت‌های MTProto تلگرام به IP فیلترشده می‌رسد که نه می‌توانیم direct-tunnel کنیم و نه MITM. تلگرام را به‌جای SOCKS5 به صورت **HTTP proxy** (`127.0.0.1:8085`) تنظیم کنید — در این حالت نام دامنه ارسال می‌شود و پراکسی با SNI-rewrite از طریق Google عبور می‌دهد. |
-| گوگل و یوتیوب باز می‌شوند ولی ویدیوهای یوتیوب پخش نمی‌شوند و سایت‌های دیگر باز نمی‌شوند | اتصال به `script.google.com` با موفقیت برقرار نشده. احتمالاً مشکل از deployment فایل `Code.gs` روی Google Apps Script است یا سهمیه روزانه اجرا تمام شده. یک deployment جدید از `Code.gs` بسازید و `script_id` را بررسی کنید، یا منتظر بمانید تا سهمیه reset شود (نیمه‌شب به وقت Pacific / ۱۰:۳۰ ظهر به وقت ایران). |
+| خطای `502 Bad JSON` | Google به‌جای JSON پاسخ HTML برگردانده (مثلاً صفحه quota یا 404). دلایل: `script_id` اشتباه، تجاوز از سهمیه روزانه Apps Script، یا منتشر نکردن نسخهٔ جدید deployment پس از ویرایش `Code.gs`. `script_id` را بررسی کنید و اگر اخیراً `Code.gs` را تغییر داده‌اید، در Manage deployments یک **New version** منتشر کنید. |
+| تلگرام روی HTTP proxy کار می‌کند ولی روی SOCKS5 نه | **طبیعی است.** در SOCKS5 مقصد درخواست می‌تواند هم نام دامنه باشد هم نشانی IP، و پراکسی هر دو را می‌پذیرد. تلگرام روی SOCKS5 نشانی IP می‌فرستد، پس بایت‌های MTProto تلگرام به IP فیلترشده می‌رسد که نه می‌توانیم direct-tunnel کنیم و نه MITM. تلگرام را به‌جای SOCKS5 به صورت **HTTP proxy** (`127.0.0.1:8085`) تنظیم کنید — در این حالت نام دامنه ارسال می‌شود و پراکسی با SNI-rewrite از طریق Google عبور می‌دهد. |
+| گوگل و یوتیوب باز می‌شوند ولی ویدیوهای یوتیوب پخش نمی‌شوند و سایت‌های دیگر باز نمی‌شوند | اتصال به `script.google.com` با موفقیت برقرار نشده. احتمالاً مشکل از deployment فایل `Code.gs` روی Google Apps Script است یا سهمیه روزانه اجرا تمام شده. یک deployment جدید از `Code.gs` بسازید و `script_id` را بررسی کنید، یا منتظر بمانید تا سهمیه reset شود (طبق مستندات Google، سهمیه ۲۴ ساعت پس از نخستین درخواست reset می‌شود، نه در ساعتی ثابت). |
 
 ---
 

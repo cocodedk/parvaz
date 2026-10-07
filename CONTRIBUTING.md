@@ -50,8 +50,9 @@ CGO_ENABLED=0 GOOS=android GOARCH=arm64 \
 ./gradlew assembleRelease             # release APK (needs signing env)
 ./gradlew buildSmoke                  # CI smoke check
 
-# Live-network tests (needs a deployed Cloudflare Worker)
-PARVAZ_E2E=1 go test -C core ./...
+# Live-network tests (need a deployed apps_script/Code.gs, see scripts/e2e/DEPLOY_CODE_GS.md)
+PARVAZ_LIVE_DEPLOYMENT_ID=<id> PARVAZ_LIVE_AUTH_KEY=<key> \
+    go test -C core -v -run TestRelay_Live ./relay/...
 ```
 
 ## Release signing (one-time, maintainers only)
@@ -80,12 +81,13 @@ workflow) or via:
 gh workflow run release.yml
 ```
 
-It also fires on every push to main, and skips quietly if that version is
-already released.
+It also runs on pushes to main, except pushes that only touch paths the
+workflow ignores (`*.md`, `website/`, `reference/`, `.githooks/`, `LICENSE`,
+`.gitignore`), and skips quietly if that version is already released.
 
-The workflow builds the Go core for 4 Android ABIs, drops the `.so` into
-`app/src/main/jniLibs/`, signs the APK, tags `v<version>`, and attaches
-`Parvaz.apk` to the GitHub Release.
+The workflow builds the Go core for arm64-v8a (the only packaged ABI), drops
+the `.so` into `app/src/main/jniLibs/arm64-v8a/`, signs the APK, tags
+`v<version>`, and attaches `Parvaz.apk` to the GitHub Release.
 
 ## Coding Style
 

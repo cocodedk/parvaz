@@ -12,18 +12,23 @@ code in `core/mitm/` and `core/fronter/`.
 
 The phone's browser sends a ClientHello (SNI `netflic.com`, ALPN `h2`,
 `http/1.1`). Traffic hits Parvaz because the Android `VpnService` routes
-it to our local SOCKS5 server on :1080. SOCKS5 hands the CONNECT target
-off to the interceptor *before* reading the ClientHello.
+it into tun2socks, which hands each TCP flow to our local SOCKS5 server
+on :1080. SOCKS5 hands the CONNECT target off to the interceptor
+*before* reading the ClientHello.
 
-**Parvaz-specific:** cert selection keys on the **SOCKS5 CONNECT host**,
-not the SNI. `Interceptor.Intercept(ctx, rawConn, "netflic.com", 443)`
-has the host already. The browser's SNI is still sent and validated, but
-we pre-select the leaf before the first ClientHello byte.
+**Parvaz-specific:** cert selection keys on the **SNI**, with the SOCKS5
+CONNECT host only as a fallback. `Interceptor.Intercept(ctx, rawConn,
+host, 443)` receives the CONNECT host, but a `GetCertificate` callback
+mints the leaf for the ServerName in the ClientHello and falls back to
+that host only when the ClientHello carries no SNI.
 
-In practice SNI always equals the CONNECT host, because we only
-advertise `http/1.1` on the server side (§3) — that blocks HTTP/2
-connection coalescing, the only way a browser would reuse one TLS conn
-for a different host.
+On Android the CONNECT host is usually a bare IP address, because
+tun2socks sends IPs, not hostnames. The SNI is then the only place the
+real hostname appears, which is why it wins. When a SOCKS5 client sends a
+hostname instead, the two normally agree, because we only advertise
+`http/1.1` on the server side (§3) — that blocks HTTP/2 connection
+coalescing, the usual way a browser would reuse one TLS conn for a
+different host.
 
 ---
 
@@ -49,8 +54,10 @@ of parvazd.
 
 The CA itself is generated on first launch at `<data-dir>/ca/{ca.crt,
 ca.key}`, persists across restarts, ECDSA P-256, valid 10 years, marked
-`IsCA` with `MaxPathLenZero` (no sub-CAs). The Android app hands the PEM
-to `ACTION_MANAGE_CA_CERTIFICATES`; the user installs it once.
+`IsCA` with `MaxPathLenZero` (no sub-CAs). The Android app exports the
+certificate to a file and opens Android's Security settings; the user
+follows the on-screen steps to install it once, and the app then checks
+the install by SHA-256 fingerprint.
 
 ---
 
@@ -76,8 +83,8 @@ Result: handshake succeeds, connection marked secure, lock icon shown.
 Chrome and Firefox ALPN-advertise `h2` first. If we negotiated HTTP/2
 we'd fail on the first frame — the interceptor reads with
 `http.ReadRequest`, which only speaks HTTP/1.1. Pinning `http/1.1` also
-eliminates HTTP/2 connection coalescing, which is what would let SNI
-diverge from the CONNECT host.
+eliminates HTTP/2 connection coalescing, which is what would let one
+connection carry requests for a host other than the one it was set up for.
 
 ### What Android itself shows
 
@@ -100,7 +107,8 @@ Accept-Encoding: gzip
 ```
 
 The interceptor reads it with `http.ReadRequest`, rebuilds the absolute
-URL from `(CONNECT host, CONNECT port, path+query)`, and hands the
+URL from `(SNI host — or the CONNECT host if there was no SNI, CONNECT
+port, path+query)`, and hands the
 `protocol.Request` to `Relayer.Do`. Keep-alive loops back to the next
 `ReadRequest` under a 120s idle deadline.
 
@@ -185,7 +193,8 @@ Reality:
 - A separate TLS session fronts a POST to `script.google.com` via a
   Google edge IP; request body carries the target URL and payload
 - There is no certificate forwarding, reuse, or handover — only local
-  re-issuance keyed on the SOCKS5 CONNECT host
+  re-issuance keyed on the browser's SNI (the SOCKS5 CONNECT host when
+  there is none)
 
 Real MITM, honest UX: the phone is doing it to itself, with the user's
 informed consent via the Android user-root install flow.
