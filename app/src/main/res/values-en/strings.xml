@@ -7,18 +7,22 @@
     <string name="app_name">Parvaz</string>
 
     <string name="splash_title">PARVAZ</string>
-    <string name="splash_subtitle">Clear path to the open internet</string>
+    <string name="splash_subtitle">Open websites your network blocks, using an access link from someone you trust</string>
     <string name="splash_start_cta">Start</string>
 
     <string name="import_title">Access URL</string>
     <string name="import_subtitle">A technical helper should have sent you a parvaz:// URL</string>
     <string name="import_paste_cta">Paste</string>
-    <string name="import_scan_cta">Scan QR</string>
+    <string name="import_scan_cta">Scan QR (not available)</string>
     <string name="import_field_hint">parvaz://…</string>
     <string name="import_submit_cta">Continue</string>
+    <string name="import_error_not_parvaz_url">The link must start with parvaz://. Paste the whole link your helper sent you.</string>
+    <string name="import_error_no_key">The link has no access key. Ask your helper to send the whole link again.</string>
+    <string name="import_error_empty_id">The link has no ID after parvaz://. Ask your helper to send the whole link again.</string>
+    <string name="import_error_empty_key">The access key in the link is empty. Ask your helper to send the whole link again.</string>
 
     <string name="ca_install_title">Install certificate</string>
-    <string name="ca_install_body">Parvaz saves the certificate file to your Downloads folder, then walks you step-by-step through installing it from Android Settings</string>
+    <string name="ca_install_body">Parvaz has saved a certificate file on your phone. A certificate is a small file that tells your phone to trust Parvaz when it handles your browser\'s secure connections. Tap Open Settings and follow the steps to install it. If you cannot find the file, tap Show file.</string>
     <string name="ca_install_cta">Open Settings</string>
     <string name="ca_install_show_file_cta">Show file</string>
     <string name="ca_install_done_label">Installed</string>
@@ -26,7 +30,7 @@
     <string name="ca_install_verifying">Verifying…</string>
     <string name="ca_install_retry_cta">Try again</string>
     <string name="ca_install_failed">Install didn\'t complete — try again</string>
-    <string name="ca_install_failed_not_installed">Certificate not yet installed — follow the steps again</string>
+    <string name="ca_install_failed_not_installed">Parvaz could not prepare or confirm the certificate. Tap Try again, then follow the steps again</string>
     <string name="ca_install_filename">parvaz-ca-code.crt</string>
     <string name="ca_install_no_lock_title">No screen lock set</string>
     <string name="ca_install_no_lock_body">Android requires a screen lock before installing certificates — set a PIN or pattern and retry</string>
@@ -37,7 +41,7 @@
     <string name="ca_step_1_samsung">1. Security and privacy</string>
     <string name="ca_step_2_samsung">2. More security settings</string>
     <string name="ca_step_3_samsung">3. Install from device storage → CA certificate</string>
-    <string name="ca_step_4_samsung">4. Pick the newest parvaz-ca-code.crt from Downloads</string>
+    <string name="ca_step_4_samsung">4. Choose the newest file whose name starts with parvaz-ca- and ends with .crt. The middle of the name is a 12-character code.</string>
     <string name="ca_step_5_samsung">5. Return to Parvaz</string>
 
     <!-- CA install — AOSP / Pixel step labels (English). Verbatim
@@ -45,11 +49,11 @@
     <string name="ca_step_1_aosp">1. Security &amp; privacy</string>
     <string name="ca_step_2_aosp">2. More security &amp; privacy → Encryption &amp; credentials</string>
     <string name="ca_step_3_aosp">3. Install a certificate → CA certificate</string>
-    <string name="ca_step_4_aosp">4. Pick the newest parvaz-ca-code.crt from Downloads</string>
+    <string name="ca_step_4_aosp">4. Choose the newest file whose name starts with parvaz-ca- and ends with .crt. The middle of the name is a 12-character code.</string>
     <string name="ca_step_5_aosp">5. Return to Parvaz</string>
 
     <string name="vpn_explain_title">VPN permission</string>
-    <string name="vpn_explain_body">Parvaz needs Android\'s VPN permission to tunnel browser traffic. This is a per-app permission.</string>
+    <string name="vpn_explain_body">Parvaz needs Android\'s VPN permission to send your browser\'s traffic through the relay. While Parvaz is connected, internet traffic from the other apps on your phone also passes through it. Apps other than browsers usually cannot connect this way, so they may stop working until you disconnect.</string>
     <string name="vpn_explain_cta">Allow</string>
     <string name="vpn_explain_waiting">Waiting…</string>
     <string name="vpn_explain_granted">Permission granted</string>
@@ -57,22 +61,25 @@
 
     <string name="main_disconnected_stamp">PARVAZ</string>
     <string name="main_connected_stamp">IN FLIGHT</string>
+    <string name="main_disconnected_hint">Tap the button above to connect</string>
+    <string name="main_connected_hint">Tap the button above to disconnect</string>
     <string name="main_connecting_label">Connecting…</string>
     <string name="main_failed_label">Connection failed — try again</string>
     <string name="main_failed_no_internet">No internet — check your connection</string>
-    <string name="main_failed_vpn_revoked">VPN permission revoked — re-grant in Android settings</string>
+    <string name="main_failed_vpn_revoked">Android no longer lets Parvaz use the VPN. Another VPN app may have taken over. To allow Parvaz again, open Settings in Parvaz, tap Reset and repeat the setup. You will need your access link again.</string>
     <string name="main_failed_no_access">No access URL saved — import one first</string>
-    <string name="main_failed_sidecar">Core failed to start — try again</string>
+    <string name="main_failed_sidecar">Parvaz could not start the connection. Try again</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_language_label">Language</string>
     <string name="settings_language_fa">فارسی</string>
     <string name="settings_language_en">English</string>
+    <string name="settings_language_da">Dansk</string>
     <string name="settings_reset_access_label">Reset access</string>
-    <string name="settings_reset_access_body">Parvaz will forget your access URL and return to the first onboarding step</string>
+    <string name="settings_reset_access_body">Parvaz will forget your saved access link and go back to the first setup screen</string>
     <string name="settings_reset_access_cta">Reset</string>
     <string name="settings_reset_confirm_title">Are you sure?</string>
-    <string name="settings_reset_confirm_body">This clears all settings — you\'ll have to re-enter the parvaz:// URL</string>
+    <string name="settings_reset_confirm_body">This removes your saved access link, and you will have to paste it again. Your language and the certificate stay as they are.</string>
     <string name="settings_cancel_cta">Cancel</string>
     <string name="settings_close_cta">Close</string>
 
@@ -82,9 +89,35 @@
     <string name="settings_url_save_cta">Save</string>
     <string name="settings_url_saved_label">Saved</string>
 
+    <string name="settings_about_cta">About Parvaz</string>
+    <string name="about_title">About Parvaz</string>
+    <string name="about_close_cta">Close</string>
+    <string name="about_name_version_title">Name and version</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_updates_hint">Parvaz never checks for updates by itself. The button below opens the page with the newest version in your browser.</string>
+    <string name="about_check_updates">See the latest version</string>
+    <string name="about_what_title">What Parvaz does</string>
+    <string name="about_what_body">Parvaz helps you open websites that your network blocks. You use it with Chrome or another Chromium-based browser, such as Brave, Edge or Vivaldi. Parvaz sends your browser\'s traffic to a relay. A relay is a small program on a Google account, set up by you or by a technical helper you trust. The relay fetches the websites for you. Most other apps, such as banking, messaging and streaming apps, do not accept the certificate you install during setup, so they do not work through Parvaz.</string>
+    <string name="about_privacy_title">Privacy</string>
+    <string name="about_privacy_relay">Whoever runs your relay, and Google, can read what passes through it. This includes the addresses you visit, your cookies, and what you type into forms, passwords included. Use Parvaz only with a relay you trust completely.</string>
+    <string name="about_privacy_cocode">Cocode runs no server for Parvaz and receives nothing from the app. Parvaz has no account, no analytics, no ads and no crash reporting. Your access key is stored on your phone in encrypted storage.</string>
+    <string name="about_privacy_link">Read the privacy policy</string>
+    <string name="about_links_title">Links</string>
+    <string name="about_website">Open the website</string>
+    <string name="about_source">See the source code on GitHub</string>
+    <string name="about_report_hint">Reports on GitHub are public. Do not include your parvaz:// link or access key in one.</string>
+    <string name="about_report">Report a problem on GitHub</string>
+    <string name="about_no_browser">No app on this phone can open the link. Install a web browser, then try again.</string>
+    <string name="about_credits_title">Credits and licenses</string>
+    <string name="about_license">Parvaz is free software. You can use, read, change and share it under the MIT license.</string>
+    <string name="about_credit_upstream">Parvaz\'s client is a rewrite of MasterHttpRelayVPN, by Amin Mahmoudi.</string>
+    <string name="about_credit_tun2socks">The tunnel uses tun2socks, an open-source library that moves your phone\'s traffic into the app.</string>
+    <string name="about_credit_androidx">The app is built with AndroidX and Jetpack Compose (Apache-2.0).</string>
+    <string name="about_made_by">Made by Cocode (cocode.dk)</string>
+
     <string name="vpn_notification_channel_name">Parvaz connection</string>
     <string name="vpn_notification_channel_description">Persistent notification while the tunnel is active</string>
     <string name="vpn_notification_title">Parvaz is running</string>
-    <string name="vpn_notification_text">Browser traffic routes through Parvaz</string>
+    <string name="vpn_notification_text">Open Parvaz to check the connection, or tap Stop to disconnect</string>
     <string name="vpn_notification_stop_action">Stop</string>
 </resources>

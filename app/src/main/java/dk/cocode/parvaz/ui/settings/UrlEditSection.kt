@@ -25,12 +25,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import dk.cocode.parvaz.R
 import dk.cocode.parvaz.settings.Access
+import dk.cocode.parvaz.settings.AccessParseError
 import dk.cocode.parvaz.settings.AccessParseException
 import dk.cocode.parvaz.ui.theme.Ink
 import dk.cocode.parvaz.ui.theme.InkSoft
 import dk.cocode.parvaz.ui.theme.Olive
 import dk.cocode.parvaz.ui.theme.Oxblood
 import dk.cocode.parvaz.ui.theme.Paper
+import dk.cocode.parvaz.ui.util.textRes
 
 /**
  * Inline `parvaz://` editor. Live-only — the field is pre-filled with a
@@ -63,7 +65,7 @@ fun UrlEditSection(
     // Trade-off: input is lost across rotation — onboarding's
     // ImportAccessScreen accepts the same trade-off.
     var input by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<AccessParseError?>(null) }
     var savedFlash by remember { mutableStateOf(false) }
 
     LaunchedEffect(savedFlash) {
@@ -100,7 +102,7 @@ fun UrlEditSection(
 
     error?.let {
         Text(
-            text = it,
+            text = stringResource(it.textRes()),
             style = MaterialTheme.typography.bodySmall,
             color = Oxblood,
             modifier = Modifier.testTag(SettingsTestTags.UrlError),
@@ -132,7 +134,7 @@ fun UrlEditSection(
                     error = null
                     savedFlash = true
                 } catch (e: AccessParseException) {
-                    error = e.message
+                    error = e.error
                 }
             },
             enabled = input.isNotBlank(),

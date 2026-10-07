@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dk.cocode.parvaz.R
 import dk.cocode.parvaz.settings.Access
+import dk.cocode.parvaz.settings.AccessParseError
 import dk.cocode.parvaz.settings.AccessParseException
 import dk.cocode.parvaz.settings.ParvazSettings
 import dk.cocode.parvaz.ui.theme.Ink
@@ -43,6 +44,7 @@ import dk.cocode.parvaz.ui.theme.InkSoft
 import dk.cocode.parvaz.ui.theme.Oxblood
 import dk.cocode.parvaz.ui.theme.Paper
 import dk.cocode.parvaz.ui.theme.ParvazTheme
+import dk.cocode.parvaz.ui.util.textRes
 
 /**
  * Step 2 of onboarding. One text field for the parvaz:// URL. Paste
@@ -53,12 +55,12 @@ import dk.cocode.parvaz.ui.theme.ParvazTheme
 @Composable
 fun ImportAccessScreen(
     initialUrl: String?,
-    initialError: String?,
+    initialError: AccessParseError?,
     onImported: (Access) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var text by rememberSaveable { mutableStateOf(initialUrl.orEmpty()) }
-    var error by rememberSaveable { mutableStateOf(initialError) }
+    var error by rememberSaveable { mutableStateOf<AccessParseError?>(initialError) }
 
     // A fresh parvaz:// intent delivered via onNewIntent updates our
     // callers' initialUrl/initialError while this screen is already on
@@ -119,7 +121,7 @@ fun ImportAccessScreen(
         )
         if (error != null) {
             Text(
-                text = error!!,
+                text = stringResource(error!!.textRes()),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Oxblood,
                 modifier = Modifier.testTag(TestTags.ImportErrorText),
@@ -161,7 +163,7 @@ fun ImportAccessScreen(
                     ParvazSettings(context).save(access)
                     onImported(access)
                 } catch (e: AccessParseException) {
-                    error = e.message ?: "parvaz://?"
+                    error = e.error
                 }
             },
             enabled = text.isNotBlank(),

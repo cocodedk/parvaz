@@ -11,8 +11,8 @@ package dk.cocode.parvaz.settings
  *
  * Returns null when the input is not a parvaz:// URL — that's the
  * "nothing to do" case, not an error. Invalid parvaz:// URLs throw
- * [AccessParseException] so the caller can surface the Farsi message
- * directly under the input field.
+ * [AccessParseException] so the caller can show the matching text
+ * under the input field.
  */
 object AccessImport {
     private const val SCHEME_PREFIX = "parvaz://"

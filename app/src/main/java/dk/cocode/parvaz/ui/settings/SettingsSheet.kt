@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -28,6 +30,7 @@ import dk.cocode.parvaz.ui.theme.Paper
  * screen. Composes three optional sections:
  *   - [UrlEditSection] — always visible. Pre-filled when an Access exists.
  *   - [LanguageSection] — always visible.
+ *   - an "About Parvaz" button — always visible; opens the About page.
  *   - [ResetSection]   — visible only after onboarding completes
  *     ([onboardingComplete]=true) so a user mid-CA-install can't drop
  *     themselves back to step 1 by misadventure.
@@ -44,6 +47,7 @@ fun SettingsSheet(
     onLanguageChange: (String) -> Unit,
     onSaveAccess: (Access) -> Unit,
     onResetAccess: () -> Unit,
+    onOpenAbout: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -70,6 +74,17 @@ fun SettingsSheet(
             HorizontalDivider(color = InkSoft)
 
             LanguageSection(currentLanguage = currentLanguage, onLanguageChange = onLanguageChange)
+            HorizontalDivider(color = InkSoft)
+
+            OutlinedButton(
+                onClick = onOpenAbout,
+                shape = RoundedCornerShape(2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(SettingsTestTags.AboutButton),
+            ) {
+                Text(stringResource(R.string.settings_about_cta), color = Ink)
+            }
 
             if (onboardingComplete) {
                 HorizontalDivider(color = InkSoft)

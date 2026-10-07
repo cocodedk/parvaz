@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dk.cocode.parvaz.settings.Access
+import dk.cocode.parvaz.settings.AccessParseError
 
 /**
  * Strictly linear onboarding: SPLASH → IMPORT → CA_INSTALL → VPN_EXPLAIN
@@ -44,7 +45,7 @@ enum class OnboardingStep { SPLASH, IMPORT, CA_INSTALL, VPN_EXPLAIN, DONE }
 @Composable
 fun OnboardingHost(
     initialDeepLinkUrl: String? = null,
-    initialDeepLinkError: String? = null,
+    initialDeepLinkError: AccessParseError? = null,
     alreadyImportedAccess: Access? = null,
     onLanguageChange: (String) -> Unit,
     onFinished: (Access) -> Unit,

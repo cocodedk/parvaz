@@ -75,7 +75,7 @@ class ParvazSettings(context: Context) {
             .apply()
     }
 
-    /** UI language: "fa" (default) or "en". Mutable. */
+    /** UI language: "fa" (default), "en" or "da" (see [AppLanguages]). Mutable. */
     var language: String
         get() = plain.getString(KEY_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
         set(value) {

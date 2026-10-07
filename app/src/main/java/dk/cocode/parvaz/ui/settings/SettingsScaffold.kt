@@ -63,4 +63,5 @@ object SettingsTestTags {
     const val UrlSaveButton = "settings_url_save"
     const val UrlError = "settings_url_error"
     const val ResetButton = "settings_reset_button"
+    const val AboutButton = "settings_about_button"
 }
