@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Parvaz: en flyvning over filteret. Åbn blokerede websteder på Android</title>
+<meta name="description" content="Parvaz hjælper dig med at åbne websteder, som dit netværk blokerer, på en Android-telefon. Appen sender trafikken fra Chrome, Brave, Edge eller Vivaldi gennem et relay: et lille program på en Google-konto, som du eller en hjælper, du stoler på, sætter op. Persisk er standardsproget. Kræver Android 11 eller nyere."/>
+<meta name="robots" content="index, follow"/>
+<meta name="keywords" content="parvaz, android, browsertunnel, iran, apps script, domain fronting, masterhttprelayvpn, censuromgåelse, vpnservice, kotlin, go, persisk, open source"/>
+<link rel="canonical" href="https://parvaz.cocode.dk/da/"/>
+<link rel="alternate" hreflang="en" href="https://parvaz.cocode.dk/"/>
+<link rel="alternate" hreflang="da" href="https://parvaz.cocode.dk/da/"/>
+<link rel="alternate" hreflang="fa" href="https://parvaz.cocode.dk/fa/"/>
+<link rel="alternate" hreflang="x-default" href="https://parvaz.cocode.dk/"/>
+
+<!-- Open Graph -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Parvaz"/>
+<meta property="og:title" content="Parvaz: en flyvning over filteret"/>
+<meta property="og:description" content="Åbn websteder, som dit netværk blokerer, på Android med et adgangslink fra en, du stoler på. Persisk som standard, med engelsk og dansk."/>
+<meta property="og:url" content="https://parvaz.cocode.dk/da/"/>
+<meta property="og:image" content="https://parvaz.cocode.dk/og.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Parvaz-ikonet, et rødt papirfly, ved siden af navnet Parvaz og en kort engelsk linje om at åbne blokerede websteder på Android."/>
+<meta property="og:locale" content="da_DK"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:locale:alternate" content="fa_IR"/>
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Parvaz: en flyvning over filteret"/>
+<meta name="twitter:description" content="Åbn blokerede websteder på Android med Chrome, gennem et relay, som en hjælper, du stoler på, sætter op. Persisk som standard."/>
+<meta name="twitter:image" content="https://parvaz.cocode.dk/og.png"/>
+<meta name="twitter:image:alt" content="Parvaz-ikonet, et rødt papirfly, ved siden af navnet Parvaz og en kort engelsk linje om at åbne blokerede websteder på Android."/>
+
+<link rel="icon" type="image/svg+xml" href="../parvaz-mark.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Redaction&family=Redaction+35&family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../styles.css"/>
+<link rel="stylesheet" href="https://brand.cocode.dk/v1.css">
+<script type="module" src="https://brand.cocode.dk/v1.js"></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Parvaz",
+  "description": "Android-app, der åbner websteder, som dit netværk blokerer. Den sender trafikken fra Chrome (og andre Chromium-browsere som Brave, Edge og Vivaldi) gennem et relay, et lille Google Apps Script-program, som du eller en hjælper, du stoler på, kører. Appen beder dig installere et certifikat, så browseren accepterer forbindelserne. Apps, der ikke accepterer certifikater, du selv installerer, som bank, beskeder og streaming, virker ikke gennem Parvaz. Persisk som standard, med engelsk og dansk. Kræver Android 11 eller nyere.",
+  "url": "https://parvaz.cocode.dk/da/",
+  "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Android 11+",
+  "programmingLanguage": ["Kotlin", "Go"],
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": {
+    "@type": "Person", "name": "Babak Bandpey", "url": "https://cocode.dk",
+    "sameAs": ["https://linkedin.com/in/babakbandpey", "https://github.com/cocodedk"]
+  },
+  "codeRepository": "https://github.com/cocodedk/parvaz"
+}
+</script>
+</head>
+<body class="airline-deck">
+
+<!-- cocode.dk-familierammen, som på den engelske side: et søskendeelement i normalt flow før
+     dækkets faste .deck-header (se --frame-h i css/07-deck-base.css). Ingen <cocode-foot>, fordi
+     dækket er en 100vh-skal uden naturlig dokumentslutning. Dækkets egen sprogpille og sprogknappen
+     nederst bevares: de tager det aktuelle slide-nummer (#N) med over i det andet sprog. Det
+     delte cocode-apps-menu sidder lige under rammen, og cocode-apps-sidefoden er sidste blok i
+     sidste slide. -->
+<cocode-head project="Parvaz" accent="#122a44" on-accent="#e8dfc6">
+  <a href="https://cocode.dk">cocode.dk</a>
+  <a href="../" hreflang="en">English</a>
+  <a href="../fa/" hreflang="fa">فارسی</a>
+</cocode-head>
+
+<div class="cocode-menu">
+<!-- cocode-apps:nav:start -->
+<link rel="stylesheet" href="/css/cocode-nav.css">
+<a class="skip" href="#main">Spring til indhold</a>
+<nav class="cocode-nav" aria-label="Parvaz">
+  <a class="brand" href="/da/" data-nav="home" aria-current="page"><img src="/img/icon.png" alt="" width="32" height="32">Parvaz</a>
+  <a href="/da/#how" data-nav="how">Sådan virker det</a>
+  <a href="/da/#install" data-nav="install">Installér</a>
+  <a href="/da/privacy/" data-nav="privacy">Privatliv</a>
+  <a href="/" hreflang="en" lang="en" data-nav="lang">English</a>
+  <a href="https://cocode.dk/" data-nav="more">Flere apps</a>
+</nav>
+<!-- cocode-apps:nav:end -->
+</div>
+
+<header class="deck-header" role="banner">
+  <a href="../" class="deck-lang-pill" aria-label="Engelsk version">EN</a>
+  <div class="airmail-band" aria-hidden="true"></div>
+  <div class="deck-alert" role="alert" aria-live="assertive">
+    <span class="deck-alert__siren" aria-hidden="true">🚨</span>
+    <span class="deck-alert__stop" aria-hidden="true">STOP</span>
+    <span class="deck-alert__msg">
+      <strong>ADVARSEL · Den, der driver dit relay, og Google kan læse dine cookies, adgangskoder og beskeder som ren tekst.</strong>
+      Log <em>IKKE</em> ind på mail, netbank, sociale medier eller andre konti, medmindre du stoler <em>fuldstændigt</em> på den person.
+      Brug kun Parvaz til at læse offentlige sider eller med konti, du kan undvære.
+    </span>
+  </div>
+  <div class="bp-header">
+    <div class="bp-header__cell">
+      <div class="bp-header__label">Fra</div>
+      <div class="bp-header__value">CPH</div>
+      <div class="bp-header__sub">Cocode · DK</div>
+    </div>
+    <div class="bp-header__flight">
+      <div class="label">Flyvning</div>
+      <div class="value">PVZ 001</div>
+      <div class="page">SIDE <b id="deck-current">01</b> / <b id="deck-total">13</b></div>
+    </div>
+    <div class="bp-header__cell">
+      <div class="bp-header__label">Til</div>
+      <div class="bp-header__value">THR</div>
+      <div class="bp-header__sub">Teheran · Mehrabad</div>
+    </div>
+  </div>
+</header>
+
+<main class="deck-track" id="main" tabindex="-1">
+
+  <!-- 01 · TITEL -->
+  <section class="slide slide--title" data-slide="1">
+    <div class="slide__content">
+      <div>
+        <h1 class="hero__welcome">
+          <span class="ornament">—</span>Velkommen om bord hos <em>cocode.dk Airways</em><span class="ornament">—</span>
+        </h1>
+        <div class="hero__brand">
+          <img src="../parvaz-mark.svg" alt="" class="brand-mark"/>
+          <span class="en-name">Parvaz</span>
+          <span class="fa-name">پرواز</span>
+          <span class="flight-no">PVZ 001 · CPH→THR</span>
+        </div>
+        <p class="hero__tagline">En flyvning over filteret</p>
+        <p class="hero__subtitle">Åbn websteder, som dit netværk blokerer, på Android · persisk som standard</p>
+        <div class="bp-tabs">
+          <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">Hent til Android · APK<span class="stub">PVZ&nbsp;001</span></a>
+          <a href="https://github.com/cocodedk/parvaz" class="bp-tab">Se kildekoden · GitHub<span class="stub">REPO</span></a>
+        </div>
+      </div>
+      <div class="solari-board" aria-label="Opsætningens trin, vist som en afgangstavle">
+        <div class="solari-board__head">
+          <span><span class="blink"></span><strong>cocode.dk · afgange</strong></span>
+          <span>opsætning · én gang</span>
+        </div>
+        <div class="solari-board__rows">
+          <div class="solari-board__col-head">FLYNR</div>
+          <div class="solari-board__col-head">TRIN</div>
+          <div class="solari-board__col-head">GATE</div>
+          <div class="solari-board__col-head">STATUS</div>
+          <div class="solari-board__cell">PVZ 001</div>
+          <div class="solari-board__cell solari-board__cell--dest">indsæt · dit adgangslink</div>
+          <div class="solari-board__cell">A1</div>
+          <div class="solari-board__cell solari-board__cell--status-board">boarding</div>
+          <div class="solari-board__cell">PVZ 002</div>
+          <div class="solari-board__cell solari-board__cell--dest">installér · certifikatet</div>
+          <div class="solari-board__cell">B12</div>
+          <div class="solari-board__cell solari-board__cell--status-go">til tiden</div>
+          <div class="solari-board__cell">PVZ 003</div>
+          <div class="solari-board__cell solari-board__cell--dest">forbind · åbn Chrome</div>
+          <div class="solari-board__cell">C7</div>
+          <div class="solari-board__cell solari-board__cell--status-cleared">klareret</div>
+          <div class="solari-board__cell">PVZ 004</div>
+          <div class="solari-board__cell solari-board__cell--dest">browse · afhænger af siden</div>
+          <div class="solari-board__cell">D24</div>
+          <div class="solari-board__cell solari-board__cell--status-final">sidste udkald</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · §1 RESUMÉ -->
+  <section class="slide" data-slide="2">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§1</span>
+        <h2 class="slide__title">Hvad Parvaz gør</h2>
+        <span class="slide__kicker">Missionsbriefing</span>
+      </div>
+      <div class="slide__body">
+        <p>Parvaz er en Android-app, der hjælper dig med at åbne websteder, som dit netværk blokerer. Du skal bruge et <strong>adgangslink</strong> fra en, du stoler på. Det begynder med <code>parvaz://</code>. Den person, din hjælper, sætter et <strong>relay</strong> op: et lille program på en Google-konto, som henter websteder for dig. Parvaz sender din browsers trafik til relayet.</p>
+        <p>Din hjælper sender dig linket med <strong>Signal eller en hemmelig chat i Telegram</strong> (Secret Chat), ikke WhatsApp. Du installerer appen, trykker på linket eller indsætter det, installerer ét certifikat i Androids indstillinger, trykker på knappen PARVAZ og browser i <strong>Chrome</strong>. Appen åbner på persisk. I indstillingerne kan du skifte til engelsk eller dansk.</p>
+        <p>Parvaz kræver <strong>Android 11 eller nyere</strong> og en 64-bit ARM-telefon. Appen kan installeres på Android 7 til 10, men kan ikke oprette forbindelse der. Den er en tidlig version (pre-alpha). Den følger designet fra <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> og tilføjer en app, der er persisk som standard, med guidede trin til adgangslinket og certifikatet.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 · §2 FLYVERUTEN (rutediagram med 5 hop) -->
+  <section class="slide slide--route" id="how" data-slide="3">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§2</span>
+        <h2 class="slide__title">Flyveruten</h2>
+        <span class="slide__kicker">5 hop · det et netværksfilter ser</span>
+      </div>
+      <div>
+        <div class="route">
+          <div class="route__hop"><strong>Chrome</strong>ingen flag<div class="tag">browser</div></div>
+          <div class="route__hop route__hop--accent"><strong>PARVAZ</strong>VPN + tun2socks + sidecar<div class="tag">denne APK</div></div>
+          <div class="route__hop"><strong>Google edge</strong>SNI www.google.com<div class="tag">filteret ser</div></div>
+          <div class="route__hop"><strong>script.google.com</strong>HTTP Host (den rigtige rute)<div class="tag">internt</div></div>
+          <div class="route__hop"><strong>Code.gs</strong>din udrulning<div class="tag">UrlFetch → mål</div></div>
+        </div>
+        <div class="route__notes">
+          <div><b>Det et filter ser</b>En krypteret forbindelse til Google, der nævner <code>www.google.com</code>, og hvor meget data der sendes, og hvornår. Ikke relayets adresse. Det gør ikke trafikken identisk med en Google-søgning.</div>
+          <div><b>Det Google ser</b>Det rigtige mål, <code>script.google.com</code>, inde i den krypterede forbindelse. Google sender forespørgslen videre til din webapp.</div>
+          <div><b>Det relayet gør</b><code>Code.gs</code> henter det websted, du bad om (<code>UrlFetchApp.fetch</code>), og sender svaret tilbage.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · §3 NOTAM (juridisk advarsel) -->
+  <section class="slide" data-slide="4">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§3</span>
+        <h2 class="slide__title">Juridisk meddelelse</h2>
+        <span class="slide__kicker">Meddelelse til flyvere · begrænset luftrum</span>
+      </div>
+      <div class="notam">
+        <div class="notam-head">
+          <span>Advarsel · Begrænset luftrum</span>
+          <span>NOTAM A0001/26</span>
+        </div>
+        <div class="notam-body">
+          <strong>Google Apps Scripts vilkår forbyder muligvis denne brug.</strong> Udrul kun <code>Code.gs</code> på din <em>egen</em> Google-konto. Kør ikke ét relay for mange mennesker, sælg ikke tjenesten, og del ikke en udrulning. Kun til personlig brug, forskning og undervisning. Forstår du ikke de juridiske konsekvenser, så lad være med at udrulle.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 · §4 SPECIFIKATIONER -->
+  <section class="slide" data-slide="5">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§4</span>
+        <h2 class="slide__title">Det får du</h2>
+        <span class="slide__kicker">Funktioner</span>
+      </div>
+      <div class="specs">
+        <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">Din telefon forbinder til en Google-adresse og nævner <code>www.google.com</code>, når den sikre forbindelse starter. Det rigtige mål, <code>script.google.com</code>, står kun inde i den.</span></div>
+        <div class="spec"><span class="spec-num">02</span><span class="spec-key">Opsætning på persisk</span><span class="spec-val">Tryk på dit <code>parvaz://</code>-link eller indsæt det → installér certifikatet én gang → tryk på PARVAZ. Persisk er standardsproget. Engelsk og dansk ligger i indstillingerne.</span></div>
+        <div class="spec"><span class="spec-num">03</span><span class="spec-key">Chrome uden ekstra opsætning</span><span class="spec-val"><strong>Chrome</strong> accepterer det certifikat, du installerer i Androids indstillinger, uden flag. Brave, Edge og Vivaldi skulle virke på samme måde. De fleste andre apps afviser det.</span></div>
+        <div class="spec"><span class="spec-num">04</span><span class="spec-key">Googles websteder</span><span class="spec-val">I den nuværende Android-version går Googles websteder også gennem relayet og tæller med i dets daglige grænse.</span></div>
+        <div class="spec"><span class="spec-num">05</span><span class="spec-key">APK med åben kildekode</span><span class="spec-val">Kotlin og Compose-app med et Go-hjælpeprogram · MIT-licens · hent APK-filen fra GitHub. F-Droid er planlagt.</span></div>
+        <div class="spec"><span class="spec-num">06</span><span class="spec-key">Ingen sporing</span><span class="spec-val">Ingen analyse og ingen fejlrapportering. Din adgangsnøgle ligger krypteret på telefonen.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 · §5 ÆRLIG OPLYSNING -->
+  <section class="slide slide--honesty slide--who" data-slide="6">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§5</span>
+        <h2 class="slide__title">Hvad appen gør og ikke gør</h2>
+        <span class="slide__kicker">Hvad appen ikke gør · hvad den skal have · grænserne</span>
+      </div>
+      <div class="who">
+        <div class="who__col who__col--no">
+          <div class="who__head">
+            <strong>Gør ikke</strong>
+            <span class="who__tag who__tag--no">Nej</span>
+          </div>
+          <ul class="who__list">
+            <li>Ingen analyse, telemetri eller fjernlogs (endnu).</li>
+            <li>Intet relay drevet af Cocode. Du bruger dit eget relay eller et, som en hjælper, du stoler på, driver.</li>
+            <li>Ingen adgang til din placering, dine kontakter, sms, mikrofon eller kamera. Parvaz beder ikke om tilladelse til kameraet.</li>
+            <li>Ingen opdateringstjek, ingen reklamer, ingen fejlrapportering.</li>
+            <li>Ingen servere drevet af Cocode, ingen konti, intet login.</li>
+          </ul>
+          <div class="who__foot">Du kan selv tjekke det: tilladelserne står i AndroidManifest.xml i kildekoden.</div>
+        </div>
+        <div class="who__col who__col--ok">
+          <div class="who__head">
+            <strong>Skal have</strong>
+            <span class="who__tag who__tag--ok">Ja</span>
+          </div>
+          <ul class="who__list">
+            <li><code>VpnService</code>: lader Parvaz modtage din telefons internettrafik. Android spørger dig én gang.</li>
+            <li><code>INTERNET</code> + <code>FOREGROUND_SERVICE</code>: nå Google og køre videre i baggrunden.</li>
+            <li><code>POST_NOTIFICATIONS</code> (Android 13 og nyere): vise beskeden om, at Parvaz er forbundet.</li>
+            <li>En <strong>skærmlås</strong> på telefonen. Android installerer ikke certifikater uden.</li>
+            <li>En Chromium-browser: Chrome eller Brave, Edge eller Vivaldi. Ingen browserflag nødvendige.</li>
+          </ul>
+          <div class="who__foot">Scanning af QR-koder findes ikke i denne version.</div>
+        </div>
+      </div>
+      <div class="honesty-foot">
+        <div class="honesty-foot__label">Grænser</div>
+        <div class="honesty-foot__chips">
+          <span><b>Tillid</b>relayet ser adresser, headers, cookies og formulardata som ren tekst</span>
+          <span><b>20.000</b>URL-hentninger om dagen på en gratis Google-konto, delt af alle dens scripts</span>
+          <span><b>30&nbsp;s</b>så længe venter Parvaz på relayets svar</span>
+          <span><b>6&nbsp;min</b>længste kørsel af ét Apps Script-kald</span>
+          <span><b>Din konto</b>brug en, du selv styrer, og følg Googles vilkår</span>
+          <span><b>Hastighed</b>begrænset af relayet, ca. 5 KB/s</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 · §6 HVEM FLYVER, HVEM ER PÅ JORDEN -->
+  <section class="slide slide--who" data-slide="7">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§6</span>
+        <h2 class="slide__title">Hvad virker, og hvad virker ikke</h2>
+        <span class="slide__kicker">Hvem flyver, og hvem er på jorden</span>
+      </div>
+      <div class="heads-up" role="note">
+        <span class="heads-up__tag">Bemærk</span>
+        <span>Ikke alle sider åbner, og <strong>WebSockets understøttes ikke i denne version</strong>.</span>
+      </div>
+      <div class="who">
+        <div class="who__col who__col--ok">
+          <div class="who__head">
+            <strong>Virker</strong>
+            <span class="who__tag who__tag--ok">Tunnelleres</span>
+          </div>
+          <ul class="who__list">
+            <li><strong>Chrome</strong> på Android: ingen flag, ingen <code>about:config</code>, ingen root.</li>
+            <li>Andre Chromium-browsere (Brave, Edge, Vivaldi) skulle virke på samme måde. Andre browsere varierer.</li>
+            <li>Webapps i Chrome, for eksempel Gmail, GitHub, Wikipedia, nyhedssider og søgning.</li>
+            <li>Googles websteder (google.com, youtube.com) går også gennem relayet i denne version og tæller med i dets daglige grænse.</li>
+          </ul>
+          <div class="who__foot">Hastigheden er ca. 5 KB/s, så sider åbner langsomt. WebSockets virker ikke endnu.</div>
+        </div>
+        <div class="who__col who__col--no">
+          <div class="who__head">
+            <strong>Virker ikke</strong>
+            <span class="who__tag who__tag--no">Tunnelleres ikke</span>
+          </div>
+          <ul class="who__list">
+            <li><strong>Android 10 og ældre.</strong> Appen kan installeres, men kan ikke oprette forbindelse. Den kræver Android 11 eller nyere.</li>
+            <li><strong>Firefox</strong> er ikke testet med Parvaz. Den har sin egen liste over certifikater og en indstilling, <code>Use third party CA certificates</code>, under Secret Settings, som Parvaz ikke er tjekket med (<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1894053">Mozilla-fejl 1894053</a>).</li>
+            <li><strong>DuckDuckGo-browseren.</strong> Den bygger på Chromium, men afviser certifikatet. Bekræftet, at det ikke virker.</li>
+            <li>Apps som Instagram, Telegram, WhatsApp, bank og streaming. Siden Android 7 accepterer apps ikke certifikater, du selv installerer.</li>
+          </ul>
+          <div class="who__foot">Sådan er Android bygget, så Parvaz kan ikke ændre det. Til andre apps skal du bruge et andet værktøj, for eksempel xray på din egen server.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 · §7 BOARDINGFORLØB (tjekliste med 4 trin) -->
+  <section class="slide slide--board" data-slide="8">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§7</span>
+        <h2 class="slide__title">Boardingforløb</h2>
+        <span class="slide__kicker">ca. 3 minutter · én gang</span>
+      </div>
+      <div class="board">
+        <div class="checklist">
+          <div class="check">
+            <div class="check__no">1</div>
+            <div>
+              <h3 class="check__title">Modtag dit adgangslink</h3>
+              <p class="check__sub">Med Signal eller en hemmelig chat i Telegram fra din hjælper · ikke WhatsApp</p>
+            </div>
+            <span class="check__stamp check__stamp--manual">Manuelt</span>
+          </div>
+          <div class="check">
+            <div class="check__no">2</div>
+            <div>
+              <h3 class="check__title">Installér Parvaz · tryk på linket</h3>
+              <p class="check__sub">Hent APK-filen fra GitHub, installér den, og tryk så på linket eller indsæt det</p>
+            </div>
+            <span class="check__stamp check__stamp--manual">Manuelt</span>
+          </div>
+          <div class="check">
+            <div class="check__no">3</div>
+            <div>
+              <h3 class="check__title">Installér certifikatet</h3>
+              <p class="check__sub">Androids indstillinger · ca. 30 sekunder · se §8</p>
+            </div>
+            <span class="check__stamp check__stamp--manual">Manuelt</span>
+          </div>
+          <div class="check">
+            <div class="check__no">4</div>
+            <div>
+              <h3 class="check__title">Tryk PARVAZ · åbn Chrome</h3>
+              <p class="check__sub">ingen browserflag · se §9</p>
+            </div>
+            <span class="check__stamp check__stamp--manual">Manuelt</span>
+          </div>
+        </div>
+        <aside class="boarding-pass__stub" style="background:var(--paper-2);border:1.5px solid var(--ink);">
+          <div class="row"><span class="label">Passager</span><span class="value">DIG</span></div>
+          <div class="row"><span class="label">Flyvning</span><span class="value value--big">PVZ 001</span></div>
+          <div class="row"><span class="label">Gate</span><span class="value">A · CERTIFIKAT</span></div>
+          <div class="row"><span class="label">Boarding</span><span class="value">~ 3 min</span></div>
+          <div class="boarding-pass__barcode" aria-hidden="true"></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 · §8 INSTALLÉR CERTIFIKATET -->
+  <section class="slide" data-slide="9">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§8</span>
+        <h2 class="slide__title">Installér certifikatet · i Indstillinger</h2>
+        <span class="slide__kicker">Trin 1 af 2 · én gang · ca. 30 sekunder</span>
+      </div>
+      <div class="slide__body">
+        <p>Et certifikat er en lille fil, der får din telefon til at stole på Parvaz, når din browser laver sikre forbindelser. Tryk på <strong>Åbn Indstillinger</strong> i Parvaz. Parvaz gemmer en certifikatfil og åbner Androids indstillinger. Finder du ikke filen, så tryk på <strong>Vis fil</strong>. Følg derefter stien for din telefon.</p>
+      </div>
+      <div class="listing">
+        <div class="listing-head"><span>proc · cert.001 · samsung</span><span>One UI 6 / Android 14</span></div>
+        <div class="listing-body"><span class="c"># SAMSUNG (Galaxy):</span>
+Indstillinger → <span class="hl">Sikkerhed og privatliv</span>
+        → <span class="hl">Flere sikkerhedsindstillinger</span>
+        → <span class="hl">Installér fra enhedslager</span> → <span class="hl">CA-certifikat</span>
+        → vælg den nyeste <span class="secret">parvaz-ca-…crt</span>-fil (navnet begynder med parvaz-ca- og ender med .crt)
+        → indtast din pinkode eller brug dit fingeraftryk
+        → tryk på <span class="hl">Installér alligevel</span> i advarslen</div>
+      </div>
+      <div class="listing">
+        <div class="listing-head"><span>proc · cert.001 · pixel / aosp</span><span>Android 14 / 15</span></div>
+        <div class="listing-body"><span class="c"># PIXEL / almindelig Android:</span>
+Indstillinger → <span class="hl">Sikkerhed og privatliv</span>
+        → <span class="hl">Flere indstillinger for sikkerhed og privatliv</span>
+        → <span class="hl">Kryptering og loginoplysninger</span>
+        → <span class="hl">Installér et certifikat</span> → <span class="hl">CA-certifikat</span>
+        → vælg den nyeste <span class="secret">parvaz-ca-…crt</span>-fil (navnet begynder med parvaz-ca- og ender med .crt)
+        → indtast din pinkode eller brug dit fingeraftryk
+        → tryk på <span class="hl">Installér alligevel</span> i advarslen</div>
+      </div>
+      <div class="slide__body">
+        <p><strong>Du skal have en skærmlås</strong> (pinkode, mønster eller adgangskode), ellers installerer Android ikke certifikatet. <strong>Kan du ikke finde menuen?</strong> Søg efter <code>CA-certifikat</code> i Indstillinger. <strong>Android viser en advarsel.</strong> Den er forventet: Parvaz lavede certifikatet på <em>din</em> telefon, og den private nøgle bliver i appens private lager. Tryk på Installér alligevel.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · §9 ÅBN CHROME -->
+  <section class="slide" data-slide="10">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§9</span>
+        <h2 class="slide__title">Tryk PARVAZ · åbn Chrome</h2>
+        <span class="slide__kicker">Trin 2 af 2 · én gang · ca. 10 sekunder</span>
+      </div>
+      <div class="slide__body">
+        <p>Tryk på knappen <strong>PARVAZ</strong> på Parvaz' hovedskærm (<strong>پرواز</strong> på persisk). Når den skifter til <strong>I LUFTEN</strong> (<strong>در پرواز</strong>), skal du åbne <strong>Chrome</strong> og browse som normalt. HTTPS-sider går gennem Parvaz uden yderligere opsætning. Tryk på knappen igen for at afbryde forbindelsen. Brave, Edge og Vivaldi skulle virke på samme måde.</p>
+      </div>
+      <div class="listing">
+        <div class="listing-head"><span>proc · browser.001 · chromium</span><span>engangs · ca. 10 sek.</span></div>
+        <div class="listing-body"><span class="c"># 1. Tryk på knappen PARVAZ i Parvaz.</span>
+<span class="c">    → PARVAZ-knappen, der kun har en ramme, bliver til en fyldt I LUFTEN-knap</span>
+
+<span class="c"># 2. Åbn Chrome (eller Brave / Edge / Vivaldi).</span>
+<span class="c">    → browse bare · ingen flag, ingen about:config, ingen root</span>
+
+<span class="c"># 3. (Valgfrit) Tjek, at det virker:</span>
+open <a href="https://wikipedia.org" class="hl">wikipedia.org</a>            <span class="c"># går gennem relayet</span>
+open <a href="https://www.google.com" class="hl">google.com</a>             <span class="c"># går også gennem relayet</span></div>
+      </div>
+      <div class="slide__body">
+        <p><strong>Hvorfor Chrome virker:</strong> Chrome på Android stoler på certifikater, du installerer i Androids indstillinger, og Chromes kontrol med Certificate Transparency har en udtrykkelig undtagelse for certifikater, der udgår fra et af dem. Derfor accepterer Chrome de certifikater, Parvaz laver, uden opsætning. Browsere, der ikke virker, og grænserne for hastighed og WebSockets står i §6.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · §10 FLYETS KONSTRUKTIONSTEGNING -->
+  <section class="slide" data-slide="11">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§10</span>
+        <h2 class="slide__title">Flyets konstruktionstegning</h2>
+        <span class="slide__kicker">Til udviklere · sådan er koden bygget op</span>
+      </div>
+      <div class="schematic">
+        <div class="schematic-head">
+          <span><strong>Blad 10</strong> · Monorepo-struktur</span>
+          <span>MIT · Android 11+</span>
+        </div>
+        <pre class="schematic-body">parvaz/
+├── <span class="hl">app/</span>             kotlin + compose UI · VpnService · tun2socks
+│                 · sidecar-starter · installation af certifikat
+├── <span class="hl">core/</span>            go SOCKS5-sidecar
+│   ├── <span class="hl">fronter/</span>     TLS-dialer med eget SNI + HTTP-klient
+│   ├── <span class="hl">protocol/</span>    kodning og afkodning af Apps Script JSON-konvolut
+│   ├── <span class="hl">codec/</span>       gzip / br / zstd-dekodere
+│   ├── <span class="hl">relay/</span>       konvolut + fronted klient samlet
+│   ├── <span class="hl">mitm/</span>        CA + leaf-certifikater + TLS-server
+│   ├── <span class="hl">dispatcher/</span>  valg af rute: direkte, SNI-omskrivning eller relay
+│   ├── <span class="hl">socks5/</span>      lokal SOCKS5-lytter på :1080
+│   └── <span class="hl">cmd/parvazd/</span> sidecar main → libparvaz.so (pr. ABI)
+├── reference/      MasterHttpRelayVPN · python fra originalen (skrivebeskyttet)
+└── website/        GitHub Pages (engelsk, persisk, dansk)
+
+<span class="note">· appen kalder core via ProcessBuilder, ikke JNI</span>
+<span class="note">· én apk + én Code.gs at lægge ind + ét release-tag</span>
+</pre>
+        <div class="schematic-foot"><span>tegnet af · parvaz.doc</span><span>§10</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · §11 HJÆLPER · UDRUL RELAYET -->
+  <section class="slide" data-slide="12">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§11</span>
+        <h2 class="slide__title">Hjælper · udrul relayet</h2>
+        <span class="slide__kicker">ca. 5 min · én gang · kun for den tekniske hjælper</span>
+      </div>
+      <div class="slide__body">
+        <p>Er du den <strong>tekniske hjælper</strong>, der sætter Parvaz op for en anden, er her den engangsudrulning af Apps Script, der skal til. Den, du hjælper, åbner aldrig script.google.com.</p>
+      </div>
+      <div class="listing">
+        <div class="listing-head"><span>proc · relay.deploy.001</span><span>script.google.com · ca. 5 min</span></div>
+        <div class="listing-body"><span class="c"># 1. Åbn Apps Script, og opret et nyt projekt</span>
+open <a href="https://script.google.com" class="hl">script.google.com</a>   <span class="c"># klik på "New project"</span>
+
+<span class="c"># 2. Indsæt relay-koden i Code.gs (erstat standardindholdet)</span>
+view  <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs" class="hl">github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs</a>
+copy → indsæt i fanen Code.gs i editoren
+
+<span class="c"># 3. Lav en stærk, tilfældig AUTH_KEY (genbrug ikke adgangskoder)</span>
+openssl rand -base64 32          <span class="c"># eller en adgangskodemanager · mindst 32 tegn</span>
+<span class="c">    → sæt den ind i Code.gs:  var AUTH_KEY = "&lt;indsæt-her&gt;";</span>
+<span class="c">    → File → Save (Ctrl/Cmd+S)</span>
+
+<span class="c"># 4. Udrul som webapp</span>
+Deploy → New deployment → ⚙ Web app
+   Execute as:    <span class="hl">Me (din-email@gmail.com)</span>
+   Who has access: <span class="hl">Anyone</span>
+   → klik på <span class="hl">Deploy</span>
+   → Google beder om OAuth-samtykke første gang → Allow
+
+<span class="c"># 5. Find den adresse, der skal ind i Parvaz-appen</span>
+<span class="c">   Apps Script giver dig en webapp-adresse, der ser sådan ud:</span>
+   https://script.google.com/macros/s/<span class="secret">AKfycbyLONGRANDOMTOKEN</span>/exec
+                                       └────────────┬────────────┘
+                                              <span class="dir">deployment-id</span>   <span class="c"># det eneste, du skal bruge</span>
+
+<span class="c">   Du kan åbne den igen når som helst:</span>
+   Deploy → Manage deployments → kopiér webapp-adressen
+
+<span class="c"># 6. Byg parvaz://-adgangslinket ved at sætte de to dele ovenfor sammen</span>
+parvaz://<span class="hl">&lt;deployment-id&gt;</span>/<span class="hl">&lt;AUTH_KEY&gt;</span>#<span class="hl">&lt;display-name&gt;</span>
+<span class="c"># konkret eksempel:</span>
+parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
+
+<span class="c"># 7. Del kun via en sikker messenger, for dette link indeholder nøglen</span>
+✓ Signal                · ende-til-ende-krypteret · anbefalet
+✓ Telegram Secret Chat  · ende-til-ende-krypteret
+✗ Telegram, almindelig chat · ikke ende-til-ende-krypteret → ALDRIG
+✗ WhatsApp              · chat-backup kan læses, medmindre krypteret backup er slået til → undgå
+✗ SMS                   · kan læses af teleselskabet → ALDRIG
+✗ E-mail                · kan læses af serveren → ALDRIG</div>
+      </div>
+      <div class="slide__body">
+        <p><strong>Grænser:</strong> en gratis Google-konto får 20.000 URL-hentninger om dagen, delt af alle dens scripts. Én kørsel af et script varer højst 6 minutter. Parvaz venter op til 30 sekunder på relayets svar. Brug en konto, du selv styrer, og følg Googles vilkår. <strong>Test det:</strong> åbn webapp-adressen i en browser. Du skal se en side med "Welcome" og "This application is running normally." Det viser, at udrulningen er i live. Det tester ikke din AUTH_KEY. <strong>Kilde:</strong> <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">apps_script/Code.gs</a> · <a href="https://developers.google.com/apps-script/guides/web">Apps Script · Web Apps</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · §12 AFGANG / JORDSERVICE -->
+  <section class="slide slide--depart" id="install" data-slide="13">
+    <div class="slide__content">
+      <div class="slide__head">
+        <span class="slide__num">§12</span>
+        <h2 class="slide__title">Jordservice · afgang</h2>
+        <span class="slide__kicker">Sidste udkald · MIT · 2026</span>
+      </div>
+      <div class="depart">
+        <div class="depart__pass">
+          <div class="depart__row"><span>Blanket</span><b>PVZ-001</b></div>
+          <div class="depart__row"><span>Udstedt</span><b>2026.04.26</b></div>
+          <div class="depart__row"><span>Afsender</span><b>Cocode · DK</b></div>
+          <div class="depart__row"><span>Kaldesignal</span><b>Parvaz / پرواز</b></div>
+          <div class="depart__row" style="border-bottom:none"><span>Status</span><b>Pre-alpha</b></div>
+          <div class="depart__credits">
+            MIT · © 2026 <a href="https://cocode.dk">Cocode</a> · <a href="https://linkedin.com/in/babakbandpey">Babak Bandpey</a>
+          </div>
+        </div>
+        <div class="depart__cta">
+          <h2>Klar til at installere.</h2>
+          <p>Parvaz erstatter kun <em>klient</em>-halvdelen af MasterHttpRelayVPN. Relayet er <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">Code.gs</a> i dette repository. Den bygger på MasterHttpRelayVPN's version, med ændringer til Parvaz. Udrul den på din egen Google-konto.</p>
+          <p>Har du ikke brug for en app, der er persisk som standard, tilbyder <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> færdigbyggede APK'er og en vejledning på engelsk og persisk.</p>
+          <!-- cocode-apps:install:start -->
+<ul class="install" role="list">
+  <li><p class="fdroid-soon">Kommer på F-Droid</p></li>
+  <li><a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk">Hent installationsfilen til Android (APK) fra GitHub</a></li>
+  <li><a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/cocodedk/parvaz">Tilføj appen i Obtainium, som holder den opdateret</a></li>
+</ul>
+<!-- cocode-apps:install:end -->
+          <div class="bp-tabs">
+            <a href="https://github.com/cocodedk/parvaz" class="bp-tab">Se kildekode<span class="stub">REPO</span></a>
+          </div>
+        </div>
+      </div>
+      <div class="deck-foot">
+        <!-- cocode-apps:footer:start -->
+<footer class="cocode-footer">
+  <a href="https://github.com/cocodedk/parvaz">Kildekode</a> ·
+  <a href="/da/privacy/">Privatliv</a> ·
+  Licens: MIT ·
+  <a href="https://cocode.dk/">Lavet af Cocode (cocode.dk)</a>
+</footer>
+<!-- cocode-apps:footer:end -->
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="deck-controls" aria-label="Navigation mellem slides">
+  <div class="deck-controls__group">
+    <button class="deck-arrow" id="deck-prev" aria-label="Forrige slide" type="button">←</button>
+    <button class="deck-arrow" id="deck-next" aria-label="Næste slide" type="button">→</button>
+    <a href="../" class="deck-controls__lang" aria-label="English">EN</a>
+  </div>
+  <div class="deck-dots" id="deck-dots" role="tablist" aria-label="Slides"></div>
+  <div class="deck-counter">SIDE · <b id="deck-current-mirror">01</b> / 13</div>
+</nav>
+
+<script src="../script.js" defer></script>
+<script src="../solari.js" defer></script>
+</body>
+</html>

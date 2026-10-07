@@ -1,0 +1,1 @@
+Denne udgave kræver en 64-bit ARM-telefon. Den tidligere x86_64-build er fjernet, fordi forbindelsen ikke kunne starte på den.

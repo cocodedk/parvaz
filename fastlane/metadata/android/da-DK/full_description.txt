@@ -1,0 +1,9 @@
+Parvaz (persisk for "flyvning") hjælper dig med at åbne websteder, som dit netværk blokerer. Appen sender din browsers trafik gennem et relay: et lille Google Apps Script-program på en Google-konto, som du eller en teknisk hjælper, du stoler på, har sat op.
+
+For at komme i gang skal du have et adgangslink fra din hjælper. Det begynder med parvaz://. Tryk på linket eller indsæt det, installér ét certifikat i Androids indstillinger, og tryk på knappen PARVAZ. Certifikatet får din telefon til at stole på Parvaz, når din browser laver sikre forbindelser. Chrome accepterer det, og Brave, Edge og Vivaldi skulle gøre det samme. Parvaz åbner på persisk, med engelsk og dansk i indstillingerne.
+
+Den, der driver dit relay, og Google kan læse alt, der går igennem det, også cookies og adgangskoder. Brug Parvaz til at læse offentlige sider. Log ikke ind på konti, du ikke kan undvære, medmindre du stoler fuldstændigt på relayets ejer.
+
+Parvaz kræver Android 11 eller nyere og en 64-bit ARM-telefon. Appen kan installeres på Android 7 til 10, men kan ikke oprette forbindelse der.
+
+Det virker ikke: andre apps end browsere, som bank-, besked- og streamingapps, accepterer ikke certifikatet. Firefox er ikke testet. Sider åbner langsomt, daglige kvoter begrænser brugen, og WebSockets understøttes ikke.

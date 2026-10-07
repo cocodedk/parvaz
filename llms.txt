@@ -1,22 +1,24 @@
 # Parvaz
 
-> A Farsi-first Android **browser tunnel** that routes Chrome / Firefox
-> traffic through a user-deployed Google Apps Script relay, using TLS
-> SNI concealment and a local on-device MITM to terminate TLS for
-> re-encapsulation. Monorepo: Kotlin front end + Go sidecar. Matches
-> the architecture of MasterHttpRelayVPN-RUST with different UX.
+> A Farsi-first Android **browser tunnel** that routes Chrome (and other
+> Chromium browsers) traffic through a user-deployed Google Apps Script
+> relay, using TLS SNI concealment and a local on-device MITM to terminate
+> TLS for re-encapsulation. Needs Android 11 or later and a 64-bit ARM
+> phone. Monorepo: Kotlin front end + Go sidecar. Follows the architecture
+> of MasterHttpRelayVPN-RUST with different UX.
 
 ## Overview
 
 Parvaz ships as one APK. Inside: a Kotlin/Compose UI (Farsi default),
 Android `VpnService` subclass, `tun2socks`, and a Go sidecar
 (`libparvaz.so`) that runs a local SOCKS5 on `127.0.0.1:1080`. The
-sidecar either:
-- **SNI-rewrites** Google-owned hosts straight through Google's edge
-  (no MITM, no relay), or
-- **MITM-intercepts** everything else, reconstructs the HTTP request,
-  and sends it through the Apps Script relay wrapped in a JSON envelope
-  (`{k, m, u, h, b?, ct?, r}`).
+sidecar routes each connection one of three ways: direct, SNI rewrite
+(for some Google-owned hosts, which still needs the browser to trust the
+Parvaz certificate), or **MITM-interception**, which reconstructs the HTTP
+request and sends it through the Apps Script relay wrapped in a JSON
+envelope (`{k, m, u, h, b?, ct?, r}`). The routing rules match host names,
+but the Android tunnel hands the sidecar IP addresses, so today HTTPS
+connections, Google sites included, take the MITM relay path.
 
 Scope is deliberately browser-only — non-browser Android apps
 (Instagram, WhatsApp, banking, streaming) reject user-installed CAs and
@@ -25,11 +27,11 @@ ARCHITECTURE.md.
 
 ## Technology Stack
 
-- Kotlin 2.2.x + Jetpack Compose (Material3), min SDK 24, target SDK 36
+- Kotlin 2.3.21 + Jetpack Compose (Material3), min SDK 24 (the tunnel only starts on Android 11 / API 30 or later), target SDK 36
 - Go 1.24+ (stdlib-first; deps: `github.com/andybalholm/brotli`, `github.com/klauspost/compress/zstd`)
 - Android VpnService API + tun2socks
-- Gradle 9.3.x (Kotlin DSL) + AGP 9.1.x
-- Google Apps Script runtime (user-deployed, free tier, 20K requests/day)
+- Gradle 9.5.1 (Kotlin DSL) + AGP 9.2.1
+- Google Apps Script runtime (user-deployed, free tier, 20,000 URL fetches/day per account)
 - Light-theme NOTAM / declassified-briefing aesthetic
 - Fonts: Vazirmatn (Persian default), Redaction (Latin display), JetBrains Mono
 
@@ -41,11 +43,11 @@ ARCHITECTURE.md.
 - `core/codec/` — gzip / br / zstd / identity decoders
 - `core/relay/` — envelope + fronted client + codec glue
 - `core/socks5/` — local SOCKS5 listener
-- `core/mitm/` — (next milestone) on-device CA + dynamic leaf certs + TLS server
-- `core/dispatcher/` — (next milestone) Google-allowlist vs MITM-path decision
+- `core/mitm/` — on-device CA, dynamic leaf certs, TLS interception
+- `core/dispatcher/` — routing decision: direct, SNI rewrite or MITM + relay
 - `core/cmd/parvazd/` — sidecar main, packaged per-ABI as `libparvaz.so`
 - `reference/` — MasterHttpRelayVPN upstream Python, read-only
-- `website/` — bilingual GitHub Pages (EN + FA)
+- `website/` — GitHub Pages (English, Persian, Danish)
 
 ## Key Files
 
@@ -69,17 +71,19 @@ Per tunneled HTTP request:
 
 Response = { s, h, b } or { e: "..." }.
 
-For *.google.com / *.youtube.com / etc.: skip the envelope. Direct TCP
-to google_ip with SNI=www.google.com, Host=<target> — Google's edge
-routes by Host. No Apps Script quota consumed, no MITM needed.
+The dispatcher has hostname lists for *.google.com / *.youtube.com / etc.
+that skip the envelope (direct TCP, or an SNI rewrite that still
+terminates TLS locally). They apply only when the dispatcher receives a
+host name. The Android tunnel gives it IP addresses, so assume Google
+sites use the relay and its quota too.
 ```
 
 ## Access URL format
 
 `parvaz://<deployment-id>/<access-key>#<optional-display-name>`
 
-Registered URI scheme — Telegram/WhatsApp deep link → opens Parvaz
-directly. Same format encoded in QR codes.
+Registered URI scheme: tapping a parvaz:// link in a messenger opens Parvaz
+directly. The app cannot scan QR codes yet.
 
 ## Links
 
@@ -91,5 +95,5 @@ directly. Same format encoded in QR codes.
 
 ## Legal / ToS
 
-Google Apps Script's terms forbid this use. Deploy `Code.gs` to your
+Google Apps Script's terms may forbid this use. Deploy `Code.gs` to your
 own Google account only. Personal, research, and educational use only.

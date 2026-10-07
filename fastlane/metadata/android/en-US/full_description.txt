@@ -1,9 +1,9 @@
-Parvaz (Persian for "flight") is a Farsi-first Android app for Iranian users that tunnels browser traffic through a Google Apps Script relay deployed and controlled by a trusted technical helper.
+Parvaz (Persian for "flight") helps you open websites your network blocks. It sends your browser's traffic through a relay: a small Google Apps Script program on a Google account, set up by you or by a technical helper you trust.
 
-The app terminates TLS locally using a certificate the user installs once, then re-encapsulates HTTPS requests inside the relay's JSON protocol and forwards them through Google's infrastructure. Chrome and other Chromium-based browsers (Brave, Edge, Vivaldi) trust this certificate automatically; native apps, non-Chromium browsers, and non-HTTP protocols are out of scope by Android design.
+To start, you need an access link from your helper. It begins with parvaz://. Tap or paste the link, install a certificate once in Android Settings, and tap the PARVAZ button. The certificate tells your phone to trust Parvaz for your browser's secure connections. Chrome accepts it, and Brave, Edge and Vivaldi should too. Parvaz opens in Persian, with English and Danish in its settings.
 
-Because the relay operator can read all tunneled traffic in plaintext, Parvaz is intended for read-only browsing of public information rather than signing in to sensitive accounts, unless the user fully trusts the operator running the relay.
+The person who runs your relay, and Google, can read everything that passes through it, cookies and passwords included. Use Parvaz to read public pages. Do not sign in to accounts you cannot afford to lose, unless you trust the relay's owner completely.
 
-Setup requires installing a certificate through Android Settings once and importing a parvaz:// access link shared by the helper. After that, one tap starts or stops the tunnel from the main screen.
+Parvaz needs Android 11 or later and a 64-bit ARM phone. It installs on Android 7 to 10 but cannot connect there.
 
-Throughput is limited by the underlying Apps Script quota, and WebSockets are not supported.
+What does not work: apps other than browsers, such as banking, messaging and streaming apps, do not accept the certificate. Firefox is not tested. Pages load slowly, daily quotas limit use, and WebSockets are not supported.

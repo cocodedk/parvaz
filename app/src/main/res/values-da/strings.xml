@@ -1,0 +1,124 @@
+<resources>
+    <!--
+      Danish translation, shown when the user picks Dansk in the app's language
+      setting, or when the phone itself is set to Danish. The text of the
+      VPN notification follows the phone's language. res/values/strings.xml is
+      the Persian default; the same names, placeholders and order are used here.
+    -->
+
+    <string name="app_name">Parvaz</string>
+
+    <string name="splash_title">PARVAZ</string>
+    <string name="splash_subtitle">Åbn websteder, som dit netværk blokerer, med et adgangslink fra en, du stoler på</string>
+    <string name="splash_start_cta">Start</string>
+
+    <string name="import_title">Adgangslink</string>
+    <string name="import_subtitle">En teknisk hjælper skulle have sendt dig et parvaz://-link</string>
+    <string name="import_paste_cta">Indsæt</string>
+    <string name="import_scan_cta">Scan QR (ikke tilgængelig)</string>
+    <string name="import_field_hint">parvaz://…</string>
+    <string name="import_submit_cta">Fortsæt</string>
+    <string name="import_error_not_parvaz_url">Linket skal begynde med parvaz://. Indsæt hele det link, din hjælper har sendt dig.</string>
+    <string name="import_error_no_key">Linket har ingen adgangsnøgle. Bed din hjælper om at sende hele linket igen.</string>
+    <string name="import_error_empty_id">Linket har intet ID efter parvaz://. Bed din hjælper om at sende hele linket igen.</string>
+    <string name="import_error_empty_key">Adgangsnøglen i linket er tom. Bed din hjælper om at sende hele linket igen.</string>
+
+    <string name="ca_install_title">Installér certifikat</string>
+    <string name="ca_install_body">Parvaz har gemt en certifikatfil på din telefon. Et certifikat er en lille fil, der får din telefon til at stole på Parvaz, når den håndterer din browsers sikre forbindelser. Tryk på Åbn Indstillinger, og følg trinene for at installere det. Kan du ikke finde filen, så tryk på Vis fil.</string>
+    <string name="ca_install_cta">Åbn Indstillinger</string>
+    <string name="ca_install_show_file_cta">Vis fil</string>
+    <string name="ca_install_done_label">Installeret</string>
+    <string name="ca_install_generating">Klargør certifikat…</string>
+    <string name="ca_install_verifying">Kontrollerer…</string>
+    <string name="ca_install_retry_cta">Prøv igen</string>
+    <string name="ca_install_failed">Installationen blev ikke gennemført. Prøv igen</string>
+    <string name="ca_install_failed_not_installed">Parvaz kunne ikke gøre certifikatet klar eller bekræfte det. Tryk på Prøv igen, og følg derefter trinene igen</string>
+    <string name="ca_install_filename">parvaz-ca-kode.crt</string>
+    <string name="ca_install_no_lock_title">Ingen skærmlås</string>
+    <string name="ca_install_no_lock_body">Android kræver en skærmlås, før certifikater kan installeres. Indstil en pinkode eller et mønster, og prøv igen</string>
+    <string name="ca_install_steps_fallback">Kan du ikke finde denne sti, så søg efter "CA-certifikat" i Indstillinger</string>
+
+    <!-- CA install: Samsung OneUI 6 step labels (Danish). Translated from the
+         English labels; check them against a Danish-language Samsung phone. -->
+    <string name="ca_step_1_samsung">1. Sikkerhed og privatliv</string>
+    <string name="ca_step_2_samsung">2. Flere sikkerhedsindstillinger</string>
+    <string name="ca_step_3_samsung">3. Installér fra enhedslager → CA-certifikat</string>
+    <string name="ca_step_4_samsung">4. Vælg den nyeste fil, hvis navn begynder med parvaz-ca- og ender med .crt. Midt i navnet står en kode på 12 tegn.</string>
+    <string name="ca_step_5_samsung">5. Gå tilbage til Parvaz</string>
+
+    <!-- CA install: AOSP / Pixel step labels (Danish). Same caveat as above. -->
+    <string name="ca_step_1_aosp">1. Sikkerhed og privatliv</string>
+    <string name="ca_step_2_aosp">2. Flere indstillinger for sikkerhed og privatliv → Kryptering og loginoplysninger</string>
+    <string name="ca_step_3_aosp">3. Installér et certifikat → CA-certifikat</string>
+    <string name="ca_step_4_aosp">4. Vælg den nyeste fil, hvis navn begynder med parvaz-ca- og ender med .crt. Midt i navnet står en kode på 12 tegn.</string>
+    <string name="ca_step_5_aosp">5. Gå tilbage til Parvaz</string>
+
+    <string name="vpn_explain_title">VPN-tilladelse</string>
+    <string name="vpn_explain_body">Parvaz skal bruge Androids VPN-tilladelse for at sende din browsers trafik gennem relayet. Mens Parvaz er forbundet, går internettrafikken fra de andre apps på din telefon også gennem det. Andre apps end browsere kan som regel ikke få forbindelse på den måde, så de holder måske op med at virke, til du afbryder forbindelsen.</string>
+    <string name="vpn_explain_cta">Tillad</string>
+    <string name="vpn_explain_waiting">Venter…</string>
+    <string name="vpn_explain_granted">Tilladelsen er givet</string>
+    <string name="vpn_explain_denied">VPN-tilladelsen blev afvist. Prøv igen</string>
+
+    <string name="main_disconnected_stamp">PARVAZ</string>
+    <string name="main_connected_stamp">I LUFTEN</string>
+    <string name="main_disconnected_hint">Tryk på knappen ovenfor for at forbinde</string>
+    <string name="main_connected_hint">Tryk på knappen ovenfor for at afbryde forbindelsen</string>
+    <string name="main_connecting_label">Forbinder…</string>
+    <string name="main_failed_label">Forbindelsen mislykkedes. Prøv igen</string>
+    <string name="main_failed_no_internet">Intet internet. Tjek din forbindelse</string>
+    <string name="main_failed_vpn_revoked">Android lader ikke længere Parvaz bruge VPN. En anden VPN-app har måske overtaget. For at give Parvaz tilladelsen igen skal du åbne Indstillinger i Parvaz, trykke på Nulstil og gentage opsætningen. Du skal bruge dit adgangslink igen.</string>
+    <string name="main_failed_no_access">Intet adgangslink er gemt. Importér et først</string>
+    <string name="main_failed_sidecar">Parvaz kunne ikke starte forbindelsen. Prøv igen</string>
+
+    <string name="settings_title">Indstillinger</string>
+    <string name="settings_language_label">Sprog</string>
+    <string name="settings_language_fa">فارسی</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_da">Dansk</string>
+    <string name="settings_reset_access_label">Nulstil adgang</string>
+    <string name="settings_reset_access_body">Parvaz glemmer dit gemte adgangslink og går tilbage til den første skærm i opsætningen</string>
+    <string name="settings_reset_access_cta">Nulstil</string>
+    <string name="settings_reset_confirm_title">Er du sikker?</string>
+    <string name="settings_reset_confirm_body">Det fjerner dit gemte adgangslink, og du skal indsætte det igen. Dit sprog og certifikatet bliver, som de er.</string>
+    <string name="settings_cancel_cta">Annullér</string>
+    <string name="settings_close_cta">Luk</string>
+
+    <string name="settings_gear_cd">Indstillinger</string>
+    <string name="settings_url_section_label">Parvaz-link</string>
+    <string name="settings_url_input_hint">parvaz://…</string>
+    <string name="settings_url_save_cta">Gem</string>
+    <string name="settings_url_saved_label">Gemt</string>
+
+    <string name="settings_about_cta">Om Parvaz</string>
+    <string name="about_title">Om Parvaz</string>
+    <string name="about_close_cta">Luk</string>
+    <string name="about_name_version_title">Navn og version</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_updates_hint">Parvaz leder aldrig selv efter opdateringer. Knappen nedenfor åbner siden med den nyeste version i din browser.</string>
+    <string name="about_check_updates">Se den nyeste version</string>
+    <string name="about_what_title">Hvad Parvaz gør</string>
+    <string name="about_what_body">Parvaz hjælper dig med at åbne websteder, som dit netværk blokerer. Du bruger det sammen med Chrome eller en anden Chromium-baseret browser, for eksempel Brave, Edge eller Vivaldi. Parvaz sender din browsers trafik til et relay. Et relay er et lille program på en Google-konto, som du selv eller en teknisk hjælper, du stoler på, har sat op. Relayet henter websteder for dig. De fleste andre apps, som bank-, besked- og streamingapps, accepterer ikke det certifikat, du installerer under opsætningen, så de virker ikke gennem Parvaz.</string>
+    <string name="about_privacy_title">Privatliv</string>
+    <string name="about_privacy_relay">Den, der driver dit relay, og Google kan læse alt, hvad der går gennem det. Det omfatter de adresser, du besøger, dine cookies og det, du skriver i formularer, også adgangskoder. Brug kun Parvaz med et relay, du stoler fuldstændigt på.</string>
+    <string name="about_privacy_cocode">Cocode driver ingen server til Parvaz og modtager intet fra appen. Parvaz har ingen konto, ingen analyse, ingen reklamer og ingen fejlrapportering. Din adgangsnøgle ligger på din telefon i krypteret lager.</string>
+    <string name="about_privacy_link">Læs privatlivspolitikken</string>
+    <string name="about_links_title">Links</string>
+    <string name="about_website">Åbn hjemmesiden</string>
+    <string name="about_source">Se kildekoden på GitHub</string>
+    <string name="about_report_hint">Indlæg på GitHub er offentlige. Skriv ikke dit parvaz://-link eller din adgangsnøgle i et.</string>
+    <string name="about_report">Meld en fejl på GitHub</string>
+    <string name="about_no_browser">Ingen app på telefonen kan åbne linket. Installér en webbrowser, og prøv igen.</string>
+    <string name="about_credits_title">Tak og licenser</string>
+    <string name="about_license">Parvaz er fri software. Du må bruge, læse, ændre og dele den under MIT-licensen.</string>
+    <string name="about_credit_upstream">Parvaz\' klient er en omskrivning af MasterHttpRelayVPN, lavet af Amin Mahmoudi.</string>
+    <string name="about_credit_tun2socks">Tunnelen bruger tun2socks, et open source-bibliotek, der flytter din telefons trafik ind i appen.</string>
+    <string name="about_credit_androidx">Appen er bygget med AndroidX og Jetpack Compose (Apache-2.0).</string>
+    <string name="about_made_by">Lavet af Cocode (cocode.dk)</string>
+
+    <string name="vpn_notification_channel_name">Parvaz-forbindelse</string>
+    <string name="vpn_notification_channel_description">Fast notifikation, mens tunnelen er aktiv</string>
+    <string name="vpn_notification_title">Parvaz kører</string>
+    <string name="vpn_notification_text">Åbn Parvaz for at tjekke forbindelsen, eller tryk på Stop for at afbryde</string>
+    <string name="vpn_notification_stop_action">Stop</string>
+</resources>

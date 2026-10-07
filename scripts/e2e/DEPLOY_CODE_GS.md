@@ -139,24 +139,25 @@ Example (swap in your real values):
 parvaz://AKfycbxXXXXXXXXXXXXXXXXXXX/yourRandomSecretHere#parvaz-live-test
 ```
 
-Paste that into the app's Import screen (or deliver via a QR code).
+Paste that into the app's Import screen, or open the `parvaz://` link on
+the phone. (QR scanning is not implemented yet; the Scan button is
+disabled.)
 
 ---
 
 ## 4. Smoke test (before committing anything to CI)
 
-Run the relay's unit-test smoke through the live deployment:
+Run the relay's live tests against your deployment, from the repository
+root:
 
 ```bash
-cd core
-go test -run TestRelay_GET_TunnelsThroughStub -v \
-    -env "PARVAZ_LIVE_URL=https://script.google.com/macros/s/AKfycb.../exec" \
-    -env "PARVAZ_LIVE_KEY=yourRandomSecretHere" \
-    ./relay/...
+PARVAZ_LIVE_DEPLOYMENT_ID=AKfycb... PARVAZ_LIVE_AUTH_KEY=yourRandomSecretHere \
+    go test -C core -v -run TestRelay_Live ./relay/...
 ```
 
-*(That exact test is currently stub-only — a live variant lands as
-part of the Phase C work; see PLAN.md M17.)*
+*(`TestRelay_Live_GetExampleCom` fetches example.com through the relay;
+`TestRelay_Live_UnauthorizedKeyRejected` checks that a wrong key is
+refused. Both skip themselves when the two variables are unset.)*
 
 ---
 

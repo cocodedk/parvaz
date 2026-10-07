@@ -3,34 +3,36 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Parvaz — A flight over the filter. Android browser tunnel via Apps Script.</title>
-<meta name="description" content="Parvaz is a Farsi-first Android browser tunnel for Iranian users that routes Chrome (or any Chromium browser) traffic through a user-deployed Google Apps Script relay using TLS SNI concealment. Chrome trusts the on-device Parvaz CA out of the box — no flags, no about:config, no root."/>
+<title>Parvaz: a flight over the filter. Open blocked websites on Android</title>
+<meta name="description" content="Parvaz helps you open websites your network blocks, on an Android phone. It sends the traffic of Chrome, Brave, Edge or Vivaldi through a relay, a small program on a Google account that you or a helper you trust sets up. Persian is the default language. Needs Android 11 or later."/>
 <meta name="robots" content="index, follow"/>
 <meta name="keywords" content="parvaz, android, browser tunnel, iran, apps script, domain fronting, masterhttprelayvpn, circumvention, vpnservice, kotlin, go, farsi, open source"/>
 <link rel="canonical" href="https://parvaz.cocode.dk/"/>
 <link rel="alternate" hreflang="en" href="https://parvaz.cocode.dk/"/>
+<link rel="alternate" hreflang="da" href="https://parvaz.cocode.dk/da/"/>
 <link rel="alternate" hreflang="fa" href="https://parvaz.cocode.dk/fa/"/>
 <link rel="alternate" hreflang="x-default" href="https://parvaz.cocode.dk/"/>
 
 <!-- Open Graph -->
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Parvaz"/>
-<meta property="og:title" content="Parvaz — A flight over the filter"/>
-<meta property="og:description" content="Farsi-first Android browser tunnel for Iranian users. Routes Chrome (and other Chromium browsers) through a user-deployed Google Apps Script relay with TLS SNI concealment."/>
+<meta property="og:title" content="Parvaz: a flight over the filter"/>
+<meta property="og:description" content="Open websites your network blocks on Android, using an access link from someone you trust. Persian by default, with English and Danish."/>
 <meta property="og:url" content="https://parvaz.cocode.dk/"/>
 <meta property="og:image" content="https://parvaz.cocode.dk/og.png"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
-<meta property="og:image:alt" content="Parvaz — declassified flight briefing document with the Parvaz wordmark, technical chips, and rubber-stamp annotations marking Chromium-browser scope and MIT licence."/>
+<meta property="og:image:alt" content="The Parvaz icon, a red paper plane, next to the name Parvaz and the line: Open blocked websites on Android through a relay set up by someone you trust."/>
 <meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="da_DK"/>
 <meta property="og:locale:alternate" content="fa_IR"/>
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="Parvaz — A flight over the filter"/>
-<meta name="twitter:description" content="Farsi-first Android browser tunnel — Chrome through your own Google Apps Script relay. One APK, one cert, no flags."/>
+<meta name="twitter:title" content="Parvaz: a flight over the filter"/>
+<meta name="twitter:description" content="Open blocked websites on Android with Chrome, through a relay that a helper you trust sets up. Persian by default."/>
 <meta name="twitter:image" content="https://parvaz.cocode.dk/og.png"/>
-<meta name="twitter:image:alt" content="Parvaz — flight briefing · Chromium browsers · MIT 2026."/>
+<meta name="twitter:image:alt" content="The Parvaz icon, a red paper plane, next to the name Parvaz and the line: Open blocked websites on Android through a relay set up by someone you trust."/>
 
 <link rel="icon" type="image/svg+xml" href="parvaz-mark.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -45,11 +47,11 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Parvaz",
-  "description": "Farsi-first Android browser tunnel for Iranian users — routes Chrome (and other Chromium browsers: Brave, Edge, Vivaldi) traffic through a user-deployed Google Apps Script relay using TLS SNI concealment and a local on-device MITM to terminate TLS for re-encapsulation. Kotlin + Compose front end, embedded Go SOCKS5 sidecar. Chrome trusts the user-installed Parvaz CA out of the box on Android — no flags, no about:config, no root. Non-browser apps (banking, messaging, streaming) reject user CAs by Android default and will not tunnel.",
+  "description": "Android app that opens websites your network blocks. It sends the traffic of Chrome (and other Chromium browsers such as Brave, Edge and Vivaldi) through a relay, a small Google Apps Script program run by you or a helper you trust. The app asks you to install a certificate so the browser accepts its connections. Apps that do not accept user-installed certificates, such as banking, messaging and streaming apps, do not work through Parvaz. Persian by default, with English and Danish. Needs Android 11 or later.",
   "url": "https://parvaz.cocode.dk/",
   "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
   "applicationCategory": "UtilitiesApplication",
-  "operatingSystem": "Android 7.0+",
+  "operatingSystem": "Android 11+",
   "programmingLanguage": ["Kotlin", "Go"],
   "license": "https://opensource.org/licenses/MIT",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -75,6 +77,7 @@
      last block of the last slide (the deck has no document end). -->
 <cocode-head project="Parvaz" accent="#122a44" on-accent="#e8dfc6">
   <a href="https://cocode.dk">cocode.dk</a>
+  <a href="da/" hreflang="da">Dansk</a>
   <a href="fa/" hreflang="fa">فارسی</a>
 </cocode-head>
 
@@ -86,6 +89,8 @@
   <a class="brand" href="/" data-nav="home" aria-current="page"><img src="/img/icon.png" alt="" width="32" height="32">Parvaz</a>
   <a href="/#how" data-nav="how">How it works</a>
   <a href="/#install" data-nav="install">Install</a>
+  <a href="/privacy/" data-nav="privacy">Privacy</a>
+  <a href="/da/" hreflang="da" lang="da" data-nav="lang">Dansk</a>
   <a href="https://cocode.dk/" data-nav="more">More apps</a>
 </nav>
 <!-- cocode-apps:nav:end -->
@@ -98,9 +103,9 @@
     <span class="deck-alert__siren" aria-hidden="true">🚨</span>
     <span class="deck-alert__stop" aria-hidden="true">STOP</span>
     <span class="deck-alert__msg">
-      <strong>WARNING · Your relay operator can read every cookie, password, and message in plaintext.</strong>
-      Do <em>NOT</em> sign in to email, banking, social, or any service unless you trust them <em>100 %</em> — not 99.99 %.
-      Use this tunnel only for read-only browsing or with throwaway accounts.
+      <strong>WARNING · The person who runs your relay, and Google, can read your cookies, passwords and messages as plain text.</strong>
+      Do <em>NOT</em> sign in to email, banking, social or any other account unless you trust that person <em>completely</em>.
+      Use Parvaz only to read public pages, or with accounts you can afford to lose.
     </span>
   </div>
   <div class="bp-header">
@@ -138,36 +143,36 @@
           <span class="flight-no">PVZ 001 · CPH→THR</span>
         </div>
         <p class="hero__tagline">A flight over the filter</p>
-        <p class="hero__subtitle">Android browser tunnel · Google Apps Script · domain fronting · Farsi-first</p>
+        <p class="hero__subtitle">Open websites your network blocks, on Android · Persian by default</p>
         <div class="bp-tabs">
-          <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">Begin descent · APK<span class="stub">PVZ&nbsp;001</span></a>
-          <a href="https://github.com/cocodedk/parvaz" class="bp-tab">Flight plan · Source<span class="stub">REPO</span></a>
+          <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">Download for Android · APK<span class="stub">PVZ&nbsp;001</span></a>
+          <a href="https://github.com/cocodedk/parvaz" class="bp-tab">See the source code · GitHub<span class="stub">REPO</span></a>
         </div>
       </div>
-      <div class="solari-board" aria-label="Onboarding flight board">
+      <div class="solari-board" aria-label="The setup steps, shown as a departures board">
         <div class="solari-board__head">
           <span><span class="blink"></span><strong>cocode.dk · departures</strong></span>
-          <span>local time · LIVE</span>
+          <span>setup · once</span>
         </div>
         <div class="solari-board__rows">
           <div class="solari-board__col-head">FLT</div>
-          <div class="solari-board__col-head">STAGE</div>
+          <div class="solari-board__col-head">STEP</div>
           <div class="solari-board__col-head">GATE</div>
           <div class="solari-board__col-head">STATUS</div>
           <div class="solari-board__cell">PVZ 001</div>
-          <div class="solari-board__cell solari-board__cell--dest">paste · the parvaz:// link</div>
+          <div class="solari-board__cell solari-board__cell--dest">paste · your access link</div>
           <div class="solari-board__cell">A1</div>
           <div class="solari-board__cell solari-board__cell--status-board">boarding</div>
           <div class="solari-board__cell">PVZ 002</div>
-          <div class="solari-board__cell solari-board__cell--dest">install · the user CA</div>
+          <div class="solari-board__cell solari-board__cell--dest">install · the certificate</div>
           <div class="solari-board__cell">B12</div>
           <div class="solari-board__cell solari-board__cell--status-go">on time</div>
           <div class="solari-board__cell">PVZ 003</div>
-          <div class="solari-board__cell solari-board__cell--dest">open · chrome (no setup)</div>
+          <div class="solari-board__cell solari-board__cell--dest">connect · open Chrome</div>
           <div class="solari-board__cell">C7</div>
           <div class="solari-board__cell solari-board__cell--status-cleared">cleared</div>
           <div class="solari-board__cell">PVZ 004</div>
-          <div class="solari-board__cell solari-board__cell--dest">https · all routes open</div>
+          <div class="solari-board__cell solari-board__cell--dest">browse · support varies</div>
           <div class="solari-board__cell">D24</div>
           <div class="solari-board__cell solari-board__cell--status-final">final call</div>
         </div>
@@ -180,12 +185,13 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§1</span>
-        <h2 class="slide__title">Abstract</h2>
+        <h2 class="slide__title">What Parvaz does</h2>
         <span class="slide__kicker">Mission brief</span>
       </div>
       <div class="slide__body">
-        <p>Parvaz is a Farsi-first <strong>Android browser tunnel</strong> for Iranian users with no technical background. A helper deploys the upstream MasterHttpRelayVPN <code>Code.gs</code> on their own Google account; the user receives a <code>parvaz://</code> link over a <strong>secure messenger (Signal or Telegram — not WhatsApp)</strong>, scans a QR or taps Paste, installs a MITM certificate via Android Settings once, taps Connect, and browses normally in <strong>Chrome</strong> (or any Chromium browser).</p>
-        <p>Chrome traffic routes through Apps Script — TLS SNI <code>www.google.com</code>, HTTP Host <code>script.google.com</code>. Chrome trusts the on-device Parvaz CA out of the box; no flags, no <code>about:config</code>, no root. Architecturally aligned with the proven <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port; Parvaz's edge is the NOTAM visual identity, Farsi-by-default UI, and tighter onboarding for non-technical passengers.</p>
+        <p>Parvaz is an Android app that helps you open websites your network blocks. You need an <strong>access link</strong> from someone you trust. It starts with <code>parvaz://</code>. That person, your helper, sets up a <strong>relay</strong>: a small program on a Google account that fetches websites for you. Parvaz sends your browser's traffic to the relay.</p>
+        <p>Your helper sends you the link through <strong>Signal or a Telegram Secret Chat</strong>, not WhatsApp. You install the app, tap or paste the link, install a certificate in Android Settings (once), tap the PARVAZ button, and browse in <strong>Chrome</strong>. Parvaz opens in Persian. You can switch to English or Danish in its settings.</p>
+        <p>Parvaz needs <strong>Android 11 or later</strong> and a 64-bit ARM phone. It installs on Android 7 to 10 but cannot connect there. It is early software (pre-alpha). It follows the design of <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> and adds an app that is Persian by default, with guided steps for the access link and the certificate.</p>
       </div>
     </div>
   </section>
@@ -196,7 +202,7 @@
       <div class="slide__head">
         <span class="slide__num">§2</span>
         <h2 class="slide__title">Flight path</h2>
-        <span class="slide__kicker">5 hops · DPI sees the front</span>
+        <span class="slide__kicker">5 hops · what a network filter sees</span>
       </div>
       <div>
         <div class="route">
@@ -207,9 +213,9 @@
           <div class="route__hop"><strong>Code.gs</strong>your deployment<div class="tag">UrlFetch → target</div></div>
         </div>
         <div class="route__notes">
-          <div><b>What DPI sees</b>TLS to Google · SNI <code>www.google.com</code> · indistinguishable from Search.</div>
-          <div><b>What Google sees</b>HTTP Host <code>script.google.com</code> → routes to your Web App.</div>
-          <div><b>What Code.gs does</b><code>UrlFetchApp.fetch(target)</code> · returns <code>{s,h,b}</code> envelope.</div>
+          <div><b>What a filter sees</b>An encrypted connection to Google that names <code>www.google.com</code>, and how much data moves and when. Not the relay's address. This does not make it look identical to a Google Search.</div>
+          <div><b>What Google sees</b>The real destination, <code>script.google.com</code>, inside the encrypted connection. It sends the request to your Web App.</div>
+          <div><b>What the relay does</b><code>Code.gs</code> fetches the website you asked for (<code>UrlFetchApp.fetch</code>) and sends the reply back.</div>
         </div>
       </div>
     </div>
@@ -220,8 +226,8 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§3</span>
-        <h2 class="slide__title">Notice to airmen</h2>
-        <span class="slide__kicker">Restricted airspace</span>
+        <h2 class="slide__title">Legal notice</h2>
+        <span class="slide__kicker">Notice to airmen · restricted airspace</span>
       </div>
       <div class="notam">
         <div class="notam-head">
@@ -229,7 +235,7 @@
           <span>NOTAM A0001/26</span>
         </div>
         <div class="notam-body">
-          <strong>Google Apps Script's terms forbid this use.</strong> Deploy the <code>Code.gs</code> to your <em>own</em> Google account only — do not centralize deployments, do not commercialise, do not distribute a shared one. Personal, research, and educational use only. If you do not understand the legal implications, do not deploy.
+          <strong>Google Apps Script's terms may forbid this use.</strong> Deploy the <code>Code.gs</code> to your <em>own</em> Google account only. Do not run one relay for many people, do not sell the service, and do not share one deployment. Personal, research and educational use only. If you do not understand the legal side, do not deploy.
         </div>
       </div>
     </div>
@@ -240,16 +246,16 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§4</span>
-        <h2 class="slide__title">Airframe specifications</h2>
+        <h2 class="slide__title">What you get</h2>
         <span class="slide__kicker">Features</span>
       </div>
       <div class="specs">
-        <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">SNI <code>www.google.com</code> · Host <code>script.google.com</code>. DPI sees the front; Google's edge routes by Host.</span></div>
-        <div class="spec"><span class="spec-num">02</span><span class="spec-key">Farsi-first onboarding</span><span class="spec-val">Paste a <code>parvaz://</code> URL or scan QR → install MITM cert once → tap Connect. Persian default.</span></div>
-        <div class="spec"><span class="spec-num">03</span><span class="spec-key">Chrome out of the box</span><span class="spec-val"><strong>Chrome</strong> (and other Chromium: Brave, Edge, Vivaldi) trust the user-installed Parvaz CA on Android with no flags. Native apps still reject user CAs by Android default.</span></div>
-        <div class="spec"><span class="spec-num">04</span><span class="spec-key">SNI-rewrite fast path</span><span class="spec-val">Google-owned hosts skip Apps Script entirely · direct tunnel · no quota.</span></div>
-        <div class="spec"><span class="spec-num">05</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose UI · embedded Go SOCKS5 sidecar · MIT · F-Droid &amp; sideload only.</span></div>
-        <div class="spec"><span class="spec-num">06</span><span class="spec-key">Zero telemetry</span><span class="spec-val">No analytics · no crash reporting · access key in <code>EncryptedSharedPreferences</code>.</span></div>
+        <div class="spec"><span class="spec-num">01</span><span class="spec-key">Domain fronting</span><span class="spec-val">Your phone connects to a Google address and names <code>www.google.com</code> when the secure connection starts. The real destination, <code>script.google.com</code>, appears only inside it.</span></div>
+        <div class="spec"><span class="spec-num">02</span><span class="spec-key">Persian-first setup</span><span class="spec-val">Tap or paste your <code>parvaz://</code> link → install the certificate once → tap PARVAZ. Persian is the default language. English and Danish are in the settings.</span></div>
+        <div class="spec"><span class="spec-num">03</span><span class="spec-key">Chrome out of the box</span><span class="spec-val"><strong>Chrome</strong> accepts the certificate you install in Android Settings, with no flags. Brave, Edge and Vivaldi should work the same way. Most other apps reject it.</span></div>
+        <div class="spec"><span class="spec-num">04</span><span class="spec-key">Google sites</span><span class="spec-val">In the current Android version, Google sites also go through the relay and count against its daily limit.</span></div>
+        <div class="spec"><span class="spec-num">05</span><span class="spec-key">Open source APK</span><span class="spec-val">Kotlin + Compose app with a Go helper program · MIT license · download the APK from GitHub. F-Droid is planned.</span></div>
+        <div class="spec"><span class="spec-num">06</span><span class="spec-key">No tracking</span><span class="spec-val">No analytics and no crash reporting. Your access key is stored encrypted on the phone.</span></div>
       </div>
     </div>
   </section>
@@ -259,7 +265,7 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§5</span>
-        <h2 class="slide__title">Honest disclosure</h2>
+        <h2 class="slide__title">What the app does and does not do</h2>
         <span class="slide__kicker">What the app won't do · what it must do · the limits</span>
       </div>
       <div class="who">
@@ -269,13 +275,13 @@
             <span class="who__tag who__tag--no">No</span>
           </div>
           <ul class="who__list">
-            <li>No analytics, telemetry, or remote logs (yet).</li>
-            <li>No central relay — every passenger runs their own Code.gs.</li>
-            <li>No location, contacts, SMS, microphone, or camera (camera is opt-in for QR only).</li>
-            <li>No auto-update pings · no ads · no crash reporting service.</li>
-            <li>No servers operated by us · no accounts · no sign-in.</li>
+            <li>No analytics, telemetry or remote logs (yet).</li>
+            <li>No relay run by Cocode. You use your own relay, or one run by a helper you trust.</li>
+            <li>No access to your location, contacts, SMS, microphone or camera. Parvaz does not ask for camera permission.</li>
+            <li>No update checks, no ads, no crash reporting.</li>
+            <li>No servers run by Cocode, no accounts, no sign-in.</li>
           </ul>
-          <div class="who__foot">Verify in source · MIT · grep the manifest.</div>
+          <div class="who__foot">You can check this: the permissions are listed in AndroidManifest.xml in the source code.</div>
         </div>
         <div class="who__col who__col--ok">
           <div class="who__head">
@@ -283,24 +289,24 @@
             <span class="who__tag who__tag--ok">Yes</span>
           </div>
           <ul class="who__list">
-            <li><code>VpnService</code> — to capture and route browser packets.</li>
-            <li><code>INTERNET</code> + <code>FOREGROUND_SERVICE</code> — talk to Apps Script, stay alive.</li>
-            <li><code>POST_NOTIFICATIONS</code> (Android 13+) — show the connected pill.</li>
-            <li>Device <strong>screen-lock</strong> — Android refuses CA install otherwise.</li>
-            <li>A Chromium browser — Chrome (or Brave / Edge / Vivaldi). No browser flags needed.</li>
+            <li><code>VpnService</code>: lets Parvaz receive your phone's internet traffic. Android asks you once.</li>
+            <li><code>INTERNET</code> + <code>FOREGROUND_SERVICE</code>: reach Google and keep running in the background.</li>
+            <li><code>POST_NOTIFICATIONS</code> (Android 13 and later): show the notice that Parvaz is connected.</li>
+            <li>A <strong>screen lock</strong> on the phone. Android will not install a certificate without one.</li>
+            <li>A Chromium browser: Chrome, or Brave, Edge or Vivaldi. No browser flags needed.</li>
           </ul>
-          <div class="who__foot">Optional · CAMERA — only if you scan a QR.</div>
+          <div class="who__foot">QR scanning is not available in this version.</div>
         </div>
       </div>
       <div class="honesty-foot">
-        <div class="honesty-foot__label">Limits · if we hand out the boarding card</div>
+        <div class="honesty-foot__label">Limits</div>
         <div class="honesty-foot__chips">
-          <span><b>Trust</b>relay sees URL · headers · cookies · body in plaintext</span>
-          <span><b>~20k</b>UrlFetch / day · Apps Script free quota</span>
-          <span><b>~30s</b>per fetch</span>
-          <span><b>~6&nbsp;min</b>per script execution</span>
-          <span><b>1 relay</b>per Google account · TOS</span>
-          <span><b>Throughput</b>capped by UrlFetch</span>
+          <span><b>Trust</b>the relay sees addresses, headers, cookies and form data as plain text</span>
+          <span><b>20,000</b>URL fetches a day on a free Google account, shared by all its scripts</span>
+          <span><b>30&nbsp;s</b>Parvaz waits this long for the relay's reply</span>
+          <span><b>6&nbsp;min</b>longest run of one Apps Script call</span>
+          <span><b>Your account</b>use one you control, and follow Google's terms</span>
+          <span><b>Speed</b>capped by the relay, about 5 KB/s</span>
         </div>
       </div>
     </div>
@@ -311,39 +317,39 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§6</span>
-        <h2 class="slide__title">Who flies, who's grounded</h2>
-        <span class="slide__kicker">Honest scope</span>
+        <h2 class="slide__title">What works, what does not</h2>
+        <span class="slide__kicker">Who flies, who's grounded</span>
       </div>
       <div class="heads-up" role="note">
         <span class="heads-up__tag">Heads-up</span>
-        <span>Not every site opens — and <strong>WebSockets are not supported in this version</strong>.</span>
+        <span>Not every site opens, and <strong>WebSockets are not supported in this version</strong>.</span>
       </div>
       <div class="who">
         <div class="who__col who__col--ok">
           <div class="who__head">
-            <strong>Cleared for take-off</strong>
+            <strong>Works</strong>
             <span class="who__tag who__tag--ok">Tunnels</span>
           </div>
           <ul class="who__list">
-            <li><strong>Chrome</strong> on Android — no flags, no <code>about:config</code>, no root.</li>
-            <li>Other Chromium browsers — Brave, Edge, Vivaldi — same path, same trust.</li>
-            <li>Google-owned hosts (google.com, youtube.com, fonts.googleapis.com) via direct SNI rewrite, in any browser.</li>
-            <li>Web apps inside Chrome — Gmail, GitHub, Wikipedia, news sites, search.</li>
+            <li><strong>Chrome</strong> on Android: no flags, no <code>about:config</code>, no root.</li>
+            <li>Other Chromium browsers (Brave, Edge, Vivaldi) should work the same way. Other browsers vary.</li>
+            <li>Web apps inside Chrome, such as Gmail, GitHub, Wikipedia, news sites and search.</li>
+            <li>Google sites (google.com, youtube.com) use the relay too in this version, so they count against its daily limit.</li>
           </ul>
-          <div class="who__foot">No Apps Script quota for Google fast-path. Throughput ~5 KB/s · WebSockets do not work yet.</div>
+          <div class="who__foot">Speed is about 5 KB/s, so pages load slowly. WebSockets do not work yet.</div>
         </div>
         <div class="who__col who__col--no">
           <div class="who__head">
-            <strong>Grounded</strong>
+            <strong>Does not work</strong>
             <span class="who__tag who__tag--no">Won't tunnel</span>
           </div>
           <ul class="who__list">
-            <li><strong>Firefox Stable / Beta / Focus</strong> — no <code>about:config</code>, can't set the trust flag.</li>
-            <li><strong>Firefox Nightly</strong> — flag exists but resets to <code>false</code> on every restart (<a href="https://github.com/mozilla-mobile/fenix/issues/18990">fenix#18990</a>, open since 2021).</li>
-            <li><strong>DuckDuckGo browser</strong> — Chromium-based but rejects the user CA. Confirmed broken.</li>
-            <li>Native apps — Instagram, Telegram, WhatsApp, banking, streaming. Reject user CAs by Android 7+ default.</li>
+            <li><strong>Android 10 and older.</strong> The app installs, but it cannot connect. It needs Android 11 or later.</li>
+            <li><strong>Firefox</strong> is not tested with Parvaz. It keeps its own certificate list, and has a <code>Use third party CA certificates</code> option in its Secret Settings that Parvaz has not been checked with (<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1894053">Mozilla bug 1894053</a>).</li>
+            <li><strong>DuckDuckGo browser.</strong> It is Chromium-based but rejects the certificate. Confirmed not working.</li>
+            <li>Apps such as Instagram, Telegram, WhatsApp, banking and streaming apps. Since Android 7, apps do not accept certificates you install.</li>
           </ul>
-          <div class="who__foot">General Android MITM constraint · pair with xray + VPS for native apps.</div>
+          <div class="who__foot">This is how Android works, so Parvaz cannot change it. For other apps you need a different tool, for example xray on your own server.</div>
         </div>
       </div>
     </div>
@@ -362,18 +368,18 @@
           <div class="check">
             <div class="check__no">1</div>
             <div>
-              <h3 class="check__title">Receive the parvaz:// link</h3>
-              <p class="check__sub">Signal or Telegram from your helper · not WhatsApp</p>
+              <h3 class="check__title">Receive your access link</h3>
+              <p class="check__sub">Signal or a Telegram Secret Chat from your helper · not WhatsApp</p>
             </div>
-            <span class="check__stamp">Auto</span>
+            <span class="check__stamp check__stamp--manual">Manual</span>
           </div>
           <div class="check">
             <div class="check__no">2</div>
             <div>
               <h3 class="check__title">Install Parvaz · tap the link</h3>
-              <p class="check__sub">APK from GitHub releases · sideload</p>
+              <p class="check__sub">Download the APK from GitHub, install it, then tap the link or paste it</p>
             </div>
-            <span class="check__stamp">Auto</span>
+            <span class="check__stamp check__stamp--manual">Manual</span>
           </div>
           <div class="check">
             <div class="check__no">3</div>
@@ -386,8 +392,8 @@
           <div class="check">
             <div class="check__no">4</div>
             <div>
-              <h3 class="check__title">Tap Connect · open Chrome</h3>
-              <p class="check__sub">no browser flags · see §9</p>
+              <h3 class="check__title">Tap PARVAZ · open Chrome</h3>
+              <p class="check__sub">No browser flags · see §9</p>
             </div>
             <span class="check__stamp check__stamp--manual">Manual</span>
           </div>
@@ -395,7 +401,7 @@
         <aside class="boarding-pass__stub" style="background:var(--paper-2);border:1.5px solid var(--ink);">
           <div class="row"><span class="label">Passenger</span><span class="value">YOU</span></div>
           <div class="row"><span class="label">Flight</span><span class="value value--big">PVZ 001</span></div>
-          <div class="row"><span class="label">Gate</span><span class="value">A · MITM</span></div>
+          <div class="row"><span class="label">Gate</span><span class="value">A · CERTIFICATE</span></div>
           <div class="row"><span class="label">Boarding</span><span class="value">~ 3 min</span></div>
           <div class="boarding-pass__barcode" aria-hidden="true"></div>
         </aside>
@@ -412,7 +418,7 @@
         <span class="slide__kicker">Step 1 of 2 · once · ~30 seconds</span>
       </div>
       <div class="slide__body">
-        <p>In Parvaz, tap <strong>Open Settings</strong>. Parvaz drops <code>parvaz-ca.crt</code> into <strong>Downloads</strong> and opens Android Settings. Then follow the path for your phone.</p>
+        <p>A certificate is a small file that tells your phone to trust Parvaz for your browser's secure connections. In Parvaz, tap <strong>Open Settings</strong>. Parvaz saves a certificate file and opens Android Settings. If you cannot find the file, tap <strong>Show file</strong>. Then follow the path for your phone.</p>
       </div>
       <div class="listing">
         <div class="listing-head"><span>proc · cert.001 · samsung</span><span>One UI 6 / Android 14</span></div>
@@ -420,7 +426,7 @@
 Settings → <span class="hl">Security and privacy</span>
         → <span class="hl">More security settings</span>
         → <span class="hl">Install from device storage</span> → <span class="hl">CA certificate</span>
-        → pick <span class="secret">parvaz-ca.crt</span> from Downloads
+        → choose the newest <span class="secret">parvaz-ca-…crt</span> file (name starts with parvaz-ca-, ends with .crt)
         → enter your PIN / fingerprint
         → tap <span class="hl">Install anyway</span> on the warning</div>
       </div>
@@ -431,12 +437,12 @@ Settings → <span class="hl">Security &amp; privacy</span>
         → <span class="hl">More security &amp; privacy</span>
         → <span class="hl">Encryption &amp; credentials</span>
         → <span class="hl">Install a certificate</span> → <span class="hl">CA certificate</span>
-        → pick <span class="secret">parvaz-ca.crt</span> from Downloads
+        → choose the newest <span class="secret">parvaz-ca-…crt</span> file (name starts with parvaz-ca-, ends with .crt)
         → enter your PIN / fingerprint
         → tap <span class="hl">Install anyway</span> on the warning</div>
       </div>
       <div class="slide__body">
-        <p><strong>Pre-requisite:</strong> screen lock (PIN, pattern, password) · Android refuses install otherwise. <strong>Can't find the menu?</strong> Search <code>CA certificate</code> in Settings. <strong>Warning is fine to dismiss</strong> — the CA was generated on <em>your</em> phone; the private key never leaves the app's private storage.</p>
+        <p><strong>You need a screen lock</strong> (PIN, pattern or password), or Android will not install the certificate. <strong>Can't find the menu?</strong> Search for <code>CA certificate</code> in Settings. <strong>Android shows a warning.</strong> That is expected: Parvaz made this certificate on <em>your</em> phone, and its private key stays in the app's private storage. Tap Install anyway.</p>
       </div>
     </div>
   </section>
@@ -446,26 +452,26 @@ Settings → <span class="hl">Security &amp; privacy</span>
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§9</span>
-        <h2 class="slide__title">Tap Connect · open Chrome</h2>
+        <h2 class="slide__title">Tap PARVAZ · open Chrome</h2>
         <span class="slide__kicker">Step 2 of 2 · once · ~10 seconds</span>
       </div>
       <div class="slide__body">
-        <p>Tap the rubber-stamp button on Parvaz's main screen. When it flips to <strong>در پرواز</strong> (in flight), open <strong>Chrome</strong> and browse normally — HTTPS pages route through Parvaz with no further configuration. Brave, Edge, and Vivaldi work the same way; the Parvaz CA you just installed is the only piece they need.</p>
+        <p>Tap the <strong>PARVAZ</strong> button on Parvaz's main screen (<strong>پرواز</strong> in Persian). When it changes to <strong>IN FLIGHT</strong> (<strong>در پرواز</strong>), open <strong>Chrome</strong> and browse as usual. HTTPS pages go through Parvaz with no further setup. To disconnect, tap the button again. Brave, Edge and Vivaldi should work the same way.</p>
       </div>
       <div class="listing">
         <div class="listing-head"><span>proc · browser.001 · chromium</span><span>one-time · ~10 sec</span></div>
-        <div class="listing-body"><span class="c"># 1. In Parvaz, tap the rubber stamp.</span>
-<span class="c">    → "پرواز" (outline) flips to "در پرواز" (filled · olive)</span>
+        <div class="listing-body"><span class="c"># 1. In Parvaz, tap the PARVAZ button.</span>
+<span class="c">    → the outlined "PARVAZ" button turns into a filled "IN FLIGHT" button</span>
 
 <span class="c"># 2. Open Chrome (or Brave / Edge / Vivaldi).</span>
 <span class="c">    → just browse · no flags, no about:config, no root</span>
 
-<span class="c"># 3. (Optional) sanity-check the route:</span>
-open <a href="https://wikipedia.org" class="hl">wikipedia.org</a>            <span class="c"># non-Google site → goes through MITM</span>
-open <a href="https://www.google.com" class="hl">google.com</a>             <span class="c"># Google site → SNI-rewrite fast path</span></div>
+<span class="c"># 3. (Optional) check that it works:</span>
+open <a href="https://wikipedia.org" class="hl">wikipedia.org</a>            <span class="c"># goes through the relay</span>
+open <a href="https://www.google.com" class="hl">google.com</a>             <span class="c"># also goes through the relay</span></div>
       </div>
       <div class="slide__body">
-        <p><strong>Why Chrome works:</strong> Chrome on Android trusts user-installed CAs from the system store, and Chrome's Certificate Transparency enforcement has an explicit carve-out for chains rooted in a user CA — so the Parvaz leaf is accepted with no setup. Browsers that won't work, plus the throughput and WebSocket limits, are covered in §6.</p>
+        <p><strong>Why Chrome works:</strong> Chrome on Android trusts certificates you install in Android Settings, and its Certificate Transparency checks have an explicit exception for certificates that chain to one of them. So Chrome accepts the certificates Parvaz makes, with no setup. Browsers that do not work, and the speed and WebSocket limits, are in §6.</p>
       </div>
     </div>
   </section>
@@ -476,27 +482,27 @@ open <a href="https://www.google.com" class="hl">google.com</a>             <spa
       <div class="slide__head">
         <span class="slide__num">§10</span>
         <h2 class="slide__title">Airframe schematic</h2>
-        <span class="slide__kicker">Monorepo topology · Kotlin + Go</span>
+        <span class="slide__kicker">For developers · how the code is laid out</span>
       </div>
       <div class="schematic">
         <div class="schematic-head">
           <span><strong>Sheet 10</strong> · Monorepo topology</span>
-          <span>MIT · Android 7.0+</span>
+          <span>MIT · Android 11+</span>
         </div>
         <pre class="schematic-body">parvaz/
 ├── <span class="hl">app/</span>             kotlin + compose UI · VpnService · tun2socks
-│                 · sidecar launcher · MITM CA install · NOTAM
+│                 · sidecar launcher · certificate install
 ├── <span class="hl">core/</span>            go SOCKS5 sidecar
 │   ├── <span class="hl">fronter/</span>     TLS-with-custom-SNI dialer + HTTP client
 │   ├── <span class="hl">protocol/</span>    Apps Script JSON envelope encode/decode
 │   ├── <span class="hl">codec/</span>       gzip / br / zstd decoders
 │   ├── <span class="hl">relay/</span>       envelope + fronted client glue
-│   ├── <span class="hl">mitm/</span>        (next) CA + leaf certs + TLS server
-│   ├── <span class="hl">dispatcher/</span>  (next) SNI-rewrite vs MITM+relay decision
+│   ├── <span class="hl">mitm/</span>        CA + leaf certs + TLS server
+│   ├── <span class="hl">dispatcher/</span>  routing decision: direct, SNI rewrite or relay
 │   ├── <span class="hl">socks5/</span>      local SOCKS5 listener on :1080
 │   └── <span class="hl">cmd/parvazd/</span> sidecar main → libparvaz.so (per ABI)
 ├── reference/      MasterHttpRelayVPN · upstream python (read-only)
-└── website/        bilingual GitHub Pages
+└── website/        GitHub Pages (English, Persian, Danish)
 
 <span class="note">· core is called from app via ProcessBuilder, not JNI</span>
 <span class="note">· one apk + one Code.gs drop-in + one release tag</span>
@@ -515,7 +521,7 @@ open <a href="https://www.google.com" class="hl">google.com</a>             <spa
         <span class="slide__kicker">~5 min · once · technical helper only</span>
       </div>
       <div class="slide__body">
-        <p>If you are the <strong>technical helper</strong> setting Parvaz up for someone else, here is the one-time Apps Script deployment. The end user never opens script.google.com.</p>
+        <p>If you are the <strong>technical helper</strong> setting Parvaz up for someone else, here is the one-time Apps Script deployment. The person you help never opens script.google.com.</p>
       </div>
       <div class="listing">
         <div class="listing-head"><span>proc · relay.deploy.001</span><span>script.google.com · ~5 min</span></div>
@@ -552,15 +558,16 @@ parvaz://<span class="hl">&lt;deployment-id&gt;</span>/<span class="hl">&lt;AUTH
 <span class="c"># concrete example:</span>
 parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
 
-<span class="c"># 7. Share via SECURE messenger ONLY — this URL contains the key</span>
-✓ Signal   · end-to-end · recommended
-✓ Telegram · Secret Chat preferred
-✗ WhatsApp · Meta-readable cloud backup → NEVER
-✗ SMS      · carrier-readable          → NEVER
-✗ Email    · server-readable           → NEVER</div>
+<span class="c"># 7. Share it through a secure messenger only: this link contains the key</span>
+✓ Signal               · end-to-end encrypted · recommended
+✓ Telegram Secret Chat · end-to-end encrypted
+✗ Telegram regular chat · not end-to-end encrypted → NEVER
+✗ WhatsApp             · chat backups can be readable unless encrypted backups are on → avoid
+✗ SMS                  · carrier-readable → NEVER
+✗ Email                · server-readable  → NEVER</div>
       </div>
       <div class="slide__body">
-        <p><strong>Quota:</strong> ~20k UrlFetch / day · 30 s per fetch · 6 min per execution. <strong>One relay per Google account</strong> (Apps Script TOS). <strong>Test it:</strong> open the Web app URL in a browser — you should see <code>{"e":"unauthorized"}</code> (proof the deployment is live and rejecting unauthenticated calls). <strong>Source:</strong> <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">apps_script/Code.gs</a> · <a href="https://developers.google.com/apps-script/guides/web">Apps Script · Web Apps</a>.</p>
+        <p><strong>Limits:</strong> a free Google account gets 20,000 URL fetches a day, shared by all its scripts. One script run lasts at most 6 minutes. Parvaz waits up to 30 seconds for the relay's reply. Use an account you control and follow Google's terms. <strong>Test it:</strong> open the Web app URL in a browser. You should see a page that says "Welcome" and "This application is running normally." That shows the deployment is live. It does not test your AUTH_KEY. <strong>Source:</strong> <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">apps_script/Code.gs</a> · <a href="https://developers.google.com/apps-script/guides/web">Apps Script · Web Apps</a>.</p>
       </div>
     </div>
   </section>
@@ -585,14 +592,14 @@ parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
           </div>
         </div>
         <div class="depart__cta">
-          <h2>Cleared for take-off.</h2>
-          <p>Parvaz replaces only the <em>client</em> half of MasterHttpRelayVPN. The Apps Script server is the upstream <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">Code.gs</a>, unchanged — deploy it to your own Google account.</p>
-          <p>If you don't need the Farsi-first NOTAM UX touches, the mature <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port ships today with prebuilt APKs and an English + Persian walkthrough.</p>
+          <h2>Ready to install.</h2>
+          <p>Parvaz replaces only the <em>client</em> half of MasterHttpRelayVPN. The relay is the <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">Code.gs</a> in this repository. It is based on MasterHttpRelayVPN's, with changes for Parvaz. Deploy it to your own Google account.</p>
+          <p>If you do not need an app that is Persian by default, <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> offers prebuilt APKs and a guide in English and Persian.</p>
           <!-- cocode-apps:install:start -->
 <ul class="install" role="list">
   <li><p class="fdroid-soon">Coming to F-Droid</p></li>
-  <li><a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk">Download the APK from GitHub</a></li>
-  <li><a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/cocodedk/parvaz">Auto-update the GitHub APK with Obtainium</a></li>
+  <li><a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk">Download the Android installation file (APK) from GitHub</a></li>
+  <li><a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/cocodedk/parvaz">Add the app to Obtainium, an app that keeps it up to date</a></li>
 </ul>
 <!-- cocode-apps:install:end -->
           <div class="bp-tabs">
@@ -604,6 +611,7 @@ parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
         <!-- cocode-apps:footer:start -->
 <footer class="cocode-footer">
   <a href="https://github.com/cocodedk/parvaz">Source code</a> ·
+  <a href="/privacy/">Privacy</a> ·
   License: MIT ·
   <a href="https://cocode.dk/">Made by Cocode (cocode.dk)</a>
 </footer>

@@ -44,18 +44,40 @@ class AboutLinksTest {
     }
 
     @Test
-    fun privacyLinkOpensTheGivenPolicyAddress() {
+    fun privacyLinkOpensTheGivenPolicyAddressInEnglish() {
         val url = "https://parvaz.cocode.dk/privacy/"
-        for (language in listOf("fa", "en", "da")) {
-            assertEquals(url, aboutUrl(AboutLink.Privacy, language, privacyUrl = url))
-        }
+        assertEquals(url, aboutUrl(AboutLink.Privacy, "en", privacyUrl = url))
     }
 
     @Test
-    fun persianGetsThePersianSiteAndEveryOtherLanguageTheEnglishOne() {
-        assertEquals("https://parvaz.cocode.dk/fa/", aboutUrl(AboutLink.Website, "fa"))
+    fun danishOpensTheDanishWebsiteAndPrivacyPages() {
+        assertEquals("https://parvaz.cocode.dk/da/", aboutUrl(AboutLink.Website, "da"))
+        assertEquals("https://parvaz.cocode.dk/da/privacy/", aboutUrl(AboutLink.Privacy, "da"))
+    }
+
+    @Test
+    fun englishOpensTheEnglishWebsiteAndPrivacyPages() {
         assertEquals("https://parvaz.cocode.dk/", aboutUrl(AboutLink.Website, "en"))
-        assertEquals("https://parvaz.cocode.dk/", aboutUrl(AboutLink.Website, "da"))
+        assertEquals("https://parvaz.cocode.dk/privacy/", aboutUrl(AboutLink.Privacy, "en"))
+    }
+
+    @Test
+    fun persianOpensThePersianWebsiteAndTheEnglishPrivacyPage() {
+        // The site has /fa/ but no /fa/privacy/ yet.
+        assertEquals("https://parvaz.cocode.dk/fa/", aboutUrl(AboutLink.Website, "fa"))
+        assertEquals("https://parvaz.cocode.dk/privacy/", aboutUrl(AboutLink.Privacy, "fa"))
+    }
+
+    @Test
+    fun aLanguageTheSiteLacksFallsBackToTheEnglishPages() {
+        assertEquals("https://parvaz.cocode.dk/", aboutUrl(AboutLink.Website, "fr"))
+        assertEquals("https://parvaz.cocode.dk/privacy/", aboutUrl(AboutLink.Privacy, "fr"))
+    }
+
+    @Test
+    fun anAddressOutsideTheSiteIsNeverRewritten() {
+        val url = "https://example.org/privacy/"
+        assertEquals(url, aboutUrl(AboutLink.Privacy, "da", privacyUrl = url))
     }
 
     @Test

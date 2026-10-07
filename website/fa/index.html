@@ -3,32 +3,34 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>پرواز — پرواز از روی فیلتر. تونل مرورگر اندروید از روی Apps Script</title>
-<meta name="description" content="پرواز یک تونل مرورگر اندروید با اولویت زبان فارسی برای کاربران ایرانی است که ترافیک Chrome (و سایر مرورگرهای Chromium) را از طریق یک رلهٔ Google Apps Script که خودتان مستقر کرده‌اید، با پنهان‌سازی TLS SNI عبور می‌دهد. Chrome در اندروید گواهی نصب‌شدهٔ کاربر را به‌صورت پیش‌فرض می‌پذیرد — بدون پرچم، بدون about:config، بدون روت."/>
+<title>پرواز: پروازی از روی فیلتر. باز کردن وب‌سایت‌های مسدود در اندروید</title>
+<meta name="description" content="پرواز در گوشی اندروید به شما کمک می‌کند وب‌سایت‌هایی را باز کنید که شبکه‌تان مسدود کرده است. ترافیک Chrome، Brave، Edge یا Vivaldi را به یک رله می‌فرستد. رله برنامهٔ کوچکی روی یک حساب گوگل است که خودتان یا یک آشنای مورد اعتماد راه‌اندازی می‌کنید. زبان پیش‌فرض فارسی است. اندروید ۱۱ یا جدیدتر لازم است."/>
 <meta name="robots" content="index, follow"/>
 <meta name="keywords" content="پرواز, تونل مرورگر, اندروید, ایران, اپس اسکریپت, دامین فرانتینگ, masterhttprelayvpn, دور زدن فیلتر, vpnservice, کاتلین, go, فارسی, متن‌باز"/>
 <link rel="canonical" href="https://parvaz.cocode.dk/fa/"/>
 <link rel="alternate" hreflang="en" href="https://parvaz.cocode.dk/"/>
 <link rel="alternate" hreflang="fa" href="https://parvaz.cocode.dk/fa/"/>
+<link rel="alternate" hreflang="da" href="https://parvaz.cocode.dk/da/"/>
 <link rel="alternate" hreflang="x-default" href="https://parvaz.cocode.dk/"/>
 
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="پرواز"/>
-<meta property="og:title" content="پرواز — پرواز از روی فیلتر"/>
-<meta property="og:description" content="تونل مرورگر اندروید با اولویت فارسی — ترافیک Chrome از طریق رلهٔ Google Apps Script شخصی شما با پنهان‌سازی SNI. یک APK، یک گواهی، بدون تنظیم اضافه."/>
+<meta property="og:title" content="پرواز: پروازی از روی فیلتر"/>
+<meta property="og:description" content="در اندروید، با آدرس دسترسی‌ای که فردی مورد اعتماد به شما می‌دهد، وب‌سایت‌های مسدود را باز کنید. فارسی به‌طور پیش‌فرض، با انگلیسی و دانمارکی."/>
 <meta property="og:url" content="https://parvaz.cocode.dk/fa/"/>
 <meta property="og:image" content="https://parvaz.cocode.dk/og.png"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
-<meta property="og:image:alt" content="پرواز — سند بریفینگ پرواز رفع طبقه‌بندی‌شده با نشان پرواز، چیپ‌های فنی و تمبرهای لاستیکی نشان‌گر محدودهٔ مرورگرهای Chromium و مجوز MIT."/>
+<meta property="og:image:alt" content="نشان پرواز، یک هواپیمای کاغذی قرمز، کنار نام Parvaz و یک جملهٔ کوتاه انگلیسی دربارهٔ باز کردن وب‌سایت‌های مسدود در اندروید."/>
 <meta property="og:locale" content="fa_IR"/>
 <meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:locale:alternate" content="da_DK"/>
 
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="پرواز — پرواز از روی فیلتر"/>
-<meta name="twitter:description" content="تونل مرورگر اندروید با اولویت فارسی — Chrome از طریق رلهٔ Google Apps Script شخصی. domain fronting، بدون تله‌متری."/>
+<meta name="twitter:title" content="پرواز: پروازی از روی فیلتر"/>
+<meta name="twitter:description" content="در اندروید با Chrome و از طریق رله‌ای که آشنایی مورد اعتماد راه‌اندازی می‌کند، وب‌سایت‌های مسدود را باز کنید. فارسی به‌طور پیش‌فرض."/>
 <meta name="twitter:image" content="https://parvaz.cocode.dk/og.png"/>
-<meta name="twitter:image:alt" content="پرواز — بریفینگ پرواز · مرورگرهای Chromium · MIT 2026."/>
+<meta name="twitter:image:alt" content="نشان پرواز، یک هواپیمای کاغذی قرمز، کنار نام Parvaz و یک جملهٔ کوتاه انگلیسی دربارهٔ باز کردن وب‌سایت‌های مسدود در اندروید."/>
 
 <link rel="icon" type="image/svg+xml" href="../parvaz-mark.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -43,11 +45,11 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "پرواز",
-  "description": "تونل مرورگر اندروید ساخته‌شده برای کاربران ایرانی بدون دانش فنی — ترافیک Chrome (و سایر مرورگرهای Chromium: Brave، Edge، Vivaldi) را از طریق یک رلهٔ Google Apps Script که خودتان یا دوستی آشنا به‌فن مستقر می‌کند، با پنهان‌سازی TLS SNI و MITM محلی روی دستگاه عبور می‌دهد. رابط Kotlin + Compose به صورت پیش‌فرض فارسی، هستهٔ Go برای SOCKS5. Chrome در اندروید گواهی نصب‌شدهٔ کاربر را به‌صورت پیش‌فرض می‌پذیرد — بدون پرچم، بدون about:config، بدون روت. اپلیکیشن‌های غیرمرورگری (بانک، پیام‌رسان، استریمینگ) به‌صورت پیش‌فرض گواهی کاربر را رد می‌کنند و تونل نمی‌شوند.",
+  "description": "برنامهٔ اندروید برای باز کردن وب‌سایت‌هایی که شبکه‌تان مسدود کرده است. ترافیک Chrome (و مرورگرهای Chromium دیگر، مثل Brave، Edge و Vivaldi) را به یک رله می‌فرستد؛ رله برنامهٔ کوچکی از نوع Google Apps Script است که خودتان یا یک آشنای مورد اعتماد راه‌اندازی می‌کنید. برنامه از شما می‌خواهد گواهی‌ای نصب کنید تا مرورگر اتصال‌هایش را بپذیرد. برنامه‌هایی که گواهی نصب‌شده را نمی‌پذیرند، مثل بانک، پیام‌رسان و استریمینگ، از طریق پرواز کار نمی‌کنند. پیش‌فرض فارسی، با انگلیسی و دانمارکی. اندروید ۱۱ یا جدیدتر لازم است.",
   "url": "https://parvaz.cocode.dk/fa/",
   "downloadUrl": "https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk",
   "applicationCategory": "UtilitiesApplication",
-  "operatingSystem": "Android 7.0+",
+  "operatingSystem": "Android 11+",
   "programmingLanguage": ["Kotlin", "Go"],
   "license": "https://opensource.org/licenses/MIT",
   "inLanguage": "fa",
@@ -72,6 +74,7 @@
 <cocode-head project="پرواز" accent="#122a44" on-accent="#e8dfc6">
   <a href="https://cocode.dk">cocode.dk</a>
   <a href="../" hreflang="en">English</a>
+  <a href="../da/" hreflang="da">Dansk</a>
 </cocode-head>
 
 <header class="deck-header" role="banner">
@@ -81,9 +84,9 @@
     <span class="deck-alert__siren" aria-hidden="true">🚨</span>
     <span class="deck-alert__stop" aria-hidden="true">ایست</span>
     <span class="deck-alert__msg">
-      <strong>هشدار · گردانندهٔ رله می‌تواند همهٔ کوکی‌ها، رمزها و پیام‌ها را به‌صورت متن ساده بخواند.</strong>
-      تا زمانی که به گردانندهٔ رله <em>۱۰۰٪</em> اعتماد ندارید — نه ۹۹٫۹۹٪ — به ایمیل، بانک، پیام‌رسان یا هیچ سرویسی <em>وارد نشوید</em>.
-      از این تونل فقط برای مرور بدون حساب یا با حساب‌های یک‌بارمصرف استفاده کنید.
+      <strong>هشدار · گردانندهٔ رله و گوگل می‌توانند کوکی‌ها، رمزها و پیام‌های شما را به‌صورت متن ساده بخوانند.</strong>
+      تا وقتی به گردانندهٔ رله <em>کاملاً</em> اعتماد ندارید، به ایمیل، بانک، شبکه‌های اجتماعی یا هیچ حساب دیگری <em>وارد نشوید</em>.
+      پرواز را فقط برای خواندن صفحه‌های عمومی یا با حساب‌هایی به کار ببرید که از دست دادنشان مهم نیست.
     </span>
   </div>
   <div class="bp-header">
@@ -121,38 +124,38 @@
           <span class="flight-no">PVZ ۰۰۱ · CPH→THR</span>
         </div>
         <p class="hero__tagline">پروازی از روی فیلتر</p>
-        <p class="hero__subtitle">تونل مرورگر اندروید · Apps Script · domain fronting · فارسی‌محور</p>
+        <p class="hero__subtitle">باز کردن وب‌سایت‌های مسدود در اندروید · فارسی به‌طور پیش‌فرض</p>
         <div class="bp-tabs">
-          <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">شروع فرود · APK<span class="stub">PVZ&nbsp;۰۰۱</span></a>
-          <a href="https://github.com/cocodedk/parvaz" class="bp-tab">طرح پرواز · کد منبع<span class="stub">REPO</span></a>
+          <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">دانلود برای اندروید · APK<span class="stub">PVZ&nbsp;۰۰۱</span></a>
+          <a href="https://github.com/cocodedk/parvaz" class="bp-tab">کد منبع · GitHub<span class="stub">REPO</span></a>
         </div>
       </div>
-      <div class="solari-board" aria-label="تابلوی پروازهای راه‌اندازی">
+      <div class="solari-board" aria-label="مراحل راه‌اندازی، روی تابلوی پروازها">
         <div class="solari-board__head">
-          <span><span class="blink"></span><strong>cocode.dk · departures</strong></span>
-          <span>local time · LIVE</span>
+          <span><span class="blink"></span><strong>cocode.dk · پروازها</strong></span>
+          <span>راه‌اندازی · یک‌بار</span>
         </div>
         <div class="solari-board__rows">
-          <div class="solari-board__col-head">FLT</div>
-          <div class="solari-board__col-head">STAGE</div>
-          <div class="solari-board__col-head">GATE</div>
-          <div class="solari-board__col-head">STATUS</div>
+          <div class="solari-board__col-head">پرواز</div>
+          <div class="solari-board__col-head">مرحله</div>
+          <div class="solari-board__col-head">گیت</div>
+          <div class="solari-board__col-head">وضعیت</div>
           <div class="solari-board__cell">PVZ 001</div>
-          <div class="solari-board__cell solari-board__cell--dest">paste · the parvaz:// link</div>
+          <div class="solari-board__cell solari-board__cell--dest">چسباندن · آدرس دسترسی</div>
           <div class="solari-board__cell">A1</div>
-          <div class="solari-board__cell solari-board__cell--status-board">boarding</div>
+          <div class="solari-board__cell solari-board__cell--status-board">در حال سوار شدن</div>
           <div class="solari-board__cell">PVZ 002</div>
-          <div class="solari-board__cell solari-board__cell--dest">install · the user CA</div>
+          <div class="solari-board__cell solari-board__cell--dest">نصب · گواهی</div>
           <div class="solari-board__cell">B12</div>
-          <div class="solari-board__cell solari-board__cell--status-go">on time</div>
+          <div class="solari-board__cell solari-board__cell--status-go">طبق برنامه</div>
           <div class="solari-board__cell">PVZ 003</div>
-          <div class="solari-board__cell solari-board__cell--dest">open · chrome (no setup)</div>
+          <div class="solari-board__cell solari-board__cell--dest">اتصال · بازکردن Chrome</div>
           <div class="solari-board__cell">C7</div>
-          <div class="solari-board__cell solari-board__cell--status-cleared">cleared</div>
+          <div class="solari-board__cell solari-board__cell--status-cleared">مجاز</div>
           <div class="solari-board__cell">PVZ 004</div>
-          <div class="solari-board__cell solari-board__cell--dest">https · all routes open</div>
+          <div class="solari-board__cell solari-board__cell--dest">مرور · بسته به سایت</div>
           <div class="solari-board__cell">D24</div>
-          <div class="solari-board__cell solari-board__cell--status-final">final call</div>
+          <div class="solari-board__cell solari-board__cell--status-final">فراخوان آخر</div>
         </div>
       </div>
     </div>
@@ -163,12 +166,13 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§۱</span>
-        <h2 class="slide__title">چکیده</h2>
+        <h2 class="slide__title">پرواز چه می‌کند</h2>
         <span class="slide__kicker">بریفینگ مأموریت</span>
       </div>
       <div class="slide__body">
-        <p>پرواز یک <strong>تونل مرورگر اندروید</strong> با اولویت زبان فارسی برای کاربران ایرانی بدون دانش فنی است. یک دوست آشنا به‌فن، فایل <code>Code.gs</code> از پروژهٔ MasterHttpRelayVPN را روی حساب گوگل خودش مستقر می‌کند؛ کاربر یک لینک <code>parvaz://</code> از طریق <strong>پیام‌رسان امن (سیگنال یا تلگرام — نه واتس‌اپ)</strong> دریافت می‌کند، آن را چسبانده یا QR را اسکن می‌کند، یک‌بار گواهی MITM را در تنظیمات اندروید نصب می‌کند، روی «اتصال» می‌زند و سپس در <strong>Chrome</strong> (یا هر مرورگر Chromium دیگر) به‌طور عادی مرور می‌کند.</p>
-        <p>ترافیک Chrome از روی Apps Script عبور می‌کند — TLS SNI <code>www.google.com</code>، HTTP Host <code>script.google.com</code>. Chrome در اندروید گواهی پرواز را به‌صورت پیش‌فرض می‌پذیرد؛ بدون پرچم، بدون <code>about:config</code>، بدون روت. از نظر معماری با پورت اثبات‌شدهٔ <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> هم‌راستاست؛ مزیت پرواز هویت بصری NOTAM، رابط فارسی پیش‌فرض، و راه‌اندازی فشرده‌تر برای مسافران غیرفنی است.</p>
+        <p>پرواز یک برنامهٔ اندروید است که کمک می‌کند وب‌سایت‌هایی را باز کنید که شبکه‌تان مسدود کرده است. به یک <strong>آدرس دسترسی</strong> از فردی مورد اعتماد نیاز دارید که با <code>parvaz://</code> شروع می‌شود. این فرد، یعنی کمک‌کنندهٔ شما، یک <strong>رله</strong> راه‌اندازی می‌کند: برنامهٔ کوچکی روی یک حساب گوگل که وب‌سایت‌ها را به‌جای شما دریافت می‌کند. پرواز ترافیک مرورگر شما را به رله می‌فرستد.</p>
+        <p>کمک‌کننده آدرس را از طریق <strong>سیگنال یا چت مخفی تلگرام</strong> (Secret Chat) برایتان می‌فرستد، نه واتس‌اپ. شما برنامه را نصب می‌کنید، آدرس را می‌زنید یا می‌چسبانید، یک‌بار در تنظیمات اندروید گواهی نصب می‌کنید، دکمهٔ «پرواز» را می‌زنید و در <strong>Chrome</strong> مرور می‌کنید. برنامه فارسی باز می‌شود و در تنظیمات آن می‌توانید انگلیسی یا دانمارکی را انتخاب کنید.</p>
+        <p>پرواز <strong>اندروید ۱۱ یا جدیدتر</strong> و گوشی ARM شصت‌وچهاربیتی لازم دارد. روی اندروید ۷ تا ۱۰ نصب می‌شود، اما نمی‌تواند وصل شود. این نسخه هنوز اولیه است (پیش‌آلفا). طراحی آن از <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> پیروی می‌کند و برنامه‌ای اضافه می‌کند که پیش‌فرضش فارسی است و مراحل واردکردن آدرس دسترسی و نصب گواهی را قدم‌به‌قدم نشان می‌دهد.</p>
       </div>
     </div>
   </section>
@@ -179,20 +183,20 @@
       <div class="slide__head">
         <span class="slide__num">§۲</span>
         <h2 class="slide__title">مسیر پرواز</h2>
-        <span class="slide__kicker">۵ توقف · DPI فقط جلوی صحنه را می‌بیند</span>
+        <span class="slide__kicker">۵ توقف · آنچه فیلتر می‌بیند</span>
       </div>
       <div>
         <div class="route">
           <div class="route__hop"><strong>Chrome</strong>بدون پرچم<div class="tag">مرورگر</div></div>
           <div class="route__hop route__hop--accent"><strong>پرواز</strong>VPN + tun2socks + sidecar<div class="tag">این APK</div></div>
-          <div class="route__hop"><strong>لبهٔ گوگل</strong>SNI www.google.com<div class="tag">آنچه DPI می‌بیند</div></div>
+          <div class="route__hop"><strong>لبهٔ گوگل</strong>SNI www.google.com<div class="tag">آنچه فیلتر می‌بیند</div></div>
           <div class="route__hop"><strong>script.google.com</strong>HTTP Host (مسیر واقعی)<div class="tag">داخلی</div></div>
           <div class="route__hop"><strong>Code.gs</strong>استقرار شما<div class="tag">UrlFetch → مقصد</div></div>
         </div>
         <div class="route__notes">
-          <div><b>آنچه DPI می‌بیند</b>TLS به سمت گوگل · SNI <code>www.google.com</code> · از Search قابل تشخیص نیست.</div>
-          <div><b>آنچه گوگل می‌بیند</b>HTTP Host <code>script.google.com</code> → به Web App شما مسیریابی می‌شود.</div>
-          <div><b>آنچه Code.gs انجام می‌دهد</b><code>UrlFetchApp.fetch(target)</code> · پاسخ را در پاکت <code>{s,h,b}</code> برمی‌گرداند.</div>
+          <div><b>آنچه فیلتر می‌بیند</b>یک اتصال رمزگذاری‌شده به گوگل که نام <code>www.google.com</code> را می‌برد، و اینکه چه مقدار داده و چه زمانی رد می‌شود. نشانی رله را نمی‌بیند. این به معنی یکی‌بودن با جست‌وجوی گوگل نیست.</div>
+          <div><b>آنچه گوگل می‌بیند</b>مقصد واقعی، <code>script.google.com</code>، را داخل اتصال رمزگذاری‌شده. درخواست را به Web App شما می‌فرستد.</div>
+          <div><b>رله چه می‌کند</b><code>Code.gs</code> وب‌سایتی را که خواسته‌اید می‌گیرد (<code>UrlFetchApp.fetch</code>) و پاسخ را برمی‌گرداند.</div>
         </div>
       </div>
     </div>
@@ -203,8 +207,8 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§۳</span>
-        <h2 class="slide__title">اعلان به خلبانان</h2>
-        <span class="slide__kicker">حریم پروازی محدود</span>
+        <h2 class="slide__title">اعلان قانونی</h2>
+        <span class="slide__kicker">اعلان به خلبانان · حریم پروازی محدود</span>
       </div>
       <div class="notam">
         <div class="notam-head">
@@ -212,7 +216,7 @@
           <span>NOTAM A0001/26</span>
         </div>
         <div class="notam-body">
-          <strong>قوانین Google Apps Script این استفاده را ممنوع کرده‌است.</strong> فایل <code>Code.gs</code> را فقط روی حساب گوگل <em>شخصی</em> خود مستقر کنید — استقرار را متمرکز نکنید، تجاری‌سازی نکنید، نسخهٔ مشترک توزیع نکنید. فقط استفادهٔ شخصی، پژوهشی و آموزشی. اگر پیامدهای حقوقی را درک نمی‌کنید، استقرار ندهید.
+          <strong>قوانین Google Apps Script ممکن است این استفاده را ممنوع کرده باشد.</strong> فایل <code>Code.gs</code> را فقط روی حساب گوگل <em>شخصی</em> خود مستقر کنید. یک رله را برای افراد زیادی راه نیندازید، این سرویس را نفروشید و یک استقرار را با دیگران شریک نشوید. فقط استفادهٔ شخصی، پژوهشی و آموزشی. اگر جنبهٔ حقوقی را درک نمی‌کنید، استقرار ندهید.
         </div>
       </div>
     </div>
@@ -223,16 +227,16 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§۴</span>
-        <h2 class="slide__title">مشخصات بدنه</h2>
+        <h2 class="slide__title">چه چیزی دریافت می‌کنید</h2>
         <span class="slide__kicker">ویژگی‌ها</span>
       </div>
       <div class="specs">
-        <div class="spec"><span class="spec-num">۰۱</span><span class="spec-key">Domain fronting</span><span class="spec-val">SNI <code>www.google.com</code> · Host <code>script.google.com</code>. DPI جلوی صحنه را می‌بیند؛ گوگل بر اساس Host مسیریابی می‌کند.</span></div>
-        <div class="spec"><span class="spec-num">۰۲</span><span class="spec-key">راه‌اندازی فارسی</span><span class="spec-val">چسباندن لینک <code>parvaz://</code> یا اسکن QR → نصب یک‌بارهٔ گواهی MITM → اتصال. زبان پیش‌فرض فارسی.</span></div>
-        <div class="spec"><span class="spec-num">۰۳</span><span class="spec-key">Chrome بدون تنظیم اضافه</span><span class="spec-val"><strong>Chrome</strong> (و سایر مرورگرهای Chromium: Brave، Edge، Vivaldi) گواهی نصب‌شدهٔ پرواز را در اندروید بدون نیاز به پرچم می‌پذیرند. اپلیکیشن‌های بومی همچنان به‌صورت پیش‌فرض گواهی کاربر را رد می‌کنند.</span></div>
-        <div class="spec"><span class="spec-num">۰۴</span><span class="spec-key">مسیر سریع SNI-rewrite</span><span class="spec-val">میزبان‌های متعلق به گوگل بدون عبور از Apps Script · تونل مستقیم · بدون مصرف سهمیه.</span></div>
-        <div class="spec"><span class="spec-num">۰۵</span><span class="spec-key">APK متن‌باز</span><span class="spec-val">رابط Kotlin + Compose · هستهٔ Go SOCKS5 · MIT · فقط F-Droid و sideload.</span></div>
-        <div class="spec"><span class="spec-num">۰۶</span><span class="spec-key">بدون تله‌متری</span><span class="spec-val">بدون تحلیل کاربر · بدون گزارش خطا · کلید دسترسی در <code>EncryptedSharedPreferences</code>.</span></div>
+        <div class="spec"><span class="spec-num">۰۱</span><span class="spec-key">Domain fronting</span><span class="spec-val">گوشی شما به یک نشانی گوگل وصل می‌شود و هنگام شروع اتصال امن، نام <code>www.google.com</code> را می‌گوید. مقصد واقعی، <code>script.google.com</code>، فقط داخل اتصال رمزگذاری‌شده دیده می‌شود.</span></div>
+        <div class="spec"><span class="spec-num">۰۲</span><span class="spec-key">راه‌اندازی فارسی</span><span class="spec-val">آدرس <code>parvaz://</code> را بزنید یا بچسبانید ← یک‌بار گواهی نصب کنید ← دکمهٔ «پرواز» را بزنید. زبان پیش‌فرض فارسی است. انگلیسی و دانمارکی در تنظیمات هستند.</span></div>
+        <div class="spec"><span class="spec-num">۰۳</span><span class="spec-key">Chrome بدون تنظیم اضافه</span><span class="spec-val"><strong>Chrome</strong> گواهی‌ای را که در تنظیمات اندروید نصب می‌کنید بدون پرچم می‌پذیرد. Brave، Edge و Vivaldi هم باید همین‌طور کار کنند. بیشتر برنامه‌های دیگر آن را رد می‌کنند.</span></div>
+        <div class="spec"><span class="spec-num">۰۴</span><span class="spec-key">سایت‌های گوگل</span><span class="spec-val">در نسخهٔ فعلی اندروید، سایت‌های گوگل هم از رله می‌گذرند و از سهمیهٔ روزانهٔ آن مصرف می‌کنند.</span></div>
+        <div class="spec"><span class="spec-num">۰۵</span><span class="spec-key">APK متن‌باز</span><span class="spec-val">برنامهٔ Kotlin + Compose با یک برنامهٔ کمکی Go · مجوز MIT · APK را از GitHub بگیرید. انتشار در F-Droid برنامه‌ریزی شده است.</span></div>
+        <div class="spec"><span class="spec-num">۰۶</span><span class="spec-key">بدون ردیابی</span><span class="spec-val">بدون تحلیل کاربر و بدون گزارش خطا. کلید دسترسی شما رمزگذاری‌شده روی گوشی نگه داشته می‌شود.</span></div>
       </div>
     </div>
   </section>
@@ -242,7 +246,7 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§۵</span>
-        <h2 class="slide__title">افشاگری صادقانه</h2>
+        <h2 class="slide__title">برنامه چه می‌کند و چه نمی‌کند</h2>
         <span class="slide__kicker">آنچه نمی‌کند · آنچه باید بکند · محدودیت‌ها</span>
       </div>
       <div class="who">
@@ -253,12 +257,12 @@
           </div>
           <ul class="who__list">
             <li>بدون تحلیل کاربر، تله‌متری یا گزارش راه دور (هنوز).</li>
-            <li>بدون رلهٔ متمرکز — هر مسافر Code.gs خودش را اجرا می‌کند.</li>
-            <li>بدون دسترسی به موقعیت، مخاطبین، پیامک، میکروفون، دوربین (دوربین فقط برای QR، اختیاری).</li>
-            <li>بدون پینگ به‌روزرسانی · بدون تبلیغات · بدون سرویس گزارش خطا.</li>
-            <li>بدون سرور تحت مدیریت ما · بدون حساب · بدون ورود.</li>
+            <li>بدون رلهٔ کوکد. از رلهٔ خودتان یا رلهٔ یک آشنای مورد اعتماد استفاده می‌کنید.</li>
+            <li>بدون دسترسی به موقعیت، مخاطبین، پیامک، میکروفون یا دوربین. پرواز اجازهٔ دوربین نمی‌خواهد.</li>
+            <li>بدون بررسی به‌روزرسانی، بدون تبلیغات، بدون گزارش خطا.</li>
+            <li>بدون سرور کوکد، بدون حساب، بدون ورود.</li>
           </ul>
-          <div class="who__foot">در سورس راستی‌آزمایی کنید · MIT · manifest را grep کنید.</div>
+          <div class="who__foot">خودتان می‌توانید بررسی کنید: مجوزها در فایل AndroidManifest.xml در کد منبع فهرست شده‌اند.</div>
         </div>
         <div class="who__col who__col--ok">
           <div class="who__head">
@@ -266,24 +270,24 @@
             <span class="who__tag who__tag--ok">بله</span>
           </div>
           <ul class="who__list">
-            <li><code>VpnService</code> — برای گرفتن و مسیریابی پکت‌های مرورگر.</li>
-            <li><code>INTERNET</code> + <code>FOREGROUND_SERVICE</code> — صحبت با Apps Script، زنده ماندن.</li>
-            <li><code>POST_NOTIFICATIONS</code> (اندروید ۱۳+) — نمایش وضعیت اتصال.</li>
-            <li><strong>قفل صفحه</strong> روی دستگاه — اندروید بدون آن گواهی نصب نمی‌کند.</li>
-            <li>یک مرورگر Chromium — Chrome (یا Brave / Edge / Vivaldi). نیازی به پرچم مرورگر نیست.</li>
+            <li><code>VpnService</code>: به پرواز اجازه می‌دهد ترافیک اینترنت گوشی شما را دریافت کند. اندروید یک‌بار از شما می‌پرسد.</li>
+            <li><code>INTERNET</code> + <code>FOREGROUND_SERVICE</code>: رسیدن به گوگل و ادامهٔ کار در پس‌زمینه.</li>
+            <li><code>POST_NOTIFICATIONS</code> (اندروید ۱۳ و جدیدتر): نمایش اعلان وصل‌بودن پرواز.</li>
+            <li><strong>قفل صفحه</strong> روی گوشی. بدون آن اندروید گواهی نصب نمی‌کند.</li>
+            <li>یک مرورگر Chromium: Chrome، یا Brave، Edge یا Vivaldi. نیازی به پرچم مرورگر نیست.</li>
           </ul>
-          <div class="who__foot">اختیاری · CAMERA — فقط هنگام اسکن QR.</div>
+          <div class="who__foot">اسکن QR در این نسخه در دسترس نیست.</div>
         </div>
       </div>
       <div class="honesty-foot">
-        <div class="honesty-foot__label">محدودیت‌ها · اگر کارت پرواز را دست شما بدهیم</div>
+        <div class="honesty-foot__label">محدودیت‌ها</div>
         <div class="honesty-foot__chips">
-          <span><b>اعتماد</b>رله URL · هدر · کوکی · بدنه را به‌صورت متن می‌بیند</span>
-          <span><b>~۲۰هزار</b>UrlFetch / روز · سهمیه رایگان</span>
-          <span><b>~۳۰ث</b>هر فراخوان</span>
-          <span><b>~۶ دقیقه</b>هر اجرای اسکریپت</span>
-          <span><b>۱ رله</b>به ازای هر حساب گوگل · TOS</span>
-          <span><b>پهنای‌باند</b>محدود به UrlFetch</span>
+          <span><b>اعتماد</b> رله نشانی‌ها، هدرها، کوکی‌ها و دادهٔ فرم‌ها را به‌صورت متن ساده می‌بیند</span>
+          <span><b>۲۰٬۰۰۰</b> فراخوان UrlFetch در روز برای حساب گوگل رایگان، مشترک بین همهٔ اسکریپت‌های آن</span>
+          <span><b>۳۰ ثانیه</b> پرواز این‌قدر منتظر پاسخ رله می‌ماند</span>
+          <span><b>۶ دقیقه</b> بیشترین زمان یک اجرای Apps Script</span>
+          <span><b>حساب خودتان</b> از حسابی استفاده کنید که کنترلش با شماست و شرایط گوگل را رعایت کنید</span>
+          <span><b>سرعت</b> محدود به رله، حدود ۵ کیلوبایت بر ثانیه</span>
         </div>
       </div>
     </div>
@@ -294,39 +298,39 @@
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§۶</span>
-        <h2 class="slide__title">چه کسی پرواز می‌کند، چه کسی زمین‌گیر است</h2>
-        <span class="slide__kicker">محدودهٔ صادقانه</span>
+        <h2 class="slide__title">چه چیزی کار می‌کند، چه چیزی نه</h2>
+        <span class="slide__kicker">چه کسی پرواز می‌کند، چه کسی زمین‌گیر است</span>
       </div>
       <div class="heads-up" role="note">
         <span class="heads-up__tag">توجه</span>
-        <span>همهٔ سایت‌ها باز نمی‌شوند — و <strong>WebSocket در این نسخه پشتیبانی نمی‌شود</strong>.</span>
+        <span>همهٔ سایت‌ها باز نمی‌شوند و <strong>WebSocket در این نسخه پشتیبانی نمی‌شود</strong>.</span>
       </div>
       <div class="who">
         <div class="who__col who__col--ok">
           <div class="who__head">
-            <strong>مجاز برای برخاستن</strong>
+            <strong>کار می‌کند</strong>
             <span class="who__tag who__tag--ok">تونل می‌شود</span>
           </div>
           <ul class="who__list">
-            <li><strong>Chrome</strong> در اندروید — بدون پرچم، بدون <code>about:config</code>، بدون روت.</li>
-            <li>سایر مرورگرهای Chromium — Brave، Edge، Vivaldi — همان مسیر، همان اعتماد.</li>
-            <li>میزبان‌های متعلق به گوگل (google.com، youtube.com، fonts.googleapis.com) از طریق SNI-rewrite مستقیم، در هر مرورگری.</li>
-            <li>وب‌اپ‌های داخل Chrome — Gmail، GitHub، ویکی‌پدیا، سایت‌های خبری، جستجو.</li>
+            <li><strong>Chrome</strong> در اندروید: بدون پرچم، بدون <code>about:config</code>، بدون روت.</li>
+            <li>سایر مرورگرهای Chromium (Brave، Edge، Vivaldi) باید همین‌طور کار کنند. مرورگرهای دیگر فرق می‌کنند.</li>
+            <li>وب‌اپ‌های داخل Chrome، مثل Gmail، GitHub، ویکی‌پدیا، سایت‌های خبری و جست‌وجو.</li>
+            <li>سایت‌های گوگل (google.com، youtube.com) در این نسخه از رله می‌گذرند و از سهمیهٔ روزانهٔ آن مصرف می‌کنند.</li>
           </ul>
-          <div class="who__foot">سهمیهٔ Apps Script برای مسیر سریع گوگل مصرف نمی‌شود. پهنای‌باند ~۵ کیلوبایت/ثانیه · WebSocket فعلاً کار نمی‌کند.</div>
+          <div class="who__foot">سرعت حدود ۵ کیلوبایت بر ثانیه است، پس صفحه‌ها کند باز می‌شوند. WebSocket فعلاً کار نمی‌کند.</div>
         </div>
         <div class="who__col who__col--no">
           <div class="who__head">
-            <strong>زمین‌گیر</strong>
+            <strong>کار نمی‌کند</strong>
             <span class="who__tag who__tag--no">تونل نمی‌شود</span>
           </div>
           <ul class="who__list">
-            <li><strong>Firefox Stable / Beta / Focus</strong> — <code>about:config</code> ندارند، پرچم اعتماد قابل تنظیم نیست.</li>
-            <li><strong>Firefox Nightly</strong> — پرچم وجود دارد ولی پس از هر بار اجرای دوباره به <code>false</code> برمی‌گردد (<a href="https://github.com/mozilla-mobile/fenix/issues/18990">fenix#18990</a>، باز از سال ۲۰۲۱).</li>
-            <li><strong>مرورگر DuckDuckGo</strong> — مبتنی بر Chromium اما گواهی کاربر را رد می‌کند. تأیید شده که کار نمی‌کند.</li>
-            <li>اپلیکیشن‌های بومی — اینستاگرام، تلگرام، واتس‌اپ، بانک، استریمینگ. به‌صورت پیش‌فرض گواهی کاربر را در اندروید ۷+ رد می‌کنند.</li>
+            <li><strong>اندروید ۱۰ و قدیمی‌تر.</strong> برنامه نصب می‌شود، اما نمی‌تواند وصل شود. اندروید ۱۱ یا جدیدتر لازم است.</li>
+            <li><strong>Firefox</strong> با پرواز آزمایش نشده است. فهرست گواهی‌های خودش را دارد و در تنظیمات مخفی‌اش گزینهٔ <code>Use third party CA certificates</code> هست که پرواز با آن بررسی نشده (<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1894053">باگ ۱۸۹۴۰۵۳ موزیلا</a>).</li>
+            <li><strong>مرورگر DuckDuckGo.</strong> مبتنی بر Chromium است اما گواهی را رد می‌کند. تأیید شده که کار نمی‌کند.</li>
+            <li>برنامه‌هایی مثل اینستاگرام، تلگرام، واتس‌اپ، بانک و استریمینگ. از اندروید ۷ به بعد، برنامه‌ها گواهی‌هایی را که خودتان نصب می‌کنید نمی‌پذیرند.</li>
           </ul>
-          <div class="who__foot">محدودیت کلی MITM در اندروید · برای اپ‌های بومی با xray + VPS جفت کنید.</div>
+          <div class="who__foot">اندروید این‌طور کار می‌کند و پرواز نمی‌تواند آن را عوض کند. برای برنامه‌های دیگر ابزار دیگری لازم است، مثلاً xray روی سرور خودتان.</div>
         </div>
       </div>
     </div>
@@ -345,18 +349,18 @@
           <div class="check">
             <div class="check__no">۱</div>
             <div>
-              <h3 class="check__title">دریافت لینک parvaz://</h3>
-              <p class="check__sub">سیگنال یا تلگرام از دوست آشنا · نه واتس‌اپ</p>
+              <h3 class="check__title">دریافت آدرس دسترسی</h3>
+              <p class="check__sub">از طریق سیگنال یا چت مخفی تلگرام از کمک‌کنندهٔ شما · نه واتس‌اپ</p>
             </div>
-            <span class="check__stamp">خودکار</span>
+            <span class="check__stamp check__stamp--manual">دستی</span>
           </div>
           <div class="check">
             <div class="check__no">۲</div>
             <div>
-              <h3 class="check__title">نصب پرواز · زدن لینک</h3>
-              <p class="check__sub">APK از GitHub releases · sideload</p>
+              <h3 class="check__title">نصب پرواز · زدن آدرس</h3>
+              <p class="check__sub">APK را از GitHub بگیرید و نصب کنید، سپس آدرس را بزنید یا بچسبانید</p>
             </div>
-            <span class="check__stamp">خودکار</span>
+            <span class="check__stamp check__stamp--manual">دستی</span>
           </div>
           <div class="check">
             <div class="check__no">۳</div>
@@ -369,7 +373,7 @@
           <div class="check">
             <div class="check__no">۴</div>
             <div>
-              <h3 class="check__title">اتصال · باز کردن Chrome</h3>
+              <h3 class="check__title">زدن «پرواز» · باز کردن Chrome</h3>
               <p class="check__sub">بدون پرچم مرورگر · §۹</p>
             </div>
             <span class="check__stamp check__stamp--manual">دستی</span>
@@ -378,7 +382,7 @@
         <aside class="boarding-pass__stub" style="background:var(--paper-2);border:1.5px solid var(--ink);">
           <div class="row"><span class="label">مسافر</span><span class="value">شما</span></div>
           <div class="row"><span class="label">پرواز</span><span class="value value--big">PVZ ۰۰۱</span></div>
-          <div class="row"><span class="label">گیت</span><span class="value">A · MITM</span></div>
+          <div class="row"><span class="label">گیت</span><span class="value">A · گواهی</span></div>
           <div class="row"><span class="label">سوارشدن</span><span class="value">~ ۳ دقیقه</span></div>
           <div class="boarding-pass__barcode" aria-hidden="true"></div>
         </aside>
@@ -395,7 +399,7 @@
         <span class="slide__kicker">گام ۱ از ۲ · یک‌بار · ~۳۰ ثانیه</span>
       </div>
       <div class="slide__body">
-        <p>در پرواز، روی <strong>باز کردن تنظیمات</strong> بزنید. پرواز فایل <code>parvaz-ca.crt</code> را در پوشهٔ <strong>دانلودها</strong> قرار می‌دهد و تنظیمات اندروید را باز می‌کند. سپس مسیر گوشی خود را دنبال کنید.</p>
+        <p>گواهی فایلی کوچک است که به گوشی می‌گوید برای اتصال‌های امن مرورگر شما به پرواز اعتماد کند. در پرواز روی <strong>بازکردن تنظیمات</strong> بزنید. پرواز یک فایل گواهی ذخیره می‌کند و تنظیمات اندروید را باز می‌کند. اگر فایل را پیدا نکردید، روی <strong>نمایش فایل</strong> بزنید. سپس مسیر گوشی خود را دنبال کنید.</p>
       </div>
       <div class="listing">
         <div class="listing-head"><span>proc · cert.001 · samsung</span><span>One UI 6 / Android 14</span></div>
@@ -403,7 +407,7 @@
 Settings → <span class="hl">Security and privacy</span>
         → <span class="hl">More security settings</span>
         → <span class="hl">Install from device storage</span> → <span class="hl">CA certificate</span>
-        → pick <span class="secret">parvaz-ca.crt</span> from Downloads
+        → جدیدترین فایل <span class="secret">parvaz-ca-…crt</span> را انتخاب کنید (نامش با parvaz-ca- شروع و با .crt تمام می‌شود)
         → enter your PIN / fingerprint
         → tap <span class="hl">Install anyway</span> on the warning</div>
       </div>
@@ -414,12 +418,12 @@ Settings → <span class="hl">Security &amp; privacy</span>
         → <span class="hl">More security &amp; privacy</span>
         → <span class="hl">Encryption &amp; credentials</span>
         → <span class="hl">Install a certificate</span> → <span class="hl">CA certificate</span>
-        → pick <span class="secret">parvaz-ca.crt</span> from Downloads
+        → جدیدترین فایل <span class="secret">parvaz-ca-…crt</span> را انتخاب کنید (نامش با parvaz-ca- شروع و با .crt تمام می‌شود)
         → enter your PIN / fingerprint
         → tap <span class="hl">Install anyway</span> on the warning</div>
       </div>
       <div class="slide__body">
-        <p><strong>پیش‌نیاز:</strong> قفل صفحه (PIN، الگو، رمز) · بدون آن اندروید نصب نمی‌کند. <strong>منو پیدا نمی‌شود؟</strong> در تنظیمات، <code>CA certificate</code> را جستجو کنید. <strong>هشدار اشکالی ندارد</strong> — گواهی روی <em>گوشی شما</em> ساخته شده و کلید خصوصی هرگز از حافظهٔ خصوصی برنامه خارج نمی‌شود.</p>
+        <p><strong>قفل صفحه لازم است</strong> (PIN، الگو یا رمز)، وگرنه اندروید گواهی را نصب نمی‌کند. <strong>منو را پیدا نمی‌کنید؟</strong> در تنظیمات دنبال <code>CA certificate</code> بگردید. <strong>اندروید هشدار نشان می‌دهد.</strong> این طبیعی است: پرواز این گواهی را روی <em>گوشی شما</em> ساخته و کلید خصوصی‌اش در حافظهٔ خصوصی برنامه می‌ماند. روی Install anyway بزنید.</p>
       </div>
     </div>
   </section>
@@ -429,26 +433,26 @@ Settings → <span class="hl">Security &amp; privacy</span>
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§۹</span>
-        <h2 class="slide__title">اتصال · باز کردن Chrome</h2>
+        <h2 class="slide__title">زدن «پرواز» · باز کردن Chrome</h2>
         <span class="slide__kicker">گام ۲ از ۲ · یک‌بار · ~۱۰ ثانیه</span>
       </div>
       <div class="slide__body">
-        <p>روی دکمهٔ تمبر لاستیکی در صفحهٔ اصلی پرواز بزنید. وقتی به <strong>در پرواز</strong> تغییر کرد، <strong>Chrome</strong> را باز کنید و عادی مرور کنید — صفحات HTTPS بدون نیاز به تنظیم بیشتر از روی پرواز عبور می‌کنند. Brave، Edge و Vivaldi هم به همین شکل کار می‌کنند؛ گواهی پرواز که نصب کردید تنها چیزی است که نیاز دارند.</p>
+        <p>روی دکمهٔ <strong>پرواز</strong> در صفحهٔ اصلی بزنید. وقتی به <strong>در پرواز</strong> تغییر کرد، <strong>Chrome</strong> را باز کنید و مثل همیشه مرور کنید. صفحه‌های HTTPS بدون تنظیم بیشتر از پرواز می‌گذرند. برای قطع اتصال دوباره روی دکمه بزنید. Brave، Edge و Vivaldi هم باید همین‌طور کار کنند.</p>
       </div>
       <div class="listing">
         <div class="listing-head"><span>proc · browser.001 · chromium</span><span>یک‌بار · ~۱۰ ث</span></div>
-        <div class="listing-body"><span class="c"># ۱. در پرواز، روی تمبر لاستیکی بزنید.</span>
-<span class="c">    → «پرواز» (طرح) به «در پرواز» (پر · زیتونی) تغییر می‌کند</span>
+        <div class="listing-body"><span class="c"># ۱. در پرواز، روی دکمهٔ «پرواز» بزنید.</span>
+<span class="c">    → دکمهٔ توخالی «پرواز» به دکمهٔ پر «در پرواز» تبدیل می‌شود</span>
 
 <span class="c"># ۲. Chrome را باز کنید (یا Brave / Edge / Vivaldi).</span>
 <span class="c">    → عادی مرور کنید · بدون پرچم، بدون about:config، بدون روت</span>
 
-<span class="c"># ۳. (اختیاری) آزمایش مسیر:</span>
-open <a href="https://wikipedia.org" class="hl">wikipedia.org</a>            <span class="c"># سایت غیرگوگل → از MITM عبور می‌کند</span>
-open <a href="https://www.google.com" class="hl">google.com</a>             <span class="c"># سایت گوگل → مسیر سریع SNI-rewrite</span></div>
+<span class="c"># ۳. (اختیاری) بررسی کنید که کار می‌کند:</span>
+open <a href="https://wikipedia.org" class="hl">wikipedia.org</a>            <span class="c"># از رله می‌گذرد</span>
+open <a href="https://www.google.com" class="hl">google.com</a>             <span class="c"># آن هم از رله می‌گذرد</span></div>
       </div>
       <div class="slide__body">
-        <p><strong>چرا Chrome کار می‌کند:</strong> Chrome در اندروید گواهی نصب‌شدهٔ کاربر را از حافظهٔ سیستم می‌پذیرد، و سیاست Certificate Transparency در Chrome استثنای صریحی برای زنجیره‌هایی دارد که به یک گواهی نصب‌شدهٔ کاربر می‌رسند — بنابراین گواهی برگ پرواز بدون نیاز به تنظیم پذیرفته می‌شود. مرورگرهایی که کار نمی‌کنند، و همچنین محدودیت پهنای‌باند و WebSocket، در §۶ آمده‌اند.</p>
+        <p><strong>چرا Chrome کار می‌کند:</strong> Chrome در اندروید گواهی‌هایی را که در تنظیمات اندروید نصب می‌کنید می‌پذیرد، و بررسی Certificate Transparency آن استثنای صریحی برای گواهی‌هایی دارد که به یکی از آن‌ها می‌رسند. برای همین Chrome گواهی‌هایی را که پرواز می‌سازد بدون تنظیم می‌پذیرد. مرورگرهایی که کار نمی‌کنند و محدودیت‌های سرعت و WebSocket در §۶ آمده‌اند.</p>
       </div>
     </div>
   </section>
@@ -459,27 +463,27 @@ open <a href="https://www.google.com" class="hl">google.com</a>             <spa
       <div class="slide__head">
         <span class="slide__num">§۱۰</span>
         <h2 class="slide__title">طرح‌وارهٔ بدنه</h2>
-        <span class="slide__kicker">توپولوژی monorepo · Kotlin + Go</span>
+        <span class="slide__kicker">برای توسعه‌دهندگان · چیدمان کد</span>
       </div>
       <div class="schematic">
         <div class="schematic-head">
           <span><strong>Sheet 10</strong> · Monorepo topology</span>
-          <span>MIT · Android 7.0+</span>
+          <span>MIT · Android 11+</span>
         </div>
         <pre class="schematic-body">parvaz/
 ├── <span class="hl">app/</span>             kotlin + compose UI · VpnService · tun2socks
-│                 · sidecar launcher · MITM CA install · NOTAM
+│                 · sidecar launcher · certificate install
 ├── <span class="hl">core/</span>            go SOCKS5 sidecar
 │   ├── <span class="hl">fronter/</span>     TLS-with-custom-SNI dialer + HTTP client
 │   ├── <span class="hl">protocol/</span>    Apps Script JSON envelope encode/decode
 │   ├── <span class="hl">codec/</span>       gzip / br / zstd decoders
 │   ├── <span class="hl">relay/</span>       envelope + fronted client glue
-│   ├── <span class="hl">mitm/</span>        (next) CA + leaf certs + TLS server
-│   ├── <span class="hl">dispatcher/</span>  (next) SNI-rewrite vs MITM+relay decision
+│   ├── <span class="hl">mitm/</span>        CA + leaf certs + TLS server
+│   ├── <span class="hl">dispatcher/</span>  routing decision: direct, SNI rewrite or relay
 │   ├── <span class="hl">socks5/</span>      local SOCKS5 listener on :1080
 │   └── <span class="hl">cmd/parvazd/</span> sidecar main → libparvaz.so (per ABI)
 ├── reference/      MasterHttpRelayVPN · upstream python (read-only)
-└── website/        bilingual GitHub Pages
+└── website/        GitHub Pages (English, Persian, Danish)
 
 <span class="note">· core is called from app via ProcessBuilder, not JNI</span>
 <span class="note">· one apk + one Code.gs drop-in + one release tag</span>
@@ -494,11 +498,11 @@ open <a href="https://www.google.com" class="hl">google.com</a>             <spa
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§۱۱</span>
-        <h2 class="slide__title">دوست آشنا · استقرار رله</h2>
+        <h2 class="slide__title">آشنای فنی · استقرار رله</h2>
         <span class="slide__kicker">~۵ دقیقه · یک‌بار · فقط برای فرد فنی</span>
       </div>
       <div class="slide__body">
-        <p>اگر شما <strong>دوست آشنا به‌فن</strong> هستید که پرواز را برای کس دیگری راه‌اندازی می‌کنید، استقرار یک‌بارهٔ Apps Script در ادامه آمده‌است. کاربر نهایی هرگز script.google.com را باز نمی‌کند.</p>
+        <p>اگر شما <strong>آشنای فنی</strong> هستید که پرواز را برای کس دیگری راه‌اندازی می‌کنید، استقرار یک‌بارهٔ Apps Script در ادامه آمده است. کسی که کمکش می‌کنید هرگز script.google.com را باز نمی‌کند.</p>
       </div>
       <div class="listing">
         <div class="listing-head"><span>proc · relay.deploy.001</span><span>script.google.com · ~۵ دقیقه</span></div>
@@ -535,15 +539,16 @@ parvaz://<span class="hl">&lt;deployment-id&gt;</span>/<span class="hl">&lt;AUTH
 <span class="c"># نمونهٔ واقعی:</span>
 parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
 
-<span class="c"># ۷. فقط از طریق پیام‌رسان امن به اشتراک بگذارید — این URL کلید را در خود دارد</span>
-✓ Signal   · رمزنگاری سرتاسری · پیشنهاد می‌شود
-✓ Telegram · ترجیحاً Secret Chat
-✗ WhatsApp · بکاپ ابری متا قابل خوانش است → هرگز
-✗ SMS      · اپراتور می‌خواند            → هرگز
-✗ Email    · سرور می‌خواند               → هرگز</div>
+<span class="c"># ۷. فقط از طریق پیام‌رسان امن بفرستید: این آدرس کلید را در خود دارد</span>
+✓ Signal               · رمزنگاری سرتاسری · پیشنهاد می‌شود
+✓ Telegram Secret Chat · رمزنگاری سرتاسری
+✗ Telegram regular chat · رمزنگاری سرتاسری ندارد → هرگز
+✗ WhatsApp             · پشتیبان چت‌ها اگر رمزگذاری‌شده نباشد قابل خواندن است → پرهیز کنید
+✗ SMS                  · اپراتور می‌خواند → هرگز
+✗ Email                · سرور می‌خواند → هرگز</div>
       </div>
       <div class="slide__body">
-        <p><strong>سهمیه:</strong> ~۲۰هزار UrlFetch / روز · ۳۰ ثانیه هر فراخوان · ۶ دقیقه هر اجرا. <strong>یک رله به ازای هر حساب گوگل</strong> (TOS اپس‌اسکریپت). <strong>تست:</strong> Web app URL را در مرورگر باز کنید — باید <code>{"e":"unauthorized"}</code> ببینید (دلیل بر اینکه استقرار زنده است و درخواست بدون احراز هویت را رد می‌کند). <strong>منبع:</strong> <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">apps_script/Code.gs</a> · <a href="https://developers.google.com/apps-script/guides/web">Apps Script · Web Apps</a>.</p>
+        <p><strong>محدودیت‌ها:</strong> حساب گوگل رایگان روزانه ۲۰٬۰۰۰ فراخوان URL Fetch دارد که بین همهٔ اسکریپت‌هایش مشترک است. هر اجرای اسکریپت حداکثر ۶ دقیقه طول می‌کشد. پرواز تا ۳۰ ثانیه منتظر پاسخ رله می‌ماند. از حسابی استفاده کنید که کنترلش با شماست و شرایط گوگل را رعایت کنید. <strong>آزمایش:</strong> Web app URL را در مرورگر باز کنید. باید صفحه‌ای با «Welcome» و «This application is running normally.» ببینید. این نشان می‌دهد استقرار زنده است. AUTH_KEY را آزمایش نمی‌کند. <strong>منبع:</strong> <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">apps_script/Code.gs</a> · <a href="https://developers.google.com/apps-script/guides/web">Apps Script · Web Apps</a>.</p>
       </div>
     </div>
   </section>
@@ -568,9 +573,9 @@ parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
           </div>
         </div>
         <div class="depart__cta">
-          <h2>مجاز برای برخاستن.</h2>
-          <p>پرواز فقط نیمهٔ <em>کلاینت</em> MasterHttpRelayVPN را جایگزین می‌کند. سرور Apps Script همان <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">Code.gs</a> اصلی است که خودتان روی حساب گوگل خود مستقر می‌کنید.</p>
-          <p>اگر به ظاهر فارسی NOTAM نیاز ندارید، پورت بالغ‌تر <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> امروز با APK‌های آمادهٔ ساخت و راهنمای انگلیسی و فارسی در دسترس است.</p>
+          <h2>برای نصب آماده است.</h2>
+          <p>پرواز فقط نیمهٔ <em>کلاینت</em> MasterHttpRelayVPN را جایگزین می‌کند. رله همان <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">Code.gs</a> همین مخزن است، بر پایهٔ فایل MasterHttpRelayVPN با تغییرهای پرواز. آن را روی حساب گوگل خودتان مستقر کنید.</p>
+          <p>اگر برنامه‌ای که پیش‌فرضش فارسی باشد لازم ندارید، <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> فایل‌های APK ازپیش‌ساخته و راهنمای انگلیسی و فارسی دارد.</p>
           <div class="bp-tabs">
             <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">دانلود APK<span class="stub">PVZ&nbsp;۰۰۱</span></a>
             <a href="https://github.com/cocodedk/parvaz" class="bp-tab">مشاهدهٔ سورس<span class="stub">REPO</span></a>

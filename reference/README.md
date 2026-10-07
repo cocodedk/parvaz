@@ -69,7 +69,7 @@ This is the "relay" that sits on Google's servers and fetches websites for you. 
 1. Open [Google Apps Script](https://script.google.com/) and sign in with your Google account.
 2. Click **New project**.
 3. **Delete** all the default code in the editor.
-4. Open the [`Code.gs`](apps_script/Code.gs) file from this project (under `apps_script/`), **copy everything**, and paste it into the Apps Script editor.
+4. Open the [`Code.gs`](../apps_script/Code.gs) file from this project (under `apps_script/`), **copy everything**, and paste it into the Apps Script editor.
 5. **Important:** Change the password on this line to something only you know:
    ```javascript
    const AUTH_KEY = "your-secret-password-here";
@@ -131,7 +131,7 @@ Set your browser to use the proxy:
 **How to set proxy in common browsers:**
 - **Firefox:** Settings → General → Network Settings → Manual proxy → enter `127.0.0.1` port `8085` for HTTP Proxy → check "Also use this proxy for HTTPS"
 - **Chrome/Edge:** Uses system proxy. Go to Windows Settings → Network → Proxy → Manual setup → enter `127.0.0.1:8085`
-- **Or** use extensions like [FoxyProxy](https://addons.mozilla.org/en-US/firefox/addon/foxyproxy-standard/) or [SwitchyOmega](https://chrome.google.com/webstore/detail/proxy-switchyomega/) for easier switching.
+- **Or** use a proxy-switching extension such as [FoxyProxy](https://addons.mozilla.org/en-US/firefox/addon/foxyproxy-standard/) (Firefox) for easier switching.
 
 ### Step 6: Install the CA Certificate (Required for HTTPS)
 
@@ -170,7 +170,7 @@ Firefox uses its own certificate store, so even after OS-level install you need 
 
 > **Auto-install on startup:** When running in `apps_script` mode the proxy will automatically detect if the CA is not yet trusted and attempt to install it for you. If it succeeds you'll see a confirmation in the log; if it fails (e.g. needs administrator rights) it will print instructions. You can also run `python main.py --install-cert` at any time to (re-)install the certificate.
 
-> ⚠️ **Security note:** This certificate only works locally on your machine. Don't share the `ca/` folder with anyone. If you want to start fresh, delete the `ca/` folder and the tool will generate a new one.
+> ⚠️ **Security note:** Protect the CA private key (`ca/ca.key`). Anyone who holds it can impersonate any website to every device that trusts this CA. Don't share the `ca/` folder with anyone. If you want to start fresh, delete the `ca/` folder and the tool will generate a new one, which you then need to install again.
 
 ---
 
@@ -207,11 +207,11 @@ This project focuses entirely on the **Apps Script** relay — a free Google acc
 
 ### Optional Dependencies
 
-Install everything from [`requirements.txt`](requirements.txt). All listed packages are optional — the proxy runs with no third-party dependencies in basic modes, but without them you lose features:
+Install everything from [`requirements.txt`](requirements.txt). `cryptography` is required: `main.py` imports the MITM module at startup, and that module imports `cryptography`, so the proxy does not start without it. The other packages are optional and add the features listed below:
 
 | Package | Provides |
 |---------|----------|
-| `cryptography` | MITM TLS interception (required for `apps_script` mode with HTTPS sites) |
+| `cryptography` | MITM TLS interception (required to start the proxy) |
 | `h2` | HTTP/2 multiplexing to the Apps Script relay (significantly faster) |
 | `brotli` | Decompression of `Content-Encoding: br` responses |
 | `zstandard` | Decompression of `Content-Encoding: zstd` responses |
@@ -234,7 +234,7 @@ To increase speed, deploy `Code.gs` multiple times to different Apps Script proj
 
 ## Updating the Google Relay
 
-If you change `Code.gs`, you must **create a new deployment** in Google Apps Script (Deploy → New deployment) and **update the `script_id`** in your `config.json`. Just editing the code does not update the live version.
+If you change `Code.gs`, publish a new version of your existing deployment in Google Apps Script (**Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**). The deployment ID stays the same, so `script_id` in your `config.json` does not change. Just editing the code does not update the live version.
 
 ---
 
@@ -274,7 +274,7 @@ python3 main.py --no-cert-check          # Skip automatic CA install check on st
 MasterHttpRelayVPN/
 ├── main.py                    # Entry point: starts the proxy
 ├── config.example.json        # Copy to config.json and fill in your values
-├── requirements.txt           # Optional Python dependencies
+├── requirements.txt           # Python dependencies (cryptography required, the rest optional)
 ├── apps_script/
 │   └── Code.gs                # The relay script you deploy to Google Apps Script
 ├── ca/                        # Generated MITM CA (do NOT share)
@@ -304,9 +304,9 @@ MasterHttpRelayVPN/
 | "unauthorized" error | Make sure `auth_key` in `config.json` matches `AUTH_KEY` in `Code.gs` exactly |
 | Connection timeout | Try a different `google_ip` or check your internet connection |
 | Slow browsing | Deploy multiple `Code.gs` copies and use `script_ids` array for load balancing |
-| `502 Bad JSON` error | Google returned an unexpected response (HTML instead of JSON). Causes: wrong `script_id`, Apps Script daily quota exhausted, or the deployment wasn't re-created after editing `Code.gs`. Check your `script_id` and create a **new deployment** if you recently changed `Code.gs`. |
-| Telegram works on HTTP proxy but not on SOCKS5 | **Expected.** SOCKS5 clients resolve hostnames locally and connect to raw IPs, so Telegram's MTProto-obfuscated bytes reach a blocked IP that we can neither direct-tunnel nor intercept. Configure Telegram as an **HTTP proxy** (`127.0.0.1:8085`) instead — it sends hostnames, which the proxy handles via SNI-rewrite through Google. |
-| Google and YouTube open but YouTube videos don't play and other sites don't load | The connection to `script.google.com` was not successfully established. This is likely caused by an issue with the deployment of `Code.gs` on Google Apps Script, or the daily execution quota has been exhausted. Re-deploy `Code.gs` with a new deployment and verify your `script_id`, or wait until the quota resets (midnight Pacific Time / 10:30 AM Iran Time). |
+| `502 Bad JSON` error | Google returned an unexpected response (HTML instead of JSON). Causes: wrong `script_id`, Apps Script daily quota exhausted, or the deployment wasn't updated with a new version after editing `Code.gs`. Check your `script_id` and, if you recently changed `Code.gs`, publish a **new version** of the deployment (see Updating the Google Relay above). |
+| Telegram works on HTTP proxy but not on SOCKS5 | **Expected.** A SOCKS5 request can carry either a hostname or an IP address, and the proxy accepts both. Telegram's SOCKS5 requests carry raw IPs, so its MTProto-obfuscated bytes reach a blocked IP that we can neither direct-tunnel nor intercept. Configure Telegram as an **HTTP proxy** (`127.0.0.1:8085`) instead — it sends hostnames, which the proxy handles via SNI-rewrite through Google. |
+| Google and YouTube open but YouTube videos don't play and other sites don't load | The connection to `script.google.com` was not successfully established. This is likely caused by an issue with the deployment of `Code.gs` on Google Apps Script, or the daily execution quota has been exhausted. Re-deploy `Code.gs` with a new deployment and verify your `script_id`, or wait until the quota resets (Google resets quotas 24 hours after the first request, not at a fixed clock time). |
 
 ---
 
