@@ -137,11 +137,12 @@ done
 
 echo "=== EN ↔ FA parity ==="
 parity() {
-    local name="$1" pattern="$2"
+    # Optional 3rd argument: how many fewer EN may have than FA (default 0).
+    local name="$1" pattern="$2" fewer="${3:-0}"
     local en=$(grep -c -- "$pattern" /tmp/parvaz-deck-en.html)
     local fa=$(grep -c -- "$pattern" /tmp/parvaz-deck-fa.html)
-    if [[ "$en" -eq "$fa" ]]; then
-        echo "  [parity] ✓ $name  ($en in both)"
+    if [[ "$en" -eq $((fa - fewer)) ]]; then
+        echo "  [parity] ✓ $name  (EN=$en FA=$fa)"
         PASS=$((PASS+1))
     else
         echo "  [parity] ✗ $name  (EN=$en FA=$fa)" >&2
@@ -150,7 +151,9 @@ parity() {
 }
 parity "slide count"          'data-slide='
 parity "solari cells"         'class="solari-board__cell"'
-parity "boarding-pass tabs"   'class="bp-tab'
+# EN has one tab fewer: its "Download APK" tab became the shared install block
+# (cocode-apps), which the Persian page does not carry yet.
+parity "boarding-pass tabs"   'class="bp-tab' 1
 parity "deck-controls cells"  'class="deck-controls__'
 parity "slide heads"          'class="slide__head"'
 parity "trust alert blocks"   'class="deck-alert"'

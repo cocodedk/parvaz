@@ -11,7 +11,7 @@
 A Farsi-first **Android browser tunnel** for Iranian users. A technical
 helper deploys a Google Apps Script one-file relay and shares the
 access link over a **secure messenger (Signal or Telegram — not
-WhatsApp)**; the user installs Parvaz, scans a QR or taps the
+WhatsApp)**; the user installs Parvaz, pastes or taps the
 `parvaz://` link, installs a MITM certificate via Android Settings
 (one-time), then taps one button and browses normally in **Chrome**
 (or any Chromium browser — Brave, Edge, Vivaldi). **Chrome trusts the
@@ -61,6 +61,21 @@ domain-fronting design.
 If the operator is **you** (you deployed your own `Code.gs`) the only
 attack surface is Google's own logging. If the operator is **someone
 else**, every credential you submit is theirs.
+
+## Features
+
+- **Domain fronting** — TLS SNI `www.google.com`, HTTP Host `script.google.com`: DPI sees
+  the front, Google's edge routes by Host.
+- **Farsi-first onboarding** — paste or tap a `parvaz://` link, install the certificate
+  once, tap Connect. Persian is the default language.
+- **Chrome out of the box** — Chrome (and other Chromium browsers: Brave, Edge, Vivaldi)
+  trust the user-installed Parvaz CA on Android with no flags. Native apps still reject
+  user CAs by Android default.
+- **Google fast path** — Google-owned hosts skip Apps Script entirely, through a direct
+  tunnel or an SNI rewrite (YouTube, for one), and use no quota.
+- **Open source** — Kotlin + Compose UI, an embedded Go SOCKS5 sidecar, MIT licence.
+- **No analytics** — no telemetry, no crash reporting, no ads; the access key is kept in
+  `EncryptedSharedPreferences`.
 
 ## Honest scope
 
@@ -117,8 +132,13 @@ only piece they need.
 
 ## Download
 
-[**Download Parvaz.apk (latest)**](https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk)
-· [SHA-256](https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk.sha256)
+<!-- cocode-apps:install:start -->
+- Coming to F-Droid
+- [Download the APK from GitHub](https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk)
+- [Auto-update the GitHub APK with Obtainium](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/cocodedk/parvaz)
+<!-- cocode-apps:install:end -->
+
+[SHA-256 of the latest APK](https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk.sha256)
 · [All releases](https://github.com/cocodedk/parvaz/releases)
 
 CLI install + integrity check (recommended on hostile networks):
@@ -235,7 +255,19 @@ a logger).
 References: [Apps Script · Web Apps](https://developers.google.com/apps-script/guides/web) ·
 [`apps_script/Code.gs`](./apps_script/Code.gs).
 
-## Build from Source
+## Privacy
+
+- Parvaz has no analytics, no telemetry, no crash reporting and no ads. No servers are
+  operated by us, and there are no accounts and no sign-in.
+- Your browser traffic goes through the Google Apps Script relay your helper deployed (or
+  you did), except Google-owned hosts, which are reached directly. **The relay operator can
+  read what goes through the relay in plaintext** — see the trust warning above.
+- The access key is kept in `EncryptedSharedPreferences`. The certificate's private key is
+  generated on your phone and never leaves the app's private storage.
+- Permissions: network access (`INTERNET`, `ACCESS_NETWORK_STATE`), the VPN service, a
+  foreground service, and `POST_NOTIFICATIONS` (Android 13+) for the connected notification.
+
+## Build
 
 **Prerequisites:** Android Studio (latest), JDK 17, Go 1.24+.
 
@@ -291,6 +323,12 @@ Android tests:
 ./gradlew test            # JVM (domain layer)
 ./gradlew connectedCheck  # instrumented (emulator/device)
 ```
+
+## Contributing
+
+Local setup, git hooks, the build and test commands, coding style and the pull request
+checklist are in [CONTRIBUTING.md](./CONTRIBUTING.md). Bugs and ideas go to the
+[issues page](https://github.com/cocodedk/parvaz/issues).
 
 ## Alternative: use MasterHttpRelayVPN-RUST directly
 

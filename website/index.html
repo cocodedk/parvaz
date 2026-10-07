@@ -69,11 +69,27 @@
      100vh, JS-scroll-snapped app shell with no natural document flow to
      place a foot "below" (see the rollout report for why). The deck's own
      language pill/controls link stay: they carry the current slide's #N
-     hash through a language switch, which the frame's own switch can't. -->
+     hash through a language switch, which the frame's own switch can't.
+     The cocode-apps menu sits directly below the frame, in flow too, and
+     script.js adds its height to --frame-h. The cocode-apps footer is the
+     last block of the last slide (the deck has no document end). -->
 <cocode-head project="Parvaz" accent="#122a44" on-accent="#e8dfc6">
   <a href="https://cocode.dk">cocode.dk</a>
   <a href="fa/" hreflang="fa">فارسی</a>
 </cocode-head>
+
+<div class="cocode-menu">
+<!-- cocode-apps:nav:start -->
+<link rel="stylesheet" href="/css/cocode-nav.css">
+<a class="skip" href="#main">Skip to content</a>
+<nav class="cocode-nav" aria-label="Parvaz">
+  <a class="brand" href="/" data-nav="home" aria-current="page"><img src="/img/icon.png" alt="" width="32" height="32">Parvaz</a>
+  <a href="/#how" data-nav="how">How it works</a>
+  <a href="/#install" data-nav="install">Install</a>
+  <a href="https://cocode.dk/" data-nav="more">More apps</a>
+</nav>
+<!-- cocode-apps:nav:end -->
+</div>
 
 <header class="deck-header" role="banner">
   <a href="fa/" class="deck-lang-pill" aria-label="نسخهٔ فارسی">FA · فا</a>
@@ -106,7 +122,7 @@
   </div>
 </header>
 
-<main class="deck-track" id="deck-track">
+<main class="deck-track" id="main" tabindex="-1">
 
   <!-- 01 · TITLE -->
   <section class="slide slide--title" data-slide="1">
@@ -175,7 +191,7 @@
   </section>
 
   <!-- 03 · §2 FLIGHT PATH (5-hop route diagram) -->
-  <section class="slide slide--route" data-slide="3">
+  <section class="slide slide--route" id="how" data-slide="3">
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§2</span>
@@ -550,7 +566,7 @@ parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
   </section>
 
   <!-- 13 · §12 DEPARTURE / GROUND SUPPORT -->
-  <section class="slide slide--depart" data-slide="13">
+  <section class="slide slide--depart" id="install" data-slide="13">
     <div class="slide__content">
       <div class="slide__head">
         <span class="slide__num">§12</span>
@@ -572,11 +588,26 @@ parvaz://AKfycbyLONGRANDOMTOKEN/7dF9KmY...eY=#رلهٔ‌من
           <h2>Cleared for take-off.</h2>
           <p>Parvaz replaces only the <em>client</em> half of MasterHttpRelayVPN. The Apps Script server is the upstream <a href="https://github.com/cocodedk/parvaz/blob/main/apps_script/Code.gs">Code.gs</a>, unchanged — deploy it to your own Google account.</p>
           <p>If you don't need the Farsi-first NOTAM UX touches, the mature <a href="https://github.com/therealaleph/MasterHttpRelayVPN-RUST">MasterHttpRelayVPN-RUST</a> port ships today with prebuilt APKs and an English + Persian walkthrough.</p>
+          <!-- cocode-apps:install:start -->
+<ul class="install" role="list">
+  <li><p class="fdroid-soon">Coming to F-Droid</p></li>
+  <li><a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk">Download the APK from GitHub</a></li>
+  <li><a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/cocodedk/parvaz">Auto-update the GitHub APK with Obtainium</a></li>
+</ul>
+<!-- cocode-apps:install:end -->
           <div class="bp-tabs">
-            <a href="https://github.com/cocodedk/parvaz/releases/latest/download/Parvaz.apk" class="bp-tab bp-tab--primary">Download APK<span class="stub">PVZ&nbsp;001</span></a>
             <a href="https://github.com/cocodedk/parvaz" class="bp-tab">View source<span class="stub">REPO</span></a>
           </div>
         </div>
+      </div>
+      <div class="deck-foot">
+        <!-- cocode-apps:footer:start -->
+<footer class="cocode-footer">
+  <a href="https://github.com/cocodedk/parvaz">Source code</a> ·
+  License: MIT ·
+  <a href="https://cocode.dk/">Made by Cocode (cocode.dk)</a>
+</footer>
+<!-- cocode-apps:footer:end -->
       </div>
     </div>
   </section>
