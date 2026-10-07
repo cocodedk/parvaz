@@ -22,7 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dk.cocode.parvaz.R
@@ -109,6 +111,8 @@ fun AboutScreen(
                 text = stringResource(R.string.about_no_browser),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Oxblood,
+                // Appears after a tap, so TalkBack must announce it.
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
 
