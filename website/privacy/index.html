@@ -65,7 +65,7 @@
   <p>The app has no permission to read your location, contacts, files, camera or microphone. It saves no list of the addresses you visit.</p>
 
   <h2>Servers the app contacts</h2>
-  <p>While Parvaz is connected, the app contacts the servers below and no others. When it is not connected, it contacts none of them.</p>
+  <p>While Parvaz is connected, the app contacts the servers below and no others. When it is not connected, it contacts none of them. The one other thing the app can start is opening a web page in your browser, when you tap a button in the About screen. That is described under "Web pages you open from About" below.</p>
   <h3>Your relay: script.google.com</h3>
   <p>Parvaz builds the relay's address from the <code>parvaz://</code> link you pasted during setup: <code>https://script.google.com/macros/s/&lt;deployment ID&gt;/exec</code>. The deployment ID is the part of your link that names your relay. Each request goes there as a small message in JSON, a plain text format for data. The message holds the access key, the address, the method, the headers and the body. The relay fetches the website for you, so it has to see all of this.</p>
   <h3>How the connection is made</h3>
@@ -77,6 +77,16 @@
   <p>The relay, not your phone, asks the website for the page (with Apps Script's <code>UrlFetchApp</code>). So the website sees a request from Google's servers. It receives the headers your browser sent, cookies included.</p>
   <h3>Google's own sites</h3>
   <p>Parvaz's code has shortcuts that skip the relay for some Google sites. The domains google.com, googleapis.com, gstatic.com and googleusercontent.com are meant to be reached directly. The domains youtube.com, ytimg.com and ggpht.com are meant to be reached through a Google address. A shortcut is chosen by a site's name, but the tunnel gives Parvaz IP addresses (numbers), not names. So assume these sites go through the relay like any other site.</p>
+  <h3>Web pages you open from About</h3>
+  <p>The About screen has buttons that open web pages. To find it, tap the settings (gear) button, then <strong>About Parvaz</strong>. The buttons are:</p>
+  <ul>
+    <li><strong>See the latest version</strong> opens the newest release on GitHub (github.com/cocodedk/parvaz/releases/latest).</li>
+    <li><strong>Read the privacy policy</strong> opens this page (parvaz.cocode.dk/privacy/).</li>
+    <li><strong>Open the website</strong> opens parvaz.cocode.dk.</li>
+    <li><strong>See the source code on GitHub</strong> opens github.com/cocodedk/parvaz.</li>
+    <li><strong>Report a problem on GitHub</strong> opens github.com/cocodedk/parvaz/issues.</li>
+  </ul>
+  <p>Parvaz itself does not connect to these addresses. Nothing happens until you tap a button. Then Parvaz hands the address to your phone, and your phone opens it in your web browser, or in another app that opens web addresses. That app makes the connection, and the site sees the visit like any other visit. Parvaz sends the site nothing. If no app can open the address, Parvaz shows a message and nothing else happens. If Parvaz is connected when you tap, your browser's secure traffic goes through the relay like any other page, so the relay's operator and Google can see that visit too.</p>
   <h3>Who sees what</h3>
   <dl class="who">
     <dt>Your network</dt>
@@ -88,10 +98,12 @@
     <dt>The websites</dt>
     <dd>A request from Google's servers, with your browser's headers and cookies.</dd>
     <dt>Cocode</dt>
-    <dd>Nothing.</dd>
+    <dd>Nothing from the app.</dd>
+    <dt>Pages you open from About</dt>
+    <dd>GitHub, or parvaz.cocode.dk, sees your visit through your browser, like any website. It follows its own policy. The app sends it nothing.</dd>
   </dl>
   <h3>Nothing else</h3>
-  <p>Parvaz contains no other web address. It does not check for updates, send crash reports or measure how you use it.</p>
+  <p>The only other web addresses in Parvaz are the five behind the About buttons described above, and Parvaz uses them only to hand to your browser when you tap. It does not check for updates, send crash reports or measure how you use it.</p>
 
   <h2>Permissions</h2>
   <ul>
@@ -121,7 +133,7 @@
     <li><strong>The relay's operator</strong> is described under "Who sees what" above.</li>
     <li><strong>The websites you visit</strong> follow their own policies.</li>
     <li><strong>Software inside the app.</strong> The tunnel uses tun2socks, an open-source library (shared code) that moves your phone's traffic into the app. The app also uses Android's standard libraries. It has no analytics, advertising or crash-reporting library and no Google Play services. The tunnel library has a built-in control interface, and Parvaz does not switch it on.</li>
-    <li><strong>The place you download Parvaz from</strong> (GitHub or F-Droid) sees your download under its own policy. The app itself never contacts either.</li>
+    <li><strong>The place you download Parvaz from</strong> (GitHub or F-Droid) sees your download under its own policy. The app itself never contacts either. The About screen can open their pages in your browser when you tap a button.</li>
     <li><strong>This page</strong> loads its style from this site and the shared Cocode header from brand.cocode.dk and cocode.dk. It loads nothing from Google. Other pages on this site may load fonts from Google Fonts.</li>
   </ul>
 
