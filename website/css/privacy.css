@@ -1,0 +1,110 @@
+/* =====================================================================
+   PARVAZ · privacy pages — a plain document page in the site's paper-and-ink look.
+   Tokens and the page background come from 01-base-doc.css, the skip link and
+   44px touch targets from cocode-nav.css. No web fonts are loaded from third parties.
+   ===================================================================== */
+
+body { --gutter: clamp(16px, 5vw, 64px); }
+
+/* The shared menu, below the cocode.dk family frame. */
+.cocode-menu {
+  box-sizing: border-box;
+  padding: 0 var(--gutter);
+  background: var(--paper);
+  border-bottom: 1px solid var(--ink);
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink);
+}
+.cocode-menu .cocode-nav a { text-decoration: none; border-bottom: 0; padding: 0 2px; }
+.cocode-menu .cocode-nav a:hover { color: var(--stamp); background: transparent; }
+.cocode-menu .cocode-nav .brand {
+  font-family: var(--display);
+  font-size: 18px; font-weight: 400; line-height: 1.2;
+  letter-spacing: 0; text-transform: none;
+}
+.cocode-menu .brand img { border-radius: 8px; }
+.cocode-menu .skip:focus { background: var(--ink); color: var(--paper); font-family: var(--mono); letter-spacing: 0.1em; }
+
+/* The document column. */
+.policy {
+  flex: 1;
+  width: 100%; max-width: 46rem;
+  margin: 0 auto;
+  padding: 40px var(--gutter) 24px;
+  font-family: "Ibarra Real Nova", Georgia, "Times New Roman", serif;
+  font-size: 17px; line-height: 1.65;
+  color: var(--ink);
+}
+.policy:focus { outline: none; }
+.policy h1 {
+  font-family: var(--display);
+  font-weight: 400; font-size: clamp(2rem, 7vw, 3rem); line-height: 1;
+  letter-spacing: -0.01em;
+  padding-bottom: 14px; border-bottom: 4px double var(--ink);
+}
+.policy h2 {
+  margin: 40px 0 8px;
+  padding-bottom: 6px; border-bottom: 1px dashed var(--rule);
+  font-family: var(--display);
+  font-weight: 400; font-size: 1.6rem; line-height: 1.15;
+}
+.policy h3 {
+  margin: 22px 0 4px;
+  font-family: var(--mono);
+  font-size: 13px; font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.policy p, .policy ul, .policy dl { margin: 10px 0; }
+.policy ul { padding-inline-start: 1.25em; }
+.policy li { margin: 6px 0; }
+.policy strong { font-weight: 700; }
+.policy code {
+  font-size: 0.82em; overflow-wrap: anywhere;
+  background: var(--paper-3); padding: 1px 5px; border-radius: 1px;
+}
+.policy a { overflow-wrap: anywhere; }
+
+.meta {
+  margin-top: 14px;
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-2);
+}
+.meta code { text-transform: none; letter-spacing: 0; }
+
+/* The one thing every reader must take away. */
+.callout {
+  margin: 18px 0; padding: 12px 16px;
+  border: 1px solid var(--stamp-2); border-inline-start: 5px solid var(--stamp-2);
+  background: rgba(168, 54, 28, 0.06);
+}
+.callout p { margin: 0; }
+
+/* Who sees what: one block per party, so it reads on a phone. */
+.who dt {
+  margin-top: 14px;
+  font-family: var(--mono);
+  font-size: 12px; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--stamp-2);
+}
+.who dd { margin: 2px 0 0; }
+
+.cocode-footer {
+  margin-top: 36px; padding: 4px 0 0;
+  border-top: 4px double var(--ink);
+  font-family: var(--mono);
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-2);
+}
+.cocode-footer a { color: var(--ink); border-bottom: 0; padding: 0 2px; text-decoration: underline dotted var(--ink-3); text-underline-offset: 4px; }
+.cocode-footer a:hover { color: var(--stamp); background: transparent; }
+.foot { max-width: 46rem; width: 100%; margin: 0 auto; padding: 0 var(--gutter) 28px; }
+
+@media (max-width: 780px) {
+  .cocode-menu { font-size: 10px; letter-spacing: 0.12em; }
+  .policy { font-size: 16px; padding-top: 28px; }
+}
