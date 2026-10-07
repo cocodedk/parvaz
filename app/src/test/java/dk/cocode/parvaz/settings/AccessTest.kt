@@ -45,7 +45,7 @@ class AccessTest {
             Access.parse("http://id/key")
             fail("expected AccessParseException")
         } catch (e: AccessParseException) {
-            assertEquals("آدرس باید با parvaz:// شروع شود", e.message)
+            assertEquals(AccessParseError.NOT_PARVAZ_URL, e.error)
         }
     }
 
@@ -55,7 +55,7 @@ class AccessTest {
             Access.parse("parvaz://AKfycbyXYZ")
             fail("expected AccessParseException")
         } catch (e: AccessParseException) {
-            assertEquals("آدرس باید شامل کلید دسترسی باشد", e.message)
+            assertEquals(AccessParseError.NO_KEY, e.error)
         }
     }
 
@@ -65,7 +65,7 @@ class AccessTest {
             Access.parse("parvaz://id/")
             fail("expected AccessParseException")
         } catch (e: AccessParseException) {
-            assertEquals("کلید دسترسی خالی است", e.message)
+            assertEquals(AccessParseError.EMPTY_KEY, e.error)
         }
     }
 
@@ -75,7 +75,7 @@ class AccessTest {
             Access.parse("parvaz:///key")
             fail("expected AccessParseException")
         } catch (e: AccessParseException) {
-            assertEquals("شناسهٔ دسترسی خالی است", e.message)
+            assertEquals(AccessParseError.EMPTY_ID, e.error)
         }
     }
 
@@ -94,5 +94,14 @@ class AccessTest {
     fun emptyDisplayNameBecomesNull() {
         val a = Access.parse("parvaz://id/key#")
         assertNull(a.displayName)
+    }
+
+    @Test
+    fun aSavedParseErrorComesBackByName() {
+        for (error in AccessParseError.entries) {
+            assertEquals(error, AccessParseError.fromName(error.name))
+        }
+        assertNull(AccessParseError.fromName(null))
+        assertNull(AccessParseError.fromName("nonsense"))
     }
 }

@@ -39,7 +39,7 @@ class AccessImportTest {
     @Test
     fun `parvaz url missing key rethrows AccessParseException`() {
         // The extractor deliberately does not swallow parse errors — the
-        // caller (MainActivity) shows the Farsi message to the user.
+        // caller (MainActivity) shows the matching text to the user.
         assertThrows(AccessParseException::class.java) {
             AccessImport.tryExtractFromUri("parvaz://DEP123")
         }

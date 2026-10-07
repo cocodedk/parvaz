@@ -10,6 +10,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import dk.cocode.parvaz.settings.Access
+import dk.cocode.parvaz.settings.AccessParseError
+import dk.cocode.parvaz.ui.about.AboutScreen
 import dk.cocode.parvaz.ui.onboarding.OnboardingHost
 import dk.cocode.parvaz.ui.onboarding.ReadinessScreen
 import dk.cocode.parvaz.ui.settings.SettingsScaffold
@@ -29,18 +31,22 @@ import dk.cocode.parvaz.ui.theme.Paper
  *   - onboarding host otherwise (handles fresh-paste deep links too).
  *
  * The settings sheet is always rendered alongside the route — the gear
- * icon in [SettingsScaffold] is visible from every screen.
+ * icon in [SettingsScaffold] is visible from every screen. Its "About
+ * Parvaz" button opens the About page, which replaces the route (and
+ * the gear) until the user closes it.
  */
 @Composable
 fun AppRoot(
     mainViewModel: MainViewModel,
     pendingParvazUrl: String?,
-    pendingParvazUrlError: String?,
+    pendingParvazUrlError: AccessParseError?,
     activeAccess: Access?,
     onboardingComplete: Boolean,
     onboardingReadinessChecked: Boolean,
     showSettingsSheet: Boolean,
     onSettingsVisibilityChange: (Boolean) -> Unit,
+    showAbout: Boolean,
+    onAboutVisibilityChange: (Boolean) -> Unit,
     onLanguageChange: (String) -> Unit,
     onSaveAccess: (Access) -> Unit,
     onResetAccess: () -> Unit,
@@ -56,6 +62,14 @@ fun AppRoot(
         val hasDeepLink = pendingParvazUrl != null || pendingParvazUrlError != null
         val showMain = activeAccess != null && onboardingComplete && !hasDeepLink
         val checkingReadiness = activeAccess != null && !onboardingReadinessChecked && !hasDeepLink
+        if (showAbout) {
+            AboutScreen(
+                language = currentLanguage,
+                onClose = { onAboutVisibilityChange(false) },
+                modifier = Modifier.padding(padding),
+            )
+            return@Scaffold
+        }
         SettingsScaffold(
             onOpenSettings = { onSettingsVisibilityChange(true) },
             modifier = Modifier.padding(padding),
@@ -89,6 +103,10 @@ fun AppRoot(
                     onLanguageChange(newLang)
                 },
                 onSaveAccess = onSaveAccess,
+                onOpenAbout = {
+                    onSettingsVisibilityChange(false)
+                    onAboutVisibilityChange(true)
+                },
                 onResetAccess = {
                     onSettingsVisibilityChange(false)
                     onResetAccess()

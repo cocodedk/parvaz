@@ -7,10 +7,12 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import dk.cocode.parvaz.R
+import dk.cocode.parvaz.settings.AppLanguages
 import dk.cocode.parvaz.ui.theme.InkSoft
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -19,10 +21,7 @@ fun LanguageSection(
     currentLanguage: String,
     onLanguageChange: (String) -> Unit,
 ) {
-    val options = listOf(
-        "fa" to stringResource(R.string.settings_language_fa),
-        "en" to stringResource(R.string.settings_language_en),
-    )
+    val options = AppLanguages.all.map { it to stringResource(languageLabelRes(it)) }
     Text(
         text = stringResource(R.string.settings_language_label),
         style = MaterialTheme.typography.titleMedium,
@@ -39,4 +38,12 @@ fun LanguageSection(
             }
         }
     }
+}
+
+/** The name of a language in that language, as shown in the picker and on the onboarding toggle. */
+@StringRes
+fun languageLabelRes(code: String): Int = when (code) {
+    "en" -> R.string.settings_language_en
+    "da" -> R.string.settings_language_da
+    else -> R.string.settings_language_fa
 }

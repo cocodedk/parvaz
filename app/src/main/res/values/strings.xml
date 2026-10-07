@@ -19,6 +19,11 @@
     <string name="import_scan_cta">اسکن QR</string>
     <string name="import_field_hint">parvaz://…</string>
     <string name="import_submit_cta">ادامه</string>
+    <!-- Moved here from Access.kt, where these four messages were hard-coded. The Persian text is unchanged. -->
+    <string name="import_error_not_parvaz_url">آدرس باید با parvaz:// شروع شود</string>
+    <string name="import_error_no_key">آدرس باید شامل کلید دسترسی باشد</string>
+    <string name="import_error_empty_id">شناسهٔ دسترسی خالی است</string>
+    <string name="import_error_empty_key">کلید دسترسی خالی است</string>
 
     <!-- CA install -->
     <string name="ca_install_title">نصب گواهی</string>
@@ -78,6 +83,7 @@
     <string name="settings_language_label">زبان</string>
     <string name="settings_language_fa">فارسی</string>
     <string name="settings_language_en">English</string>
+    <string name="settings_language_da">Dansk</string>
     <string name="settings_reset_access_label">بازنشانی دسترسی</string>
     <string name="settings_reset_access_body">با بازنشانی، پرواز دسترسی شما را فراموش می‌کند و به مرحلهٔ نخست برمی‌گردد</string>
     <string name="settings_reset_access_cta">بازنشانی</string>
@@ -92,6 +98,33 @@
     <string name="settings_url_input_hint">parvaz://…</string>
     <string name="settings_url_save_cta">ذخیره</string>
     <string name="settings_url_saved_label">ذخیره شد</string>
+
+    <!-- About page. New text: the Persian below is a first draft for a native speaker to review. -->
+    <string name="settings_about_cta">دربارهٔ پرواز</string>
+    <string name="about_title">دربارهٔ پرواز</string>
+    <string name="about_close_cta">بستن</string>
+    <string name="about_name_version_title">نام و نسخه</string>
+    <string name="about_version">نسخهٔ %1$s</string>
+    <string name="about_updates_hint">پرواز خودش هرگز به‌روزرسانی را بررسی نمی‌کند. دکمهٔ زیر صفحهٔ جدیدترین نسخه را در مرورگر شما باز می‌کند.</string>
+    <string name="about_check_updates">دیدن آخرین نسخه</string>
+    <string name="about_what_title">پرواز چه می‌کند</string>
+    <string name="about_what_body">پرواز به شما کمک می‌کند وب‌سایت‌هایی را باز کنید که شبکه‌تان مسدود کرده است. آن را با Chrome یا مرورگری دیگر مبتنی بر Chromium، مانند Brave، Edge یا Vivaldi، به کار می‌برید. پرواز ترافیک مرورگر شما را به یک رله می‌فرستد. رله برنامه‌ای کوچک روی یک حساب گوگل است که خودتان یا یک رابط فنی مورد اعتماد آن را راه‌اندازی می‌کند. رله وب‌سایت‌ها را به‌جای شما دریافت می‌کند. بیشتر اپلیکیشن‌های دیگر، مانند بانک، پیام‌رسان و استریمینگ، گواهی‌ای را که هنگام راه‌اندازی نصب می‌کنید نمی‌پذیرند و از طریق پرواز کار نمی‌کنند.</string>
+    <string name="about_privacy_title">حریم خصوصی</string>
+    <string name="about_privacy_relay">گردانندهٔ رله و گوگل می‌توانند هر چیزی را که از رله می‌گذرد بخوانند. این شامل نشانی سایت‌هایی که باز می‌کنید، کوکی‌ها و هر چیزی است که در فرم‌ها می‌نویسید، از جمله رمزها. پرواز را فقط با رله‌ای به کار ببرید که کاملاً به آن اعتماد دارید.</string>
+    <string name="about_privacy_cocode">کوکد برای پرواز هیچ سروری ندارد و از برنامه هیچ چیزی دریافت نمی‌کند. پرواز حساب کاربری، آمارگیری، تبلیغات و گزارش خرابی ندارد. کلید دسترسی شما روی گوشی‌تان در حافظهٔ رمزگذاری‌شده ذخیره می‌شود.</string>
+    <string name="about_privacy_link">خواندن سیاست حریم خصوصی</string>
+    <string name="about_links_title">پیوندها</string>
+    <string name="about_website">باز کردن وب‌سایت</string>
+    <string name="about_source">دیدن کد منبع در گیت‌هاب</string>
+    <string name="about_report_hint">گزارش‌های گیت‌هاب عمومی هستند. آدرس parvaz:// یا کلید دسترسی خود را در آن‌ها ننویسید.</string>
+    <string name="about_report">گزارش مشکل در گیت‌هاب</string>
+    <string name="about_no_browser">هیچ برنامه‌ای روی این گوشی نمی‌تواند پیوند را باز کند. یک مرورگر وب نصب کنید و دوباره تلاش کنید.</string>
+    <string name="about_credits_title">سپاس‌ها و مجوزها</string>
+    <string name="about_license">پرواز نرم‌افزار آزاد است. طبق مجوز MIT می‌توانید آن را به کار ببرید، بخوانید، تغییر دهید و پخش کنید.</string>
+    <string name="about_credit_upstream">بخش کاربر پرواز بازنویسی MasterHttpRelayVPN از Amin Mahmoudi است.</string>
+    <string name="about_credit_tun2socks">تونل از tun2socks استفاده می‌کند؛ کتابخانه‌ای متن‌باز که ترافیک گوشی شما را به برنامه می‌رساند.</string>
+    <string name="about_credit_androidx">این برنامه با AndroidX و Jetpack Compose ساخته شده است (Apache-2.0).</string>
+    <string name="about_made_by">ساخته‌شده توسط کوکد (cocode.dk)</string>
 
     <!-- VPN notification (ongoing while service runs) -->
     <string name="vpn_notification_channel_name">اتصال پرواز</string>

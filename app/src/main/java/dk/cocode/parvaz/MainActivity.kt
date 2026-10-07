@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import dk.cocode.parvaz.onboarding.isOnboardingStillReady
 import dk.cocode.parvaz.settings.Access
 import dk.cocode.parvaz.settings.AccessImport
+import dk.cocode.parvaz.settings.AccessParseError
 import dk.cocode.parvaz.settings.AccessParseException
 import dk.cocode.parvaz.settings.ParvazSettings
 import dk.cocode.parvaz.ui.main.AppRoot
@@ -26,17 +27,19 @@ import java.util.Locale
 
 private const val KEY_PENDING_URL = "pending_parvaz_url"
 private const val KEY_PENDING_URL_ERROR = "pending_parvaz_url_error"
+private const val KEY_SHOW_ABOUT = "show_about"
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
     private var pendingParvazUrl by mutableStateOf<String?>(null)
-    private var pendingParvazUrlError by mutableStateOf<String?>(null)
+    private var pendingParvazUrlError by mutableStateOf<AccessParseError?>(null)
 
     private var activeAccess by mutableStateOf<Access?>(null)
     private var onboardingComplete by mutableStateOf(false)
     private var onboardingReadinessChecked by mutableStateOf(true)
     private var showSettingsSheet by mutableStateOf(false)
+    private var showAbout by mutableStateOf(false)
 
     /**
      * Override the base Context's locale with ParvazSettings.language
@@ -66,7 +69,8 @@ class MainActivity : ComponentActivity() {
         // out of the IMPORT step and into MainScreen on every recreate.
         savedInstanceState?.let {
             pendingParvazUrl = it.getString(KEY_PENDING_URL)
-            pendingParvazUrlError = it.getString(KEY_PENDING_URL_ERROR)
+            pendingParvazUrlError = AccessParseError.fromName(it.getString(KEY_PENDING_URL_ERROR))
+            showAbout = it.getBoolean(KEY_SHOW_ABOUT)
         }
         handleDeepLink(intent)
         val settings = ParvazSettings(this)
@@ -87,6 +91,8 @@ class MainActivity : ComponentActivity() {
                     onboardingReadinessChecked = onboardingReadinessChecked,
                     showSettingsSheet = showSettingsSheet,
                     onSettingsVisibilityChange = { showSettingsSheet = it },
+                    showAbout = showAbout,
+                    onAboutVisibilityChange = { showAbout = it },
                     currentLanguage = ParvazSettings(this).language,
                     onLanguageChange = { newLang ->
                         ParvazSettings(this).language = newLang
@@ -134,7 +140,7 @@ class MainActivity : ComponentActivity() {
             }
         } catch (e: AccessParseException) {
             pendingParvazUrl = null
-            pendingParvazUrlError = e.message
+            pendingParvazUrlError = e.error
         }
         // Consume the URI so a later recreate() (e.g. language toggle)
         // doesn't replay it and kick the user back into IMPORT.
@@ -153,6 +159,7 @@ class MainActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         pendingParvazUrl?.let { outState.putString(KEY_PENDING_URL, it) }
-        pendingParvazUrlError?.let { outState.putString(KEY_PENDING_URL_ERROR, it) }
+        pendingParvazUrlError?.let { outState.putString(KEY_PENDING_URL_ERROR, it.name) }
+        outState.putBoolean(KEY_SHOW_ABOUT, showAbout)
     }
 }
