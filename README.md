@@ -11,7 +11,7 @@
 A Farsi-first **Android browser tunnel** for Iranian users. A technical
 helper deploys a Google Apps Script one-file relay and shares the
 access link over a **secure messenger (Signal or Telegram — not
-WhatsApp)**; the user installs Parvaz, scans a QR or taps the
+WhatsApp)**; the user installs Parvaz, pastes or taps the
 `parvaz://` link, installs a MITM certificate via Android Settings
 (one-time), then taps one button and browses normally in **Chrome**
 (or any Chromium browser — Brave, Edge, Vivaldi). **Chrome trusts the
@@ -66,15 +66,14 @@ else**, every credential you submit is theirs.
 
 - **Domain fronting** — TLS SNI `www.google.com`, HTTP Host `script.google.com`: DPI sees
   the front, Google's edge routes by Host.
-- **Farsi-first onboarding** — paste a `parvaz://` URL or scan a QR, install the
-  certificate once, tap Connect. Persian is the default language.
+- **Farsi-first onboarding** — paste or tap a `parvaz://` link, install the certificate
+  once, tap Connect. Persian is the default language.
 - **Chrome out of the box** — Chrome (and other Chromium browsers: Brave, Edge, Vivaldi)
   trust the user-installed Parvaz CA on Android with no flags. Native apps still reject
   user CAs by Android default.
-- **SNI-rewrite fast path** — Google-owned hosts skip Apps Script entirely: direct tunnel,
-  no quota.
+- **Google fast path** — Google-owned hosts skip Apps Script entirely, through a direct
+  tunnel or an SNI rewrite (YouTube, for one), and use no quota.
 - **Open source** — Kotlin + Compose UI, an embedded Go SOCKS5 sidecar, MIT licence.
-  F-Droid and sideload only.
 - **No analytics** — no telemetry, no crash reporting, no ads; the access key is kept in
   `EncryptedSharedPreferences`.
 
@@ -261,7 +260,8 @@ References: [Apps Script · Web Apps](https://developers.google.com/apps-script/
 - Parvaz has no analytics, no telemetry, no crash reporting and no ads. No servers are
   operated by us, and there are no accounts and no sign-in.
 - Your browser traffic goes through the Google Apps Script relay your helper deployed (or
-  you did). **The relay operator can read it in plaintext** — see the trust warning above.
+  you did), except Google-owned hosts, which are reached directly. **The relay operator can
+  read what goes through the relay in plaintext** — see the trust warning above.
 - The access key is kept in `EncryptedSharedPreferences`. The certificate's private key is
   generated on your phone and never leaves the app's private storage.
 - Permissions: network access (`INTERNET`, `ACCESS_NETWORK_STATE`), the VPN service, a
